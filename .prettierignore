@@ -1,0 +1,21 @@
+# 빌드 및 의존성 폴더
+node_modules
+dist
+build
+coverage
+
+# 환경 설정 파일
+.env
+*.lock
+
+# 출력 결과물
+*.min.js
+*.log
+
+# Git 및 OS 관련
+.git
+.DS_Store
+
+# 특정 파일 무시
+*.md
+*.yaml

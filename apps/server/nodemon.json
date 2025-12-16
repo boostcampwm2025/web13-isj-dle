@@ -1,0 +1,8 @@
+{
+  "watch": ["src", ".env", ".env.development"],
+  "ext": "ts,js,json,env",
+  "ignore": ["dist", "node_modules", ".git", ".vscode", ".idea", "*.log", ".DS_Store"],
+  "exec": "NODE_ENV=development nest start",
+  "delay": "200ms",
+  "legacyWatch": true
+}
