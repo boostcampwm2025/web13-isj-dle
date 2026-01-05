@@ -3,7 +3,6 @@ name: CI - Build Test
 on:
   pull_request:
     branches:
-      - feature
       - develop
       - main
     paths:
