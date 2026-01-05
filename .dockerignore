@@ -14,3 +14,7 @@ coverage
 *.md
 README.md
 .github
+
+# SFU (deprecated, 빌드에서 제외)
+apps/sfu
+temp

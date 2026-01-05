@@ -25,7 +25,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
 
 WORKDIR /app/apps/server
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY --from=builder /app/apps/server/dist ./dist
 
