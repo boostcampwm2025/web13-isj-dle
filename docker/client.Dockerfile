@@ -19,7 +19,7 @@ FROM nginx:alpine
 
 COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
 
-COPY docker/client/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
