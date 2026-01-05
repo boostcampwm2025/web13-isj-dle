@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  server:
+    image: ghcr.io/${GITHUB_REPOSITORY}/server:${IMAGE_TAG:-latest}
+    container_name: moyo-server
+    restart: always
+    pull_policy: always
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    networks:
+      - moyo-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 60s
+
+  client:
+    image: ghcr.io/${GITHUB_REPOSITORY}/client:${IMAGE_TAG:-latest}
+    container_name: moyo-client
+    restart: always
+    pull_policy: always
+    ports:
+      - "80:80"
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - moyo-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  moyo-network:
+    driver: bridge
