@@ -1,4 +1,4 @@
-import { AVATAR_ASSETS } from "../model/avatar-asset";
+import { AVATAR_ASSETS } from "../model/assets.types";
 
 type ImageLoader = {
   load: {

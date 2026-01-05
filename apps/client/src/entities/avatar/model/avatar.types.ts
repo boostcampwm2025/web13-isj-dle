@@ -1,4 +1,4 @@
-import type { AvatarAssetKey } from "./avatar-asset";
+import type { AvatarAssetKey } from "./assets.types";
 
 export type AvatarDirection = "up" | "down" | "left" | "right";
 
