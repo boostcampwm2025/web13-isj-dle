@@ -48,14 +48,34 @@ export const PhaserProvider = ({ children }: PhaserProviderProps) => {
   return (
     <PhaserContext.Provider value={{ game }}>
       <div
-        ref={containerRef}
         style={{
+          position: "relative",
           width: "100vw",
           height: "100vh",
           overflow: "hidden",
         }}
-      />
-      {children}
+      >
+        {/* Phaser 게임 캔버스 */}
+        <div
+          ref={containerRef}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+          }}
+        />
+        {/* UI 오버레이 */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        >
+          {children}
+        </div>
+      </div>
     </PhaserContext.Provider>
   );
 };
