@@ -46,6 +46,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     const handleReconnect = (attemptNumber: number) => {
       console.log(`[WebSocket] Reconnected after ${attemptNumber} attempts`);
+      setSocket(socketInstance);
       setIsConnected(true);
     };
 
@@ -60,10 +61,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketInstance.on("reconnect_attempt", handleReconnectAttempt);
     socketInstance.on("reconnect", handleReconnect);
     socketInstance.on("reconnect_failed", handleReconnectFailed);
-
-    if (socketInstance.connected) {
-      handleConnect();
-    }
 
     return () => {
       if (socketRef.current) {
