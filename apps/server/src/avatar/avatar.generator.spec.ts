@@ -1,3 +1,5 @@
+import { AVATAR_ASSETS } from "@shared/types";
+
 import { generateRandomAvatar } from "./avatar.generator";
 
 describe("generateRandomAvatar", () => {
@@ -29,7 +31,6 @@ describe("generateRandomAvatar", () => {
   });
 
   test("반환된 아바타 키로 AVATAR_ASSETS 접근 가능해야 함", () => {
-    const { AVATAR_ASSETS } = require("@shared/types");
     const avatar = generateRandomAvatar();
 
     expect(AVATAR_ASSETS[avatar]).toBeDefined();
