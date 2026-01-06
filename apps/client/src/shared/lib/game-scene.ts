@@ -11,6 +11,10 @@ export class GameScene extends Phaser.Scene {
     super({ key: "GameScene" });
   }
 
+  get mapInfo(): Readonly<typeof this.mapObj> {
+    return this.mapObj;
+  }
+
   preload() {
     this.load.tilemapTiledJSON(this.mapObj.name, this.mapObj.tmjUrl);
   }
