@@ -1,3 +1,6 @@
+import { preloadAvatar } from "../../entities/avatar/lib/preload-avatar";
+import { renderAvatar } from "../../entities/avatar/lib/render-avatar";
+import type { Avatar } from "../../entities/avatar/model/avatar.types";
 import Phaser from "phaser";
 
 export class GameScene extends Phaser.Scene {
@@ -7,12 +10,20 @@ export class GameScene extends Phaser.Scene {
     map: null as Phaser.Tilemaps.Tilemap | null,
   };
 
+  private player?: {
+    container: Phaser.GameObjects.Container;
+    body: Phaser.GameObjects.Sprite;
+    head: Phaser.GameObjects.Sprite;
+  };
+
   constructor() {
     super({ key: "GameScene" });
   }
 
   preload() {
     this.load.tilemapTiledJSON(this.mapObj.name, this.mapObj.tmjUrl);
+
+    preloadAvatar({ load: this.load });
   }
 
   async create() {
@@ -33,8 +44,27 @@ export class GameScene extends Phaser.Scene {
       const scale = Math.min(scaleX, scaleY);
 
       this.cameras.main.setZoom(scale);
+
       this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
     }
+
+    // mockAvatar
+    const avatar: Avatar = {
+      id: "player-1",
+      x: map.widthInPixels / 2,
+      y: map.heightInPixels / 2,
+      currentRoomId: "lobby",
+      direction: "down",
+      assetKey: "ADAM",
+    };
+
+    const { container, body, head } = renderAvatar({
+      scene: this,
+      avatar,
+    });
+
+    container.setDepth(100);
+    this.player = { container, body, head };
   }
 
   async loadTilesets() {
