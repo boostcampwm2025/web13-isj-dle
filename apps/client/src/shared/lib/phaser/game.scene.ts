@@ -1,14 +1,16 @@
-import Phaser from "phaser";
+import { GAME_SCENE_KEY, MAP_NAME, TMJ_URL } from "./game.constants";
+import type { MapObj } from "./game.types";
 
 export class GameScene extends Phaser.Scene {
-  private mapObj = {
-    tmjUrl: "/assets/maps/world.tmj",
-    name: "world_map",
-    map: null as Phaser.Tilemaps.Tilemap | null,
-  };
+  private mapObj: MapObj;
 
   constructor() {
-    super({ key: "GameScene" });
+    super({ key: GAME_SCENE_KEY });
+    this.mapObj = {
+      tmjUrl: TMJ_URL,
+      name: MAP_NAME,
+      map: null,
+    };
   }
 
   get mapInfo(): Readonly<typeof this.mapObj> {
