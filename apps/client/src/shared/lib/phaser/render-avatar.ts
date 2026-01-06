@@ -1,6 +1,7 @@
-import type { Avatar, AvatarDirection } from "../model/avatar.types";
 import { IDLE_BODY_FRAME, IDLE_HEAD_FRAME } from "./avatar-appearance";
 import Phaser from "phaser";
+
+import type { Avatar, AvatarDirection } from "@shared/types";
 
 type RenderAvatarProps = {
   scene: Phaser.Scene;

@@ -1,4 +1,4 @@
-import { AVATAR_ASSETS } from "../model/avatar-assets";
+import { AVATAR_ASSETS } from "@shared/types";
 
 const AVATAR_FRAME_SIZE = 16;
 
