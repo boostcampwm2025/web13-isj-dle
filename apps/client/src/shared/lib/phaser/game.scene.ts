@@ -51,6 +51,9 @@ export class GameScene extends Phaser.Scene {
       map.layers.forEach(({ name }) => {
         const layer = map.createLayer(name, map.tilesets);
         layer!.setDepth(this.mapObj.depthCount++);
+        if (name.includes("Collision")) {
+          layer!.setVisible(false);
+        }
       });
 
       this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
