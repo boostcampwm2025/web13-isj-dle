@@ -23,8 +23,8 @@ export class GameScene extends Phaser.Scene {
       map: null,
       depthCount: 0,
       zoom: {
-        index: 5,
-        levels: [0.75, 1, 1.5, 2, 3, 4, 5, 6, 8],
+        index: 3,
+        levels: [1, 1.5, 2, 3, 4, 5, 6, 8],
       },
     };
   }
