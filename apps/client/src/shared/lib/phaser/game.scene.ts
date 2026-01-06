@@ -22,6 +22,10 @@ export class GameScene extends Phaser.Scene {
       name: MAP_NAME,
       map: null,
       depthCount: 0,
+      zoom: {
+        index: 5,
+        levels: [0.75, 1, 1.5, 2, 3, 4, 5, 6, 8],
+      },
     };
   }
 
@@ -49,14 +53,19 @@ export class GameScene extends Phaser.Scene {
         layer!.setDepth(this.mapObj.depthCount++);
       });
 
-      if (this.cameras.main && map) {
-        const scaleX = this.cameras.main.width / map.widthInPixels;
-        const scaleY = this.cameras.main.height / map.heightInPixels;
-        const scale = Math.min(scaleX, scaleY);
+      this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+      this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
-        this.cameras.main.setZoom(scale);
-        this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
-      }
+      this.input.on(
+        "wheel",
+        (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
+          if (dy == 0) return;
+          if (dy > 0) this.mapObj.zoom.index = Math.max(0, this.mapObj.zoom.index - 1);
+          else this.mapObj.zoom.index = Math.min(this.mapObj.zoom.levels.length - 1, this.mapObj.zoom.index + 1);
+
+          this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+        },
+      );
 
       // mockAvatar
       const avatar: Avatar = {

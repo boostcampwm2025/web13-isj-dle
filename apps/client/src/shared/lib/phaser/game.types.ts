@@ -3,4 +3,8 @@ export type MapObj = {
   name: string;
   map: Phaser.Tilemaps.Tilemap | null;
   depthCount: number;
+  zoom: {
+    index: number;
+    levels: number[];
+  };
 };
