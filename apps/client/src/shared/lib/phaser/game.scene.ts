@@ -50,9 +50,12 @@ export class GameScene extends Phaser.Scene {
 
       map.layers.forEach(({ name }) => {
         const layer = map.createLayer(name, map.tilesets);
-        layer!.setDepth(this.mapObj.depthCount++);
+        if (!layer) throw new Error(`Layer ${name} could not be created.`);
+
+        layer.setDepth(this.mapObj.depthCount++);
         if (name.includes("Collision")) {
-          layer!.setVisible(false);
+          layer.setVisible(false);
+          layer.setCollisionByProperty({ collides: true });
         }
       });
 
