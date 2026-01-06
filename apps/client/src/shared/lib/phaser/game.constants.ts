@@ -27,8 +27,8 @@ export const WALK_BODY_FRAME: Record<AvatarDirection, number[]> = {
 };
 
 export const SIT_BODY_FRAME: Record<AvatarDirection, number> = {
-  down: 0,
-  left: 126,
-  right: 120,
-  up: 1,
+  down: 200,
+  left: 274,
+  right: 264,
+  up: 25,
 };

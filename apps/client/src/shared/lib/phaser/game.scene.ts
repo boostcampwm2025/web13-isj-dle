@@ -3,6 +3,7 @@ import {
   HEAD_FRAME,
   IDLE_BODY_FRAME,
   MAP_NAME,
+  SIT_BODY_FRAME,
   TILE_SIZE,
   TMJ_URL,
   WALK_BODY_FRAME,
@@ -70,6 +71,8 @@ export class GameScene extends Phaser.Scene {
         }
       });
 
+      console.log(map);
+
       this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
       this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
@@ -110,6 +113,7 @@ export class GameScene extends Phaser.Scene {
         down: Phaser.Input.Keyboard.KeyCodes.S,
         left: Phaser.Input.Keyboard.KeyCodes.A,
         right: Phaser.Input.Keyboard.KeyCodes.D,
+        sit: Phaser.Input.Keyboard.KeyCodes.E,
       }) as MoveKeys;
 
       this.keys = keys;
@@ -121,19 +125,33 @@ export class GameScene extends Phaser.Scene {
   update() {
     if (!this.player) return;
 
-    const { container, body } = this.player;
+    const { container, body, state } = this.player;
+
+    if (this.keys?.sit && Phaser.Input.Keyboard.JustDown(this.keys.sit) && state !== "sit") {
+      this.trySit();
+      return;
+    }
     const nextDirection = this.getNextDirection();
 
-    if (nextDirection) {
-      this.move(container, nextDirection);
+    if (state === "sit" && nextDirection) {
+      this.player.state = "idle";
     }
 
-    if (!nextDirection) {
-      this.toIdle(body);
+    if (this.player.state === "sit") {
       return;
     }
 
-    this.toWalk(body, nextDirection);
+    if (nextDirection) {
+      this.move(container, nextDirection);
+      this.toWalk(body, nextDirection);
+      this.player.state = "walk";
+      return;
+    }
+
+    if (this.player.state !== "idle") {
+      this.toIdle(body);
+      this.player.state = "idle";
+    }
   }
 
   // update helper(used by update)
@@ -189,8 +207,53 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private trySit(): void {
+    if (!this.player || !this.mapObj.map) return;
+
+    const map = this.mapObj.map;
+    const { x, y } = this.player.container;
+
+    const tileX = map.worldToTileX(x);
+    const tileY = map.worldToTileY(y + TILE_SIZE);
+
+    if (tileX === null || tileY === null) return;
+
+    for (const layerData of map.layers) {
+      const layer = layerData.tilemapLayer;
+      if (!layer) continue;
+
+      const tile = layer.getTileAt(tileX, tileY);
+      const seatDirection = this.getSeatDirection(tile);
+      if (seatDirection) {
+        const { body } = this.player;
+
+        body.anims.stop();
+        body.setFrame(SIT_BODY_FRAME[seatDirection]);
+        this.player.state = "sit";
+        return;
+      }
+    }
+  }
+
+  private getSeatDirection(tile: Phaser.Tilemaps.Tile | null): AvatarDirection | null {
+    if (!tile) return null;
+
+    const properties = tile.properties;
+    if (properties === null || typeof properties !== "object") return null;
+
+    const type = (properties as { type?: unknown }).type;
+    if (type !== "seat") return null;
+
+    const direction = (properties as { direction?: unknown }).direction;
+    if (direction === "up" || direction === "down" || direction === "left" || direction === "right") {
+      return direction;
+    }
+
+    return null;
+  }
+
   // Create / Setup helpers (used by create)
-  private loadAvatar(avatar: Avatar): Player {
+  loadAvatar(avatar: Avatar): Player {
     if (!this.mapObj.map) {
       throw new Error("Map is not initialized");
     }
@@ -208,7 +271,7 @@ export class GameScene extends Phaser.Scene {
     container.add([body, head]);
     container.setDepth(100);
 
-    return { container, body, head, direction: avatar.direction };
+    return { container, body, head, direction: avatar.direction, state: "idle" };
   }
 
   private getPlayerSpawnPoint() {
@@ -227,7 +290,7 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  private async loadTilesets() {
+  async loadTilesets() {
     const tmjUrl = this.mapObj.tmjUrl;
     const res = await fetch(tmjUrl);
     if (!res.ok) throw new Error(`Failed to fetch tmj: ${res.status}`);

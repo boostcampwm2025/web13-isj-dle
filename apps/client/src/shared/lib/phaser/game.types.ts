@@ -16,6 +16,7 @@ export type Player = {
   body: Phaser.GameObjects.Sprite;
   head: Phaser.GameObjects.Sprite;
   direction: AvatarDirection;
+  state: "idle" | "walk" | "sit"; // Avatar의 state 논의 필요
 };
 
 export type MoveKeys = {
@@ -23,4 +24,5 @@ export type MoveKeys = {
   down: Phaser.Input.Keyboard.Key;
   left: Phaser.Input.Keyboard.Key;
   right: Phaser.Input.Keyboard.Key;
+  sit: Phaser.Input.Keyboard.Key;
 };
