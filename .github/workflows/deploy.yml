@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        app: [ client, server ]
+        app: [client, server]
 
     steps:
       - name: Checkout code
@@ -61,7 +61,7 @@ jobs:
   deploy:
     name: Deploy to Server
     needs: build-and-push
-    runs-on: [ self-hosted, moyo ]
+    runs-on: [self-hosted, moyo]
 
     steps:
       - name: Checkout code

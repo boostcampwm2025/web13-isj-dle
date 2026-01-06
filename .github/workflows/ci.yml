@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        app: [ client, server ]
+        app: [client, server]
 
     steps:
       - name: Checkout code
