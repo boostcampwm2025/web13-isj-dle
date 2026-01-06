@@ -65,6 +65,7 @@ export class GameScene extends Phaser.Scene {
 
     container.setDepth(100);
     this.player = { container, body, head };
+    this.player.container.setPosition(avatar.x, avatar.y);
   }
 
   async loadTilesets() {
