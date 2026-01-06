@@ -1,6 +1,5 @@
-import { GameScene } from "../../shared/lib/game-scene";
-import { PhaserContext } from "./phaser-context";
-import Phaser from "phaser";
+import { getGameConfig } from "../../shared/lib/phaser/game.config";
+import { PhaserContext } from "./use-phaser-game";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
@@ -14,24 +13,7 @@ export const PhaserProvider = ({ children }: PhaserProviderProps) => {
 
   useEffect(() => {
     if (containerRef.current && !game) {
-      const config: Phaser.Types.Core.GameConfig = {
-        type: Phaser.AUTO,
-        parent: containerRef.current,
-        scene: GameScene,
-        pixelArt: true,
-        render: { roundPixels: true },
-        scale: {
-          mode: Phaser.Scale.RESIZE,
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-        },
-        physics: {
-          default: "arcade",
-          arcade: {
-            gravity: { x: 0, y: 0 },
-            debug: true,
-          },
-        },
-      };
+      const config = getGameConfig(containerRef.current);
 
       const gameInstance = new Phaser.Game(config);
       setGame(gameInstance);
