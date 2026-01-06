@@ -5,12 +5,12 @@ import "./styles/index.css";
 
 function App() {
   return (
-    <PhaserProvider>
-      <SidebarProvider>
+    <SidebarProvider>
+      <PhaserProvider>
         <Sidebar />
         {/* UI 레이어 추가 (HUD, Menu 등) */}
-      </SidebarProvider>
-    </PhaserProvider>
+      </PhaserProvider>
+    </SidebarProvider>
   );
 }
 
