@@ -1,15 +1,25 @@
-import { AVATAR_ASSETS } from "../model/assets.types";
+import { AVATAR_ASSETS } from "../model/avatar-assets";
 
-type ImageLoader = {
+const AVATAR_FRAME_SIZE = 16;
+
+type SpriteSheetLoader = {
   load: {
-    image: (key: string, url: string) => void;
+    spritesheet: (
+      key: string,
+      url: string,
+      config: {
+        frameWidth: number;
+        frameHeight: number;
+      },
+    ) => void;
   };
 };
 
-function preloadAvatar(imageLoader: ImageLoader) {
-  Object.values(AVATAR_ASSETS).forEach(({ key, url }) => {
-    imageLoader.load.image(key, url);
+export const preloadAvatar = (loader: SpriteSheetLoader) => {
+  Object.entries(AVATAR_ASSETS).forEach(([avatarKey, { url }]) => {
+    loader.load.spritesheet(avatarKey, url, {
+      frameWidth: AVATAR_FRAME_SIZE,
+      frameHeight: AVATAR_FRAME_SIZE,
+    });
   });
-}
-
-export { preloadAvatar };
+};
