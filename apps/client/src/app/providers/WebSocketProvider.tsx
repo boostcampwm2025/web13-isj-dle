@@ -26,8 +26,8 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     const handleConnect = () => {
       console.log("[WebSocket] Connected:", socketInstance.id);
-      setIsConnected(true);
       setSocket(socketInstance);
+      setIsConnected(true);
     };
 
     const handleDisconnect = (reason: string) => {
@@ -63,10 +63,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     if (socketInstance.connected) {
       handleConnect();
-    } else {
-      setTimeout(() => {
-        setSocket(socketInstance);
-      }, 0);
     }
 
     return () => {
