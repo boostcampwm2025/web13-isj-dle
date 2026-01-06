@@ -6,11 +6,15 @@ RUN npm install -g pnpm@10.20.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/client/package.json ./apps/client/
+COPY packages/shared/package.json ./packages/shared/
 
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY apps/client ./apps/client
 COPY packages ./packages
+
+WORKDIR /app/packages/shared
+RUN pnpm build
 
 WORKDIR /app/apps/client
 RUN pnpm build

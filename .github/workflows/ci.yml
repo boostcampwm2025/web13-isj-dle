@@ -37,6 +37,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Build shared package
+        run: |
+          cd packages/shared
+          pnpm build
+
       - name: Build ${{ matrix.app }}
         id: build
         run: |
@@ -56,22 +61,3 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Comment PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const status = '${{ job.status }}';
-            const app = '${{ matrix.app }}';
-            const emoji = status === 'success' ? '✅' : '❌';
-            const message = `${emoji} CI Build Test (${app}): ${status}\n\n` +
-              `- Build: ${{ steps.build.outcome }}\n` +
-              `- Docker: ${{ steps.docker.outcome }}`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
