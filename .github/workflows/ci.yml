@@ -37,6 +37,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Build shared package
+        run: |
+          cd packages/shared
+          pnpm build
+
       - name: Build ${{ matrix.app }}
         id: build
         run: |
