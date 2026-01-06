@@ -21,6 +21,11 @@ export class GameScene extends Phaser.Scene {
       tmjUrl: TMJ_URL,
       name: MAP_NAME,
       map: null,
+      depthCount: 0,
+      zoom: {
+        index: 3,
+        levels: [1, 1.5, 2, 3, 4, 5, 6, 8],
+      },
     };
   }
 
@@ -43,18 +48,30 @@ export class GameScene extends Phaser.Scene {
 
       map.tilesets.map((ts) => map.addTilesetImage(ts.name));
 
-      map.layers.forEach((layer) => {
-        map.createLayer(layer.name, map.tilesets);
+      map.layers.forEach(({ name }) => {
+        const layer = map.createLayer(name, map.tilesets);
+        if (!layer) throw new Error(`Layer ${name} could not be created.`);
+
+        layer.setDepth(this.mapObj.depthCount++);
+        if (name.includes("Collision")) {
+          layer.setVisible(false);
+          layer.setCollisionByProperty({ collides: true });
+        }
       });
 
-      if (this.cameras.main && map) {
-        const scaleX = this.cameras.main.width / map.widthInPixels;
-        const scaleY = this.cameras.main.height / map.heightInPixels;
-        const scale = Math.min(scaleX, scaleY);
+      this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+      this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
-        this.cameras.main.setZoom(scale);
-        this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
-      }
+      this.input.on(
+        "wheel",
+        (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
+          if (dy == 0) return;
+          if (dy > 0) this.mapObj.zoom.index = Math.max(0, this.mapObj.zoom.index - 1);
+          else this.mapObj.zoom.index = Math.min(this.mapObj.zoom.levels.length - 1, this.mapObj.zoom.index + 1);
+
+          this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+        },
+      );
 
       // mockAvatar
       const avatar: Avatar = {
