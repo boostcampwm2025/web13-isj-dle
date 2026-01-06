@@ -1,13 +1,15 @@
-import { GAME_SCENE_KEY, IDLE_BODY_FRAME, IDLE_HEAD_FRAME, MAP_NAME, TILE_SIZE, TMJ_URL } from "./game.constants";
-import type { MapObj, Player } from "./game.types";
+import { GAME_SCENE_KEY, HEAD_FRAME, IDLE_BODY_FRAME, MAP_NAME, TILE_SIZE, TMJ_URL } from "./game.constants";
+import type { MapObj, MoveKeys, Player } from "./game.types";
 import Phaser from "phaser";
 
-import { AVATAR_ASSETS, Avatar, type AvatarAssetKey } from "@shared/types";
+import { AVATAR_ASSETS, type Avatar, type AvatarAssetKey } from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   private mapObj: MapObj;
-
   private player?: Player;
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private keys?: MoveKeys;
+  private readonly moveSpeed = 1;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -86,6 +88,21 @@ export class GameScene extends Phaser.Scene {
 
       this.player = await this.loadAvatar(avatar);
       if (!this.player) return;
+
+      // keyboard 처리
+      const keyboard = this.input.keyboard;
+      if (!keyboard) return;
+
+      this.cursors = keyboard.createCursorKeys();
+
+      const keys = keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+      }) as MoveKeys;
+
+      this.keys = keys;
     } catch (error) {
       console.error("Error loading tilesets:", error);
     }
@@ -99,7 +116,7 @@ export class GameScene extends Phaser.Scene {
     const spawn = this.getPlayerSpawnPoint();
 
     const bodyFrame = IDLE_BODY_FRAME[avatar.direction];
-    const headFrame = IDLE_HEAD_FRAME[avatar.direction];
+    const headFrame = HEAD_FRAME[avatar.direction];
 
     const container = this.add.container(spawn.x, spawn.y);
 
@@ -124,7 +141,7 @@ export class GameScene extends Phaser.Scene {
     const spawnObj = objectLayer.objects[0];
 
     return {
-      x: (spawnObj.x ?? 0) + TILE_SIZE / 2,
+      x: (spawnObj.x ?? 0) + TILE_SIZE,
       y: (spawnObj.y ?? 0) + TILE_SIZE,
     };
   }
@@ -150,5 +167,27 @@ export class GameScene extends Phaser.Scene {
       this.load.once(Phaser.Loader.Events.FILE_LOAD_ERROR, (file: Phaser.Loader.File) => reject(file));
       this.load.start();
     });
+  }
+
+  update() {
+    if (!this.player) return;
+
+    const { container } = this.player;
+
+    let dx = 0;
+    let dy = 0;
+
+    const left = (this.cursors?.left?.isDown ?? false) || (this.keys?.left?.isDown ?? false);
+    const right = (this.cursors?.right?.isDown ?? false) || (this.keys?.right?.isDown ?? false);
+    const up = (this.cursors?.up?.isDown ?? false) || (this.keys?.up?.isDown ?? false);
+    const down = (this.cursors?.down?.isDown ?? false) || (this.keys?.down?.isDown ?? false);
+
+    if (left) dx -= this.moveSpeed;
+    if (right) dx += this.moveSpeed;
+    if (up) dy -= this.moveSpeed;
+    if (down) dy += this.moveSpeed;
+
+    container.x += dx;
+    container.y += dy;
   }
 }

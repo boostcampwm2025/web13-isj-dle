@@ -14,3 +14,10 @@ export type Player = {
   body: Phaser.GameObjects.Sprite;
   head: Phaser.GameObjects.Sprite;
 };
+
+export type MoveKeys = {
+  up: Phaser.Input.Keyboard.Key;
+  down: Phaser.Input.Keyboard.Key;
+  left: Phaser.Input.Keyboard.Key;
+  right: Phaser.Input.Keyboard.Key;
+};
