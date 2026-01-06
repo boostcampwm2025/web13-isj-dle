@@ -1,3 +1,5 @@
+import { type AvatarDirection } from "@shared/types";
+
 export type MapObj = {
   tmjUrl: string;
   name: string;
@@ -13,6 +15,7 @@ export type Player = {
   container: Phaser.GameObjects.Container;
   body: Phaser.GameObjects.Sprite;
   head: Phaser.GameObjects.Sprite;
+  direction: AvatarDirection;
 };
 
 export type MoveKeys = {

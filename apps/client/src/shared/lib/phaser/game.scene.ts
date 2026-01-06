@@ -1,8 +1,16 @@
-import { GAME_SCENE_KEY, HEAD_FRAME, IDLE_BODY_FRAME, MAP_NAME, TILE_SIZE, TMJ_URL } from "./game.constants";
+import {
+  GAME_SCENE_KEY,
+  HEAD_FRAME,
+  IDLE_BODY_FRAME,
+  MAP_NAME,
+  TILE_SIZE,
+  TMJ_URL,
+  WALK_BODY_FRAME,
+} from "./game.constants";
 import type { MapObj, MoveKeys, Player } from "./game.types";
 import Phaser from "phaser";
 
-import { AVATAR_ASSETS, type Avatar, type AvatarAssetKey } from "@shared/types";
+import { AVATAR_ASSETS, type Avatar, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   private mapObj: MapObj;
@@ -89,6 +97,8 @@ export class GameScene extends Phaser.Scene {
       this.player = await this.loadAvatar(avatar);
       if (!this.player) return;
 
+      this.createAvatarAnimations(avatar.assetKey);
+
       // keyboard 처리
       const keyboard = this.input.keyboard;
       if (!keyboard) return;
@@ -108,7 +118,79 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  loadAvatar(avatar: Avatar): Player {
+  update() {
+    if (!this.player) return;
+
+    const { container, body } = this.player;
+    const nextDirection = this.getNextDirection();
+
+    if (nextDirection) {
+      this.move(container, nextDirection);
+    }
+
+    if (!nextDirection) {
+      this.toIdle(body);
+      return;
+    }
+
+    this.toWalk(body, nextDirection);
+  }
+
+  // update helper(used by update)
+  private getNextDirection(): AvatarDirection | null {
+    const left = (this.cursors?.left?.isDown ?? false) || (this.keys?.left?.isDown ?? false);
+    const right = (this.cursors?.right?.isDown ?? false) || (this.keys?.right?.isDown ?? false);
+    const up = (this.cursors?.up?.isDown ?? false) || (this.keys?.up?.isDown ?? false);
+    const down = (this.cursors?.down?.isDown ?? false) || (this.keys?.down?.isDown ?? false);
+
+    if (left) return "left";
+    if (right) return "right";
+    if (up) return "up";
+    if (down) return "down";
+    return null;
+  }
+
+  private move(container: Phaser.GameObjects.Container, direction: AvatarDirection) {
+    switch (direction) {
+      case "left":
+        container.x -= this.moveSpeed;
+        break;
+      case "right":
+        container.x += this.moveSpeed;
+        break;
+      case "up":
+        container.y -= this.moveSpeed;
+        break;
+      case "down":
+        container.y += this.moveSpeed;
+        break;
+    }
+  }
+
+  private toIdle(body: Phaser.GameObjects.Sprite) {
+    if (!this.player) return;
+    body.anims.stop();
+    body.setFrame(IDLE_BODY_FRAME[this.player.direction]);
+  }
+
+  private toWalk(body: Phaser.GameObjects.Sprite, nextDirection: AvatarDirection) {
+    if (!this.player) return;
+    const animKey = `walk-${body.texture.key}-${nextDirection}`;
+
+    const directionChanged = this.player.direction !== nextDirection;
+    const shouldRestart = directionChanged || !body.anims.isPlaying;
+
+    if (directionChanged) {
+      this.player.direction = nextDirection;
+    }
+
+    if (shouldRestart) {
+      body.anims.play(animKey, true);
+    }
+  }
+
+  // Create / Setup helpers (used by create)
+  private loadAvatar(avatar: Avatar): Player {
     if (!this.mapObj.map) {
       throw new Error("Map is not initialized");
     }
@@ -126,12 +208,11 @@ export class GameScene extends Phaser.Scene {
     container.add([body, head]);
     container.setDepth(100);
 
-    return { container, body, head };
+    return { container, body, head, direction: avatar.direction };
   }
 
   private getPlayerSpawnPoint() {
     const map = this.mapObj.map;
-    console.log(map);
     const objectLayer = map?.getObjectLayer("ObjectLayer-Spawn");
 
     if (!objectLayer || objectLayer.objects.length === 0) {
@@ -146,7 +227,7 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  async loadTilesets() {
+  private async loadTilesets() {
     const tmjUrl = this.mapObj.tmjUrl;
     const res = await fetch(tmjUrl);
     if (!res.ok) throw new Error(`Failed to fetch tmj: ${res.status}`);
@@ -169,25 +250,22 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  update() {
-    if (!this.player) return;
+  private createAvatarAnimations(assetKey: AvatarAssetKey) {
+    const directions: AvatarDirection[] = ["down", "left", "right", "up"];
 
-    const { container } = this.player;
+    directions.forEach((dir) => {
+      const key = `walk-${assetKey}-${dir}`;
+      if (this.anims.exists(key)) return;
 
-    let dx = 0;
-    let dy = 0;
-
-    const left = (this.cursors?.left?.isDown ?? false) || (this.keys?.left?.isDown ?? false);
-    const right = (this.cursors?.right?.isDown ?? false) || (this.keys?.right?.isDown ?? false);
-    const up = (this.cursors?.up?.isDown ?? false) || (this.keys?.up?.isDown ?? false);
-    const down = (this.cursors?.down?.isDown ?? false) || (this.keys?.down?.isDown ?? false);
-
-    if (left) dx -= this.moveSpeed;
-    if (right) dx += this.moveSpeed;
-    if (up) dy -= this.moveSpeed;
-    if (down) dy += this.moveSpeed;
-
-    container.x += dx;
-    container.y += dy;
+      this.anims.create({
+        key: `walk-${assetKey}-${dir}`,
+        frames: WALK_BODY_FRAME[dir].map((frame) => ({
+          key: assetKey,
+          frame,
+        })),
+        frameRate: 8,
+        repeat: -1,
+      });
+    });
   }
 }
