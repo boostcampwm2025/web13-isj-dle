@@ -1,5 +1,5 @@
 import { GameScene } from "../../shared/lib/game-scene";
-import { PhaserContext } from "./phaser-context";
+import { PhaserContext } from "./use-phaser-game";
 import Phaser from "phaser";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
