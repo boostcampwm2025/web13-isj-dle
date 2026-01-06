@@ -1,9 +1,19 @@
 import { GAME_SCENE_KEY, MAP_NAME, TMJ_URL } from "./game.constants";
 import type { MapObj } from "./game.types";
+import { preloadAvatar } from "./preload-avatar";
+import { renderAvatar } from "./render-avatar";
 import Phaser from "phaser";
+
+import type { Avatar } from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   private mapObj: MapObj;
+
+  private player?: {
+    container: Phaser.GameObjects.Container;
+    body: Phaser.GameObjects.Sprite;
+    head: Phaser.GameObjects.Sprite;
+  };
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -20,6 +30,8 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     this.load.tilemapTiledJSON(this.mapObj.name, this.mapObj.tmjUrl);
+
+    preloadAvatar({ load: this.load });
   }
 
   async create() {
@@ -43,6 +55,25 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.setZoom(scale);
         this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
       }
+
+      // mockAvatar
+      const avatar: Avatar = {
+        id: "player-1",
+        x: map.widthInPixels / 2,
+        y: map.heightInPixels / 2,
+        currentRoomId: "lobby",
+        direction: "down",
+        assetKey: "ADAM",
+      };
+
+      const { container, body, head } = renderAvatar({
+        scene: this,
+        avatar,
+      });
+
+      container.setDepth(100);
+      this.player = { container, body, head };
+      this.player.container.setPosition(avatar.x, avatar.y);
     } catch (error) {
       console.error("Error loading tilesets:", error);
     }
