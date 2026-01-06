@@ -20,24 +20,28 @@ export class GameScene extends Phaser.Scene {
   }
 
   async create() {
-    await this.loadTilesets();
+    try {
+      await this.loadTilesets();
 
-    const map = this.make.tilemap({ key: this.mapObj.name });
-    this.mapObj.map = map;
+      const map = this.make.tilemap({ key: this.mapObj.name });
+      this.mapObj.map = map;
 
-    map.tilesets.map((ts) => map.addTilesetImage(ts.name));
+      map.tilesets.map((ts) => map.addTilesetImage(ts.name));
 
-    map.layers.forEach((layer) => {
-      map.createLayer(layer.name, map.tilesets);
-    });
+      map.layers.forEach((layer) => {
+        map.createLayer(layer.name, map.tilesets);
+      });
 
-    if (this.cameras.main && map) {
-      const scaleX = this.cameras.main.width / map.widthInPixels;
-      const scaleY = this.cameras.main.height / map.heightInPixels;
-      const scale = Math.min(scaleX, scaleY);
+      if (this.cameras.main && map) {
+        const scaleX = this.cameras.main.width / map.widthInPixels;
+        const scaleY = this.cameras.main.height / map.heightInPixels;
+        const scale = Math.min(scaleX, scaleY);
 
-      this.cameras.main.setZoom(scale);
-      this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+        this.cameras.main.setZoom(scale);
+        this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+      }
+    } catch (error) {
+      console.error("Error loading tilesets:", error);
     }
   }
 
