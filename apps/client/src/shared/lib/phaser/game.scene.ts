@@ -1,5 +1,6 @@
 import { GAME_SCENE_KEY, MAP_NAME, TMJ_URL } from "./game.constants";
 import type { MapObj } from "./game.types";
+import Phaser from "phaser";
 
 export class GameScene extends Phaser.Scene {
   private mapObj: MapObj;
