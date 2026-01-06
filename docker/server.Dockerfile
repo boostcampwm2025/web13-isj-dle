@@ -6,6 +6,7 @@ RUN npm install -g pnpm@10.20.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
+COPY packages/shared/package.json ./packages/shared/
 
 RUN pnpm install --frozen-lockfile
 
@@ -23,6 +24,7 @@ RUN npm install -g pnpm@10.20.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
+COPY packages/shared/package.json ./packages/shared/
 
 WORKDIR /app/apps/server
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
