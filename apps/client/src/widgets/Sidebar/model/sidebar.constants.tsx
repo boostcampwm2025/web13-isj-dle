@@ -1,6 +1,6 @@
 import type { SidebarItem, SidebarKey } from "./sidebar.types";
 
-export const SIDEBAR_WIDTH = 70;
+export const SIDEBAR_WIDTH = 280;
 export const SIDEBAR_ANIMATION_DURATION = 500;
 
 export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
