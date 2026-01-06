@@ -21,6 +21,7 @@ export class GameScene extends Phaser.Scene {
       tmjUrl: TMJ_URL,
       name: MAP_NAME,
       map: null,
+      depthCount: 0,
     };
   }
 
@@ -43,8 +44,9 @@ export class GameScene extends Phaser.Scene {
 
       map.tilesets.map((ts) => map.addTilesetImage(ts.name));
 
-      map.layers.forEach((layer) => {
-        map.createLayer(layer.name, map.tilesets);
+      map.layers.forEach(({ name }) => {
+        const layer = map.createLayer(name, map.tilesets);
+        layer!.setDepth(this.mapObj.depthCount++);
       });
 
       if (this.cameras.main && map) {
