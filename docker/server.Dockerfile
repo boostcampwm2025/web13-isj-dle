@@ -13,6 +13,9 @@ RUN pnpm install --frozen-lockfile
 COPY apps/server ./apps/server
 COPY packages ./packages
 
+WORKDIR /app/packages/shared
+RUN pnpm build
+
 WORKDIR /app/apps/server
 RUN pnpm build
 

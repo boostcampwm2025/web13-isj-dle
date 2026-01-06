@@ -13,6 +13,9 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY apps/client ./apps/client
 COPY packages ./packages
 
+WORKDIR /app/packages/shared
+RUN pnpm build
+
 WORKDIR /app/apps/client
 RUN pnpm build
 
