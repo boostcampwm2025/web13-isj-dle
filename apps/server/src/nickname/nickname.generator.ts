@@ -6,11 +6,11 @@ export function generateUniqueNickname(isDuplicate: (nickname: string) => boolea
 
   let number = 1;
 
-  let nickname = `${adjective}${noun}${number}`;
+  let nickname = `${adjective} ${noun} ${number}`;
 
   while (isDuplicate(nickname)) {
     number++;
-    nickname = `${adjective}${noun}${number}`;
+    nickname = `${adjective} ${noun} ${number}`;
   }
 
   return nickname;
