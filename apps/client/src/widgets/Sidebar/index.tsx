@@ -36,7 +36,7 @@ const Sidebar = () => {
             <div className="h-full w-full">
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2" />
-              {currentPanel.Panel}
+              <div className="h-[calc(100%-2.5rem)] overflow-y-auto">{currentPanel.Panel}</div>
             </div>
           ) : (
             <div className="text-gray-400">Select a panel</div>
