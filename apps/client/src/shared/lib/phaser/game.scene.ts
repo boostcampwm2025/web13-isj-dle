@@ -29,7 +29,7 @@ export class GameScene extends Phaser.Scene {
       depthCount: 0,
       zoom: {
         index: 3,
-        levels: [1, 1.5, 2, 3, 4, 5, 6, 8],
+        levels: [1, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5],
       },
     };
   }
@@ -71,22 +71,6 @@ export class GameScene extends Phaser.Scene {
         }
       });
 
-      console.log(map);
-
-      this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
-      this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
-
-      this.input.on(
-        "wheel",
-        (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
-          if (dy == 0) return;
-          if (dy > 0) this.mapObj.zoom.index = Math.max(0, this.mapObj.zoom.index - 1);
-          else this.mapObj.zoom.index = Math.min(this.mapObj.zoom.levels.length - 1, this.mapObj.zoom.index + 1);
-
-          this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
-        },
-      );
-
       // mockAvatar
       const avatar: Avatar = {
         id: "player-1",
@@ -99,6 +83,21 @@ export class GameScene extends Phaser.Scene {
 
       this.player = await this.loadAvatar(avatar);
       if (!this.player) return;
+
+      // camera 설정
+      this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+      this.cameras.main.startFollow(this.player.container, true, 1.2, 1.2);
+
+      this.input.on(
+        "wheel",
+        (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
+          if (dy == 0) return;
+          if (dy > 0) this.mapObj.zoom.index = Math.max(0, this.mapObj.zoom.index - 1);
+          else this.mapObj.zoom.index = Math.min(this.mapObj.zoom.levels.length - 1, this.mapObj.zoom.index + 1);
+
+          this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+        },
+      );
 
       this.createAvatarAnimations(avatar.assetKey);
 
