@@ -6,8 +6,8 @@ on:
       - develop
       - main
     paths:
-      - '**'
-      - '.github/workflows/**'
+      - "**"
+      - ".github/workflows/**"
 
 env:
   IMAGE_NAME: moyo-app-test
@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        app: [ client, server ]
+        app: [client, server]
 
     steps:
       - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -68,7 +68,7 @@ jobs:
             const message = `${emoji} CI Build Test (${app}): ${status}\n\n` +
               `- Build: ${{ steps.build.outcome }}\n` +
               `- Docker: ${{ steps.docker.outcome }}`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
