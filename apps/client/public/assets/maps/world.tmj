@@ -9485,9 +9485,43 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":96,
+         "name":"ObjectLayer-Spawn",
+         "objects":[
+                {
+                 "height":0,
+                 "id":28,
+                 "name":"",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"down"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"spawn"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":600,
+                 "y":968
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":96,
- "nextobjectid":28,
+ "nextlayerid":97,
+ "nextobjectid":29,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
