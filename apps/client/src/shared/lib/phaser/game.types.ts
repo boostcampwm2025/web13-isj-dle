@@ -8,3 +8,9 @@ export type MapObj = {
     levels: number[];
   };
 };
+
+export type Player = {
+  container: Phaser.GameObjects.Container;
+  body: Phaser.GameObjects.Sprite;
+  head: Phaser.GameObjects.Sprite;
+};

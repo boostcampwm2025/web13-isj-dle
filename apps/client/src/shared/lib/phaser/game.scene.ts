@@ -1,19 +1,13 @@
-import { GAME_SCENE_KEY, MAP_NAME, TMJ_URL } from "./game.constants";
-import type { MapObj } from "./game.types";
-import { preloadAvatar } from "./preload-avatar";
-import { renderAvatar } from "./render-avatar";
+import { GAME_SCENE_KEY, IDLE_BODY_FRAME, IDLE_HEAD_FRAME, MAP_NAME, TILE_SIZE, TMJ_URL } from "./game.constants";
+import type { MapObj, Player } from "./game.types";
 import Phaser from "phaser";
 
-import type { Avatar } from "@shared/types";
+import { AVATAR_ASSETS, Avatar, type AvatarAssetKey } from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   private mapObj: MapObj;
 
-  private player?: {
-    container: Phaser.GameObjects.Container;
-    body: Phaser.GameObjects.Sprite;
-    head: Phaser.GameObjects.Sprite;
-  };
+  private player?: Player;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -36,7 +30,14 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON(this.mapObj.name, this.mapObj.tmjUrl);
 
-    preloadAvatar({ load: this.load });
+    (Object.keys(AVATAR_ASSETS) as AvatarAssetKey[]).forEach((assetKey) => {
+      const { url } = AVATAR_ASSETS[assetKey];
+
+      this.load.spritesheet(assetKey, url, {
+        frameWidth: TILE_SIZE,
+        frameHeight: TILE_SIZE,
+      });
+    });
   }
 
   async create() {
@@ -83,17 +84,49 @@ export class GameScene extends Phaser.Scene {
         assetKey: "ADAM",
       };
 
-      const { container, body, head } = renderAvatar({
-        scene: this,
-        avatar,
-      });
-
-      container.setDepth(100);
-      this.player = { container, body, head };
-      this.player.container.setPosition(avatar.x, avatar.y);
+      this.player = await this.loadAvatar(avatar);
+      if (!this.player) return;
     } catch (error) {
       console.error("Error loading tilesets:", error);
     }
+  }
+
+  loadAvatar(avatar: Avatar): Player {
+    if (!this.mapObj.map) {
+      throw new Error("Map is not initialized");
+    }
+
+    const spawn = this.getPlayerSpawnPoint();
+
+    const bodyFrame = IDLE_BODY_FRAME[avatar.direction];
+    const headFrame = IDLE_HEAD_FRAME[avatar.direction];
+
+    const container = this.add.container(spawn.x, spawn.y);
+
+    const body = this.add.sprite(0, 16, avatar.assetKey, bodyFrame);
+    const head = this.add.sprite(0, 0, avatar.assetKey, headFrame);
+
+    container.add([body, head]);
+    container.setDepth(100);
+
+    return { container, body, head };
+  }
+
+  private getPlayerSpawnPoint() {
+    const map = this.mapObj.map;
+    console.log(map);
+    const objectLayer = map?.getObjectLayer("ObjectLayer-Spawn");
+
+    if (!objectLayer || objectLayer.objects.length === 0) {
+      throw new Error("Spawn object layer not found");
+    }
+
+    const spawnObj = objectLayer.objects[0];
+
+    return {
+      x: (spawnObj.x ?? 0) + TILE_SIZE / 2,
+      y: (spawnObj.y ?? 0) + TILE_SIZE,
+    };
   }
 
   async loadTilesets() {
