@@ -45,6 +45,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleDisconnect(client: Socket) {
     this.logger.log(`❌ Client disconnected: ${client.id}`);
+    this.userManager.deleteSession(client.id);
     this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
   }
 }

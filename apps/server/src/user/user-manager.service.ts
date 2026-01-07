@@ -39,6 +39,14 @@ export class UserManager {
     return user;
   }
 
+  getSession(id: string): GameUser | undefined {
+    return this.sessions.get(id);
+  }
+
+  getRoomSessions(roomId: string): GameUser[] {
+    return Array.from(this.sessions.values()).filter((user) => user.currentRoomId === roomId);
+  }
+
   getAllSessions(): GameUser[] {
     return Array.from(this.sessions.values());
   }
@@ -84,5 +92,15 @@ export class UserManager {
     this.logger.debug(`Media Updated: ${id} -> (camera: ${cameraOn}, mic: ${micOn})`);
 
     return true;
+  }
+
+  deleteSession(id: string): boolean {
+    const deleted = this.sessions.delete(id);
+    if (deleted) {
+      this.logger.log(`Session deleted: ${id}`);
+    } else {
+      this.logger.warn(`Session not found for deletion: ${id}`);
+    }
+    return deleted;
   }
 }
