@@ -9,23 +9,23 @@ export const AVATAR_FRAME_WIDTH = 16;
 export const AVATAR_FRAME_HEIGHT = 32;
 export const AVATAR_DEPTH = 100;
 
-export const IDLE_BODY_FRAME: Record<AvatarDirection, number> = {
+export const IDLE_FRAME: Record<AvatarDirection, number> = {
   down: 3,
   left: 2,
   right: 0,
   up: 1,
 };
 
-export const WALK_BODY_FRAME: Record<AvatarDirection, number[]> = {
-  down: [138, 139, 140, 141, 142],
-  left: [133, 134, 135, 136, 137],
-  right: [120, 121, 122, 123, 124],
-  up: [126, 127, 128, 129, 130],
+export const WALK_FRAME: Record<AvatarDirection, number[]> = {
+  down: [68, 69, 70],
+  left: [63, 64, 65],
+  right: [51, 52, 53],
+  up: [56, 57, 58],
 };
 
-export const SIT_BODY_FRAME: Record<AvatarDirection, number> = {
-  down: 200,
-  left: 274,
+export const SIT_FRAME: Record<AvatarDirection, number> = {
+  down: 3,
+  left: 126,
   right: 120,
-  up: 25,
+  up: 1,
 };
