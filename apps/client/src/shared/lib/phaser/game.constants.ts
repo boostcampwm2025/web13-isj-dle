@@ -5,6 +5,9 @@ export const TMJ_URL = "/assets/maps/world.tmj";
 export const MAP_NAME = "world_map";
 export const GAME_SCENE_KEY = "GameScene";
 
+export const AVATAR_FRAME_WIDTH = 16;
+export const AVATAR_FRAME_HEIGHT = 32;
+
 export const HEAD_FRAME: Record<AvatarDirection, number> = {
   down: 0,
   left: 2,

@@ -1,4 +1,6 @@
 import {
+  AVATAR_FRAME_HEIGHT,
+  AVATAR_FRAME_WIDTH,
   GAME_SCENE_KEY,
   HEAD_FRAME,
   IDLE_BODY_FRAME,
@@ -45,8 +47,8 @@ export class GameScene extends Phaser.Scene {
       const { url } = AVATAR_ASSETS[assetKey];
 
       this.load.spritesheet(assetKey, url, {
-        frameWidth: TILE_SIZE,
-        frameHeight: TILE_SIZE,
+        frameWidth: AVATAR_FRAME_WIDTH,
+        frameHeight: AVATAR_FRAME_HEIGHT,
       });
     });
   }
