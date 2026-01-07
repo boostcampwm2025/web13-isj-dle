@@ -1,6 +1,6 @@
-import { SIDEBAR_MAP } from "../model/sidebar.constants";
-import type { SidebarKey } from "../model/sidebar.types";
-import { useSidebar } from "../model/use-sidebar";
+import { SIDEBAR_MAP } from "./sidebar.constants";
+import type { SidebarKey } from "./sidebar.types";
+import { useSidebar } from "./use-sidebar";
 
 import { useMemo, useState } from "react";
 
