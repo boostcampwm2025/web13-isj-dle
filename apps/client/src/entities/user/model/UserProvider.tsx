@@ -1,7 +1,8 @@
 import { UserContext } from "./user-context";
-import type { User } from "./user.types";
 
 import { type ReactNode, useCallback, useMemo, useState } from "react";
+
+import type { User } from "@shared/types";
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
