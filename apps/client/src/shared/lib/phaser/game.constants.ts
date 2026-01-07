@@ -7,19 +7,13 @@ export const GAME_SCENE_KEY = "GameScene";
 
 export const AVATAR_FRAME_WIDTH = 16;
 export const AVATAR_FRAME_HEIGHT = 32;
-
-export const HEAD_FRAME: Record<AvatarDirection, number> = {
-  down: 0,
-  left: 2,
-  right: 3,
-  up: 1,
-};
+export const AVATAR_DEPTH = 100;
 
 export const IDLE_BODY_FRAME: Record<AvatarDirection, number> = {
-  down: 27,
-  left: 26,
-  right: 24,
-  up: 25,
+  down: 3,
+  left: 2,
+  right: 0,
+  up: 1,
 };
 
 export const WALK_BODY_FRAME: Record<AvatarDirection, number[]> = {
@@ -32,6 +26,6 @@ export const WALK_BODY_FRAME: Record<AvatarDirection, number[]> = {
 export const SIT_BODY_FRAME: Record<AvatarDirection, number> = {
   down: 200,
   left: 274,
-  right: 264,
+  right: 120,
   up: 25,
 };

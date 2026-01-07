@@ -12,9 +12,7 @@ export type MapObj = {
 };
 
 export type AvatarEntity = {
-  container: Phaser.GameObjects.Container;
-  body: Phaser.GameObjects.Sprite;
-  head: Phaser.GameObjects.Sprite;
+  sprite: Phaser.Physics.Arcade.Sprite;
   direction: AvatarDirection;
   state: AvatarState;
 };

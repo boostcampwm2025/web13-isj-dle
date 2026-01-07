@@ -1,8 +1,8 @@
 import {
+  AVATAR_DEPTH,
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
   GAME_SCENE_KEY,
-  HEAD_FRAME,
   IDLE_BODY_FRAME,
   MAP_NAME,
   SIT_BODY_FRAME,
@@ -20,7 +20,7 @@ export class GameScene extends Phaser.Scene {
   private avatar?: AvatarEntity;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
-  private readonly moveSpeed = 1;
+  private readonly moveSpeed = 100;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -89,7 +89,7 @@ export class GameScene extends Phaser.Scene {
 
       // camera 설정
       this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
-      this.cameras.main.startFollow(this.avatar.container, true, 1.2, 1.2);
+      this.cameras.main.startFollow(this.avatar.sprite, true, 1.2, 1.2);
 
       this.input.on(
         "wheel",
@@ -127,33 +127,23 @@ export class GameScene extends Phaser.Scene {
   update() {
     if (!this.avatar) return;
 
-    const { container, body, state } = this.avatar;
+    const { sprite, state } = this.avatar;
 
-    if (this.keys?.sit && Phaser.Input.Keyboard.JustDown(this.keys.sit) && state !== "sit") {
-      this.trySit();
-      return;
-    }
-    const nextDirection = this.getNextDirection();
+    if (state === "walk") return;
 
-    if (state === "sit" && nextDirection) {
-      this.avatar.state = "idle";
-    }
+    const direction = this.getNextDirection();
 
-    if (this.avatar.state === "sit") {
-      return;
+    if (state === "sit") {
+      if (direction) {
+        this.avatar.state = "idle";
+      } else return;
     }
 
-    if (nextDirection) {
-      this.move(container, nextDirection);
-      this.toWalk(body, nextDirection);
-      this.avatar.state = "walk";
-      return;
-    }
+    if (!direction) return;
 
-    if (this.avatar.state !== "idle") {
-      this.toIdle(body);
-      this.avatar.state = "idle";
-    }
+    this.avatar.state = "walk";
+    this.toWalk(sprite, direction);
+    this.moveOneTile(direction);
   }
 
   // update helper(used by update)
@@ -170,42 +160,45 @@ export class GameScene extends Phaser.Scene {
     return null;
   }
 
-  private move(container: Phaser.GameObjects.Container, direction: AvatarDirection) {
-    switch (direction) {
-      case "left":
-        container.x -= this.moveSpeed;
-        break;
-      case "right":
-        container.x += this.moveSpeed;
-        break;
-      case "up":
-        container.y -= this.moveSpeed;
-        break;
-      case "down":
-        container.y += this.moveSpeed;
-        break;
-    }
+  private moveOneTile(direction: AvatarDirection) {
+    if (!this.avatar) return;
+
+    const { sprite } = this.avatar;
+
+    const dx = direction === "left" ? -TILE_SIZE : direction === "right" ? TILE_SIZE : 0;
+    const dy = direction === "up" ? -TILE_SIZE : direction === "down" ? TILE_SIZE : 0;
+
+    this.tweens.add({
+      targets: sprite,
+      x: sprite.x + dx,
+      y: sprite.y + dy,
+      duration: 150,
+      onComplete: () => {
+        this.avatar!.state = "idle";
+        this.toIdle(sprite);
+      },
+    });
   }
 
-  private toIdle(body: Phaser.GameObjects.Sprite) {
+  private toIdle(sprite: Phaser.Physics.Arcade.Sprite) {
     if (!this.avatar) return;
-    body.anims.stop();
-    body.setFrame(IDLE_BODY_FRAME[this.avatar.direction]);
+    sprite.anims.stop();
+    sprite.setFrame(IDLE_BODY_FRAME[this.avatar.direction]);
   }
 
-  private toWalk(body: Phaser.GameObjects.Sprite, nextDirection: AvatarDirection) {
+  private toWalk(sprite: Phaser.Physics.Arcade.Sprite, nextDirection: AvatarDirection) {
     if (!this.avatar) return;
-    const animKey = `walk-${body.texture.key}-${nextDirection}`;
+    const animKey = `walk-${sprite.texture.key}-${nextDirection}`;
 
     const directionChanged = this.avatar.direction !== nextDirection;
-    const shouldRestart = directionChanged || !body.anims.isPlaying;
+    const shouldRestart = directionChanged || !sprite.anims.isPlaying;
 
     if (directionChanged) {
       this.avatar.direction = nextDirection;
     }
 
     if (shouldRestart) {
-      body.anims.play(animKey, true);
+      sprite.anims.play(animKey, true);
     }
   }
 
@@ -213,7 +206,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.avatar || !this.mapObj.map) return;
 
     const map = this.mapObj.map;
-    const { x, y } = this.avatar.container;
+    const { x, y } = this.avatar.sprite;
 
     const tileX = map.worldToTileX(x);
     const tileY = map.worldToTileY(y + TILE_SIZE);
@@ -227,10 +220,10 @@ export class GameScene extends Phaser.Scene {
       const tile = layer.getTileAt(tileX, tileY);
       const seatDirection = this.getSeatDirection(tile);
       if (seatDirection) {
-        const { body } = this.avatar;
+        const { sprite } = this.avatar;
 
-        body.anims.stop();
-        body.setFrame(SIT_BODY_FRAME[seatDirection]);
+        sprite.anims.stop();
+        sprite.setFrame(SIT_BODY_FRAME[seatDirection]);
         this.avatar.state = "sit";
         return;
       }
@@ -256,24 +249,11 @@ export class GameScene extends Phaser.Scene {
 
   // Create / Setup helpers (used by create)
   loadAvatar(avatar: Avatar): AvatarEntity {
-    if (!this.mapObj.map) {
-      throw new Error("Map is not initialized");
-    }
-
     const spawn = this.getAvatarSpawnPoint();
 
-    const bodyFrame = IDLE_BODY_FRAME[avatar.direction];
-    const headFrame = HEAD_FRAME[avatar.direction];
-
-    const container = this.add.container(spawn.x, spawn.y);
-
-    const body = this.add.sprite(0, 16, avatar.assetKey, bodyFrame);
-    const head = this.add.sprite(0, 0, avatar.assetKey, headFrame);
-
-    container.add([body, head]);
-    container.setDepth(100);
-
-    return { container, body, head, direction: avatar.direction, state: avatar.state };
+    const sprite = this.physics.add.sprite(spawn.x, spawn.y, avatar.assetKey, IDLE_BODY_FRAME[avatar.direction]);
+    sprite.setDepth(AVATAR_DEPTH);
+    return { sprite, direction: avatar.direction, state: avatar.state };
   }
 
   private getAvatarSpawnPoint() {
@@ -287,8 +267,8 @@ export class GameScene extends Phaser.Scene {
     const spawnObj = objectLayer.objects[0];
 
     return {
-      x: (spawnObj.x ?? 0) + TILE_SIZE,
-      y: (spawnObj.y ?? 0) + TILE_SIZE,
+      x: spawnObj.x ?? 0,
+      y: spawnObj.y ?? 0,
     };
   }
 
