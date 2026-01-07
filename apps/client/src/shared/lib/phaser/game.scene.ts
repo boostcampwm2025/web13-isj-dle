@@ -83,7 +83,7 @@ export class GameScene extends Phaser.Scene {
         currentRoomId: "lobby",
         direction: "down",
         state: "idle",
-        assetKey: "AMELIA",
+        assetKey: "BOB",
       };
 
       this.avatar = await this.loadAvatar(avatarModel);
@@ -183,15 +183,43 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // 이동 가능 여부 판단 (Collision layer 기준)
+    if (!this.canMoveTo(inputDirection)) {
+      this.avatar.state = "idle";
+      this.toIdle(sprite, inputDirection);
+      return;
+    }
+
     // 실제 이동 시점
     this.nextMoveAt = time + this.MOVE_INTERVAL;
-
     this.avatar.state = "walk";
     this.avatar.direction = inputDirection;
     this.toWalk(sprite, inputDirection);
     this.moveOneTile(sprite, inputDirection);
   }
 
+  // Movement
+  private canMoveTo(direction: AvatarDirection): boolean {
+    if (!this.avatar) return false;
+
+    const { sprite } = this.avatar;
+
+    const dx = direction === "left" ? -TILE_SIZE : direction === "right" ? TILE_SIZE : 0;
+    const dy = direction === "up" ? -TILE_SIZE : direction === "down" ? TILE_SIZE : 0;
+
+    const tiles = this.getTilesAtWorld(Math.round(sprite.x + dx), Math.round(sprite.y + dy));
+
+    return !tiles.some((tile) => tile.properties?.collides === true);
+  }
+
+  private moveOneTile(sprite: Phaser.Physics.Arcade.Sprite, direction: AvatarDirection) {
+    const dx = direction === "left" ? -TILE_SIZE : direction === "right" ? TILE_SIZE : 0;
+    const dy = direction === "up" ? -TILE_SIZE : direction === "down" ? TILE_SIZE : 0;
+
+    sprite.setPosition(Math.round(sprite.x + dx), Math.round(sprite.y + dy));
+  }
+
+  // Input / Animation
   private getNextDirection(): AvatarDirection | null {
     const left = (this.cursors?.left?.isDown ?? false) || (this.keys?.left?.isDown ?? false);
     const right = (this.cursors?.right?.isDown ?? false) || (this.keys?.right?.isDown ?? false);
@@ -203,12 +231,6 @@ export class GameScene extends Phaser.Scene {
     if (up) return "up";
     if (down) return "down";
     return null;
-  }
-  private moveOneTile(sprite: Phaser.Physics.Arcade.Sprite, direction: AvatarDirection) {
-    const dx = direction === "left" ? -TILE_SIZE : direction === "right" ? TILE_SIZE : 0;
-    const dy = direction === "up" ? -TILE_SIZE : direction === "down" ? TILE_SIZE : 0;
-
-    sprite.setPosition(Math.round(sprite.x + dx), Math.round(sprite.y + dy));
   }
 
   private toIdle(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
@@ -226,19 +248,35 @@ export class GameScene extends Phaser.Scene {
     sprite.setFrame(SIT_FRAME[dir]);
   }
 
-  private getSeatDirectionAtCurrentTile(): AvatarDirection | null {
-    if (!this.avatar || !this.mapObj.map) return null;
-
-    const { sprite } = this.avatar;
+  // Tile helpers
+  private getTilesAtWorld(x: number, y: number): Phaser.Tilemaps.Tile[] {
     const map = this.mapObj.map;
+    if (!map) return [];
 
-    const tileX = map.worldToTileX(Math.round(sprite.x));
-    const tileY = map.worldToTileY(Math.round(sprite.y));
+    const tileX = map.worldToTileX(x);
+    const tileY = map.worldToTileY(y);
+    if (tileX == null || tileY == null) return [];
 
-    if (tileX == null || tileY == null) return null;
+    const tiles: Phaser.Tilemaps.Tile[] = [];
 
     for (const layerData of map.layers) {
-      const tile = layerData.tilemapLayer?.getTileAt(tileX, tileY);
+      const layer = layerData.tilemapLayer;
+      if (!layer) continue;
+
+      const tile = layer.getTileAt(tileX, tileY);
+      if (tile) tiles.push(tile);
+    }
+
+    return tiles;
+  }
+
+  private getSeatDirectionAtCurrentTile(): AvatarDirection | null {
+    if (!this.avatar) return null;
+
+    const { sprite } = this.avatar;
+    const tiles = this.getTilesAtWorld(Math.round(sprite.x), Math.round(sprite.y));
+
+    for (const tile of tiles) {
       const dir = this.getSeatDirection(tile);
       if (dir) return dir;
     }
