@@ -1,5 +1,5 @@
+import { WebSocketProvider } from "../shared/lib/websocket";
 import { PhaserProvider } from "./providers/PhaserProvider";
-import { WebSocketProvider } from "./providers/WebSocketProvider";
 import "./styles/index.css";
 
 function App() {

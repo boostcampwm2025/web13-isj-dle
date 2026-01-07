@@ -1,4 +1,4 @@
-import { WebSocketContext } from "./use-websocket";
+import { WebSocketContext } from "../model/use-websocket.ts";
 import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
