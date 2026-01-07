@@ -18,8 +18,12 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     const socketInstance = io(serverUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionDelay: 300,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 20,
+      randomizationFactor: 0.3,
+      timeout: 15000,
+      autoConnect: true,
     });
 
     socketRef.current = socketInstance;
