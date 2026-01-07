@@ -1,4 +1,4 @@
-import { type AvatarDirection } from "@shared/types";
+import type { AvatarDirection, AvatarState } from "@shared/types";
 
 export type MapObj = {
   tmjUrl: string;
@@ -11,12 +11,12 @@ export type MapObj = {
   };
 };
 
-export type Player = {
+export type AvatarEntity = {
   container: Phaser.GameObjects.Container;
   body: Phaser.GameObjects.Sprite;
   head: Phaser.GameObjects.Sprite;
   direction: AvatarDirection;
-  state: "idle" | "walk" | "sit"; // Avatar의 state 논의 필요
+  state: AvatarState;
 };
 
 export type MoveKeys = {

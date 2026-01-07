@@ -10,14 +10,14 @@ import {
   TMJ_URL,
   WALK_BODY_FRAME,
 } from "./game.constants";
-import type { MapObj, MoveKeys, Player } from "./game.types";
+import type { AvatarEntity, MapObj, MoveKeys } from "./game.types";
 import Phaser from "phaser";
 
 import { AVATAR_ASSETS, type Avatar, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   private mapObj: MapObj;
-  private player?: Player;
+  private avatar?: AvatarEntity;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
   private readonly moveSpeed = 1;
@@ -74,21 +74,22 @@ export class GameScene extends Phaser.Scene {
       });
 
       // mockAvatar
-      const avatar: Avatar = {
-        id: "player-1",
+      const avatarModel: Avatar = {
+        id: "avatar-1",
         x: map.widthInPixels / 2,
         y: map.heightInPixels / 2,
         currentRoomId: "lobby",
         direction: "down",
+        state: "idle",
         assetKey: "ADAM",
       };
 
-      this.player = await this.loadAvatar(avatar);
-      if (!this.player) return;
+      this.avatar = await this.loadAvatar(avatarModel);
+      if (!this.avatar) return;
 
       // camera 설정
       this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
-      this.cameras.main.startFollow(this.player.container, true, 1.2, 1.2);
+      this.cameras.main.startFollow(this.avatar.container, true, 1.2, 1.2);
 
       this.input.on(
         "wheel",
@@ -101,7 +102,7 @@ export class GameScene extends Phaser.Scene {
         },
       );
 
-      this.createAvatarAnimations(avatar.assetKey);
+      this.createAvatarAnimations(avatarModel.assetKey);
 
       // keyboard 처리
       const keyboard = this.input.keyboard;
@@ -124,9 +125,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   update() {
-    if (!this.player) return;
+    if (!this.avatar) return;
 
-    const { container, body, state } = this.player;
+    const { container, body, state } = this.avatar;
 
     if (this.keys?.sit && Phaser.Input.Keyboard.JustDown(this.keys.sit) && state !== "sit") {
       this.trySit();
@@ -135,23 +136,23 @@ export class GameScene extends Phaser.Scene {
     const nextDirection = this.getNextDirection();
 
     if (state === "sit" && nextDirection) {
-      this.player.state = "idle";
+      this.avatar.state = "idle";
     }
 
-    if (this.player.state === "sit") {
+    if (this.avatar.state === "sit") {
       return;
     }
 
     if (nextDirection) {
       this.move(container, nextDirection);
       this.toWalk(body, nextDirection);
-      this.player.state = "walk";
+      this.avatar.state = "walk";
       return;
     }
 
-    if (this.player.state !== "idle") {
+    if (this.avatar.state !== "idle") {
       this.toIdle(body);
-      this.player.state = "idle";
+      this.avatar.state = "idle";
     }
   }
 
@@ -187,20 +188,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   private toIdle(body: Phaser.GameObjects.Sprite) {
-    if (!this.player) return;
+    if (!this.avatar) return;
     body.anims.stop();
-    body.setFrame(IDLE_BODY_FRAME[this.player.direction]);
+    body.setFrame(IDLE_BODY_FRAME[this.avatar.direction]);
   }
 
   private toWalk(body: Phaser.GameObjects.Sprite, nextDirection: AvatarDirection) {
-    if (!this.player) return;
+    if (!this.avatar) return;
     const animKey = `walk-${body.texture.key}-${nextDirection}`;
 
-    const directionChanged = this.player.direction !== nextDirection;
+    const directionChanged = this.avatar.direction !== nextDirection;
     const shouldRestart = directionChanged || !body.anims.isPlaying;
 
     if (directionChanged) {
-      this.player.direction = nextDirection;
+      this.avatar.direction = nextDirection;
     }
 
     if (shouldRestart) {
@@ -209,10 +210,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   private trySit(): void {
-    if (!this.player || !this.mapObj.map) return;
+    if (!this.avatar || !this.mapObj.map) return;
 
     const map = this.mapObj.map;
-    const { x, y } = this.player.container;
+    const { x, y } = this.avatar.container;
 
     const tileX = map.worldToTileX(x);
     const tileY = map.worldToTileY(y + TILE_SIZE);
@@ -226,11 +227,11 @@ export class GameScene extends Phaser.Scene {
       const tile = layer.getTileAt(tileX, tileY);
       const seatDirection = this.getSeatDirection(tile);
       if (seatDirection) {
-        const { body } = this.player;
+        const { body } = this.avatar;
 
         body.anims.stop();
         body.setFrame(SIT_BODY_FRAME[seatDirection]);
-        this.player.state = "sit";
+        this.avatar.state = "sit";
         return;
       }
     }
@@ -254,12 +255,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Create / Setup helpers (used by create)
-  loadAvatar(avatar: Avatar): Player {
+  loadAvatar(avatar: Avatar): AvatarEntity {
     if (!this.mapObj.map) {
       throw new Error("Map is not initialized");
     }
 
-    const spawn = this.getPlayerSpawnPoint();
+    const spawn = this.getAvatarSpawnPoint();
 
     const bodyFrame = IDLE_BODY_FRAME[avatar.direction];
     const headFrame = HEAD_FRAME[avatar.direction];
@@ -272,10 +273,10 @@ export class GameScene extends Phaser.Scene {
     container.add([body, head]);
     container.setDepth(100);
 
-    return { container, body, head, direction: avatar.direction, state: "idle" };
+    return { container, body, head, direction: avatar.direction, state: avatar.state };
   }
 
-  private getPlayerSpawnPoint() {
+  private getAvatarSpawnPoint() {
     const map = this.mapObj.map;
     const objectLayer = map?.getObjectLayer("ObjectLayer-Spawn");
 
