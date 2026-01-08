@@ -9,13 +9,13 @@ interface ProviderProps {
 
 const Providers = ({ children }: ProviderProps) => {
   return (
-    <WebSocketProvider>
-      <UserProvider>
+    <UserProvider>
+      <WebSocketProvider>
         <SidebarProvider>
           <PhaserProvider>{children}</PhaserProvider>
         </SidebarProvider>
-      </UserProvider>
-    </WebSocketProvider>
+      </WebSocketProvider>
+    </UserProvider>
   );
 };
 

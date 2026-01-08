@@ -3,6 +3,9 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import type { User } from "@shared/types";
+import { useUser } from "@src/entities/user";
+
 interface WebSocketProviderProps {
   children: ReactNode;
 }
@@ -11,6 +14,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const { setUser, addUser } = useUser();
 
   useEffect(() => {
     const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
@@ -28,9 +32,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     socketRef.current = socketInstance;
 
-    const handleConnect = () => {
+    const handleConnected = ({ user }: { user: User }) => {
       console.log("[WebSocket] Connected:", socketInstance.id);
       setSocket(socketInstance);
+      setUser(user);
+      addUser(user);
       setIsConnected(true);
     };
 
@@ -59,7 +65,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setIsConnected(false);
     };
 
-    socketInstance.on("connect", handleConnect);
+    socketInstance.on("connected", handleConnected);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("connect_error", handleConnectError);
     socketInstance.on("reconnect_attempt", handleReconnectAttempt);
@@ -76,7 +82,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, []);
+  }, [addUser, setUser]);
 
   return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
 };

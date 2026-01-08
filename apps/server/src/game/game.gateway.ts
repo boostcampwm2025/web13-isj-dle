@@ -49,6 +49,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
+      client.emit("connected", { user });
+
       this.logger.log(`Game user created: ${user.nickname} (${user.avatar.assetKey})`);
     } catch (err) {
       this.logger.error(`Failed to handle connection: ${client.id}`, err instanceof Error ? err.stack : String(err));
