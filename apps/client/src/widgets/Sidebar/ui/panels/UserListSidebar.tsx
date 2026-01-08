@@ -1,6 +1,5 @@
 import { useUser } from "../../../../entities/user";
-
-import { useState } from "react";
+import { UserGroup } from "../../../../shared/ui";
 
 import type { User } from "@shared/types";
 
@@ -42,40 +41,6 @@ const UserListSidebar = () => {
           사용자 초대
         </div>
       </div>
-    </div>
-  );
-};
-
-interface UserGroupProps {
-  users: User[];
-  title: string;
-}
-
-const UserGroup = ({ users, title }: UserGroupProps) => {
-  const [isOpen, setIsOpen] = useState(true);
-
-  if (users.length === 0) return null;
-
-  return (
-    <div className="mb-4">
-      <div className="mb-2 cursor-pointer text-sm font-semibold text-gray-500" onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? "▼" : "▶"} {title}
-      </div>
-      {isOpen && (
-        <div className="flex flex-col gap-1">
-          {users.map((user, index) => (
-            <div
-              key={index}
-              className={`flex flex-row justify-between ${index !== users.length - 1 ? "border-b" : ""} border-gray-200 p-2`}
-            >
-              <div className="font-semibold">{user.nickname}</div>
-              <div>
-                {user.cameraOn ? "📷" : "🚫"} {user.micOn ? "🎤" : "🚫"}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
