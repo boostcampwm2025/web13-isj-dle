@@ -5,9 +5,10 @@ import type { User } from "@shared/types";
 interface UserGroupProps {
   users: User[];
   title: string;
+  userId: string;
 }
 
-const UserGroup = ({ users, title }: UserGroupProps) => {
+const UserGroup = ({ users, title, userId }: UserGroupProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
   if (users.length === 0) return null;
@@ -23,6 +24,9 @@ const UserGroup = ({ users, title }: UserGroupProps) => {
             <div
               key={index}
               className={`flex flex-row justify-between ${index !== users.length - 1 ? "border-b" : ""} border-gray-200 p-2`}
+              style={{
+                backgroundColor: userId === user.id ? "#e0f7fa" : "transparent",
+              }}
             >
               <div className="font-semibold">{user.nickname}</div>
               <div>
