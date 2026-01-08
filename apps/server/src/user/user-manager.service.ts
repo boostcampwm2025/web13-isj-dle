@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-import type { AvatarAssetKey, AvatarDirection, CreateGameUserDto, GameUser } from "@shared/types";
+import type { Avatar, AvatarAssetKey, AvatarDirection, CreateGameUserDto, RoomType, User } from "@shared/types";
 
 import { generateRandomAvatar } from "../avatar/avatar.generator";
 import { generateUniqueNickname } from "../nickname/nickname.generator";
@@ -8,27 +8,33 @@ import { generateUniqueNickname } from "../nickname/nickname.generator";
 @Injectable()
 export class UserManager {
   private readonly logger = new Logger(UserManager.name);
-  private readonly sessions = new Map<string, GameUser>();
+  private readonly sessions = new Map<string, User>();
 
-  createSession(dto: CreateGameUserDto): GameUser {
-    const { id, contactId } = dto;
+  createSession(dto: CreateGameUserDto): User {
+    const { id } = dto;
 
     const isDuplicateNickname = (nickname: string): boolean => {
       return Array.from(this.sessions.values()).some((user) => user.nickname === nickname);
     };
 
     const nickname = generateUniqueNickname(isDuplicateNickname);
-    const avatar: AvatarAssetKey = generateRandomAvatar();
+    const assetKey: AvatarAssetKey = generateRandomAvatar();
+    const avatar: Avatar = {
+      x: 0,
+      y: 0,
+      currentRoomId: "lobby",
+      direction: "down",
+      state: "idle",
+      assetKey,
+    };
 
-    const user: GameUser = {
+    const user: User = {
       id,
-      contactId,
+      contactId: null,
       nickname,
       cameraOn: false,
       micOn: false,
       avatar,
-      position: null,
-      currentRoomId: null,
     };
 
     this.sessions.set(id, user);
@@ -39,15 +45,15 @@ export class UserManager {
     return user;
   }
 
-  getSession(id: string): GameUser | undefined {
+  getSession(id: string): User | undefined {
     return this.sessions.get(id);
   }
 
-  getRoomSessions(roomId: string): GameUser[] {
-    return Array.from(this.sessions.values()).filter((user) => user.currentRoomId === roomId);
+  getRoomSessions(roomId: RoomType): User[] {
+    return Array.from(this.sessions.values()).filter((user) => user.avatar.currentRoomId === roomId);
   }
 
-  getAllSessions(): GameUser[] {
+  getAllSessions(): User[] {
     return Array.from(this.sessions.values());
   }
 
@@ -59,13 +65,13 @@ export class UserManager {
       return false;
     }
 
-    user.position = position;
+    user.avatar = { ...user.avatar, ...position };
     this.logger.debug(`Position updated: ${id} -> (${position.x}, ${position.y}, ${position.direction})`);
 
     return true;
   }
 
-  updateSessionRoom(id: string, roomId: string): boolean {
+  updateSessionRoom(id: string, roomId: RoomType): boolean {
     const user = this.sessions.get(id);
 
     if (!user) {
@@ -73,7 +79,7 @@ export class UserManager {
       return false;
     }
 
-    user.currentRoomId = roomId;
+    user.avatar.currentRoomId = roomId;
     this.logger.debug(`Room Updated: ${id} -> (${roomId})`);
 
     return true;

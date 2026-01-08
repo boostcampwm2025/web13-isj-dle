@@ -1,4 +1,4 @@
-import { generateUniqueNickname } from "./nickname.generator";
+import { generateUniqueNickname } from "src/nickname/nickname.generator";
 
 describe("generateUniqueNickname", () => {
   test("기본 생성: 중복이 없으면 숫자가 1이어야 함", () => {

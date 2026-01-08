@@ -1,15 +1,15 @@
 export const AVATAR_ASSETS = {
   ADAM: {
-    url: "/assets/avatars/Adam_16x16.png",
+    url: "/assets/avatars/Adam.png",
   },
   ALEX: {
-    url: "/assets/avatars/Alex_16x16.png",
+    url: "/assets/avatars/Alex.png",
   },
   AMELIA: {
-    url: "/assets/avatars/Amelia_16x16.png",
+    url: "/assets/avatars/Amelia.png",
   },
   BOB: {
-    url: "/assets/avatars/Bob_16x16.png",
+    url: "/assets/avatars/Bob.png",
   },
 } as const;
 

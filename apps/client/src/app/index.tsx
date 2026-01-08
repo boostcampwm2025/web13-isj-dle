@@ -1,22 +1,17 @@
-import { UserProvider } from "../entities/user/model/UserProvider";
-import { WebSocketProvider } from "../shared/lib/websocket";
-import { Sidebar } from "../widgets/Sidebar";
-import { SidebarProvider } from "../widgets/Sidebar/model/SidebarProvider";
-import { PhaserProvider } from "./providers/PhaserProvider";
+import { Sidebar } from "../widgets/sidebar";
+import Providers from "./providers";
 import "./styles/index.css";
+
+import PhaserLayout from "@src/shared/lib/phaser/ui/PhaserLayout";
 
 function App() {
   return (
-    <WebSocketProvider>
-      <UserProvider>
-        <SidebarProvider>
-          <PhaserProvider>
-            <Sidebar />
-            {/* UI 레이어 추가 (HUD, Menu 등) */}
-          </PhaserProvider>
-        </SidebarProvider>
-      </UserProvider>
-    </WebSocketProvider>
+    <Providers>
+      <PhaserLayout>
+        <Sidebar />
+        {/* UI 레이어 추가 (HUD, Menu 등) */}
+      </PhaserLayout>
+    </Providers>
   );
 }
 

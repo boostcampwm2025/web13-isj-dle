@@ -1,7 +1,8 @@
 import {
-  AVATAR_DEPTH,
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
+  AVATAR_MOVE_SPEED,
+  AVATAR_SNAP_SPEED,
   GAME_SCENE_KEY,
   IDLE_FRAME,
   MAP_NAME,
@@ -20,9 +21,6 @@ export class GameScene extends Phaser.Scene {
   private avatar?: AvatarEntity;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
-
-  private nextMoveAt = 0;
-  private readonly MOVE_INTERVAL = 110;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -70,14 +68,13 @@ export class GameScene extends Phaser.Scene {
 
         layer.setDepth(this.mapObj.depthCount++);
         if (name.includes("Collision")) {
-          layer.setVisible(false);
+          // layer.setVisible(false);
           layer.setCollisionByProperty({ collides: true });
         }
       });
 
       // mockAvatar
       const avatarModel: Avatar = {
-        id: "avatar-1",
         x: map.widthInPixels,
         y: map.heightInPixels,
         currentRoomId: "lobby",
@@ -86,7 +83,7 @@ export class GameScene extends Phaser.Scene {
         assetKey: "BOB",
       };
 
-      this.avatar = await this.loadAvatar(avatarModel);
+      this.avatar = this.loadAvatar(avatarModel);
       if (!this.avatar) return;
 
       // camera 설정
@@ -127,7 +124,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(time: number) {
+  update() {
     if (!this.avatar) return;
 
     const { sprite, state } = this.avatar;
@@ -136,10 +133,10 @@ export class GameScene extends Phaser.Scene {
     if (state === "sit") {
       const inputDirection = this.getNextDirection();
 
-      if (inputDirection) {
+      if (inputDirection.direction) {
         this.avatar.state = "idle";
-        this.avatar.direction = inputDirection;
-        this.toIdle(sprite, inputDirection);
+        this.avatar.direction = inputDirection.direction;
+        this.toIdle(sprite, inputDirection.direction);
       }
 
       return;
@@ -156,81 +153,45 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (!this.avatar || !this.cursors) return;
+
     const inputDirection = this.getNextDirection();
 
-    if (inputDirection && inputDirection !== this.avatar.direction && this.avatar.state !== "walk") {
-      this.avatar.direction = inputDirection;
-      this.toIdle(sprite, inputDirection);
-      return;
+    this.avatar.sprite.setVelocity(inputDirection.vx, inputDirection.vy);
+
+    if (inputDirection.direction) {
+      this.toWalk(sprite, inputDirection.direction);
+      this.avatar.direction = inputDirection.direction;
+    } else this.toIdle(this.avatar.sprite, this.avatar.direction);
+
+    if (inputDirection.vx === 0 && inputDirection.vy === 0) {
+      const x = this.avatar.sprite.x;
+      const y = this.avatar.sprite.y;
+
+      const targetX = Math.floor(x / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+      const targetY = Math.floor(y / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+
+      this.avatar.sprite.setPosition(
+        Phaser.Math.Linear(x, targetX, AVATAR_SNAP_SPEED),
+        Phaser.Math.Linear(y, targetY, AVATAR_SNAP_SPEED),
+      );
     }
-
-    // 입력이 없으면 idle 유지
-    if (!inputDirection) {
-      if (this.avatar.state !== "idle") {
-        this.avatar.state = "idle";
-        this.toIdle(sprite, this.avatar.direction);
-      }
-      return;
-    }
-
-    // 이동 쿨타임
-    if (time < this.nextMoveAt) {
-      // 이동 중에는 walk 애니메이션만 유지
-      if (this.avatar.state !== "walk") {
-        this.avatar.state = "walk";
-        this.toWalk(sprite, inputDirection);
-      }
-      return;
-    }
-
-    // 이동 가능 여부 판단 (Collision layer 기준)
-    if (!this.canMoveTo(inputDirection)) {
-      this.avatar.state = "idle";
-      this.toIdle(sprite, inputDirection);
-      return;
-    }
-
-    // 실제 이동 시점
-    this.nextMoveAt = time + this.MOVE_INTERVAL;
-    this.avatar.state = "walk";
-    this.avatar.direction = inputDirection;
-    this.toWalk(sprite, inputDirection);
-    this.moveOneTile(sprite, inputDirection);
-  }
-
-  // Movement
-  private canMoveTo(direction: AvatarDirection): boolean {
-    if (!this.avatar) return false;
-
-    const { sprite } = this.avatar;
-
-    const dx = direction === "left" ? -TILE_SIZE : direction === "right" ? TILE_SIZE : 0;
-    const dy = direction === "up" ? -TILE_SIZE : direction === "down" ? TILE_SIZE : 0;
-
-    const tiles = this.getTilesAtWorld(Math.round(sprite.x + dx), Math.round(sprite.y + dy));
-
-    return !tiles.some((tile) => tile.properties?.collides === true);
-  }
-
-  private moveOneTile(sprite: Phaser.Physics.Arcade.Sprite, direction: AvatarDirection) {
-    const dx = direction === "left" ? -TILE_SIZE : direction === "right" ? TILE_SIZE : 0;
-    const dy = direction === "up" ? -TILE_SIZE : direction === "down" ? TILE_SIZE : 0;
-
-    sprite.setPosition(Math.round(sprite.x + dx), Math.round(sprite.y + dy));
   }
 
   // Input / Animation
-  private getNextDirection(): AvatarDirection | null {
-    const left = (this.cursors?.left?.isDown ?? false) || (this.keys?.left?.isDown ?? false);
-    const right = (this.cursors?.right?.isDown ?? false) || (this.keys?.right?.isDown ?? false);
-    const up = (this.cursors?.up?.isDown ?? false) || (this.keys?.up?.isDown ?? false);
-    const down = (this.cursors?.down?.isDown ?? false) || (this.keys?.down?.isDown ?? false);
+  private getNextDirection(): { vx: number; vy: number; direction: AvatarDirection | null } {
+    if (!this.cursors || !this.keys) return { vx: 0, vy: 0, direction: null };
 
-    if (left) return "left";
-    if (right) return "right";
-    if (up) return "up";
-    if (down) return "down";
-    return null;
+    const left = this.cursors.left.isDown || this.keys.left.isDown;
+    const right = this.cursors.right.isDown || this.keys.right.isDown;
+    const up = this.cursors.up.isDown || this.keys.up.isDown;
+    const down = this.cursors.down.isDown || this.keys.down.isDown;
+
+    if (left) return { vx: -AVATAR_MOVE_SPEED, vy: 0, direction: "left" };
+    if (right) return { vx: AVATAR_MOVE_SPEED, vy: 0, direction: "right" };
+    if (up) return { vx: 0, vy: -AVATAR_MOVE_SPEED, direction: "up" };
+    if (down) return { vx: 0, vy: AVATAR_MOVE_SPEED, direction: "down" };
+    return { vx: 0, vy: 0, direction: null };
   }
 
   private toIdle(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
@@ -306,9 +267,16 @@ export class GameScene extends Phaser.Scene {
     const spawn = this.getAvatarSpawnPoint();
 
     const sprite = this.physics.add.sprite(spawn.x, spawn.y, avatar.assetKey, IDLE_FRAME[avatar.direction]);
-    sprite.setDepth(AVATAR_DEPTH);
-    sprite.setOrigin(0.5, 0.84);
-    sprite.setOffset(0, 16);
+    sprite.setDepth(this.mapObj.depthCount);
+    sprite.setOrigin(0.5, 0.75);
+    sprite.body.setSize(TILE_SIZE - 2, TILE_SIZE - 2);
+    sprite.body.setOffset(1, TILE_SIZE + 1);
+
+    this.mapObj.map?.layers.forEach(({ tilemapLayer }) => {
+      if (!tilemapLayer) return;
+      this.physics.add.collider(sprite, tilemapLayer);
+    });
+
     return { sprite, direction: avatar.direction, state: avatar.state };
   }
 

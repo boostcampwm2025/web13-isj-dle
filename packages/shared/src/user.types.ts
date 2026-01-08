@@ -2,7 +2,7 @@ import { Avatar } from "./avatar.types";
 
 export interface User {
   id: string;
-  contactId: string;
+  contactId: string | null;
   nickname: string;
   cameraOn: boolean;
   micOn: boolean;

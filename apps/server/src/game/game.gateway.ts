@@ -39,12 +39,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.log(`✅ Client connected: ${client.id}`);
       this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
 
-      // 임시 contactId
-      const contactId = `contact-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-
       const user = this.userManager.createSession({
         id: client.id,
-        contactId,
       });
 
       if (!user) {
@@ -53,7 +49,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
-      this.logger.log(`Game user created: ${user.nickname} (${user.avatar})`);
+      client.emit("connected", { user });
+
+      this.logger.log(`Game user created: ${user.nickname} (${user.avatar.assetKey})`);
     } catch (err) {
       this.logger.error(`Failed to handle connection: ${client.id}`, err instanceof Error ? err.stack : String(err));
       client.disconnect();
