@@ -39,12 +39,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.log(`✅ Client connected: ${client.id}`);
       this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
 
-      // 임시 contactId
-      const contactId = `contact-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-
       const user = this.userManager.createSession({
         id: client.id,
-        contactId,
       });
 
       if (!user) {

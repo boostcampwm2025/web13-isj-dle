@@ -11,7 +11,7 @@ export class UserManager {
   private readonly sessions = new Map<string, User>();
 
   createSession(dto: CreateGameUserDto): User {
-    const { id, contactId } = dto;
+    const { id } = dto;
 
     const isDuplicateNickname = (nickname: string): boolean => {
       return Array.from(this.sessions.values()).some((user) => user.nickname === nickname);
@@ -30,7 +30,7 @@ export class UserManager {
 
     const user: User = {
       id,
-      contactId,
+      contactId: null,
       nickname,
       cameraOn: false,
       micOn: false,
