@@ -80,8 +80,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.warn(`⚠️ NOTICE_SYNC called without roomId from client: ${client.id}`);
       return;
     }
-    const notices = await this.noticeService.findByRoomId(payload.roomId);
-    this.logger.log(`${payload.roomId} notice count: ${notices.length}`);
-    client.emit(NoticeEventType.NOTICE_SYNC, notices);
+
+    try {
+      const notices = await this.noticeService.findByRoomId(payload.roomId);
+      this.logger.log(`${payload.roomId} notice count: ${notices.length}`);
+      client.emit(NoticeEventType.NOTICE_SYNC, notices);
+    } catch (error) {
+      const trace = error instanceof Error ? error.stack : String(error);
+      this.logger.error(`❗ Failed to sync notices for room ${payload.roomId} from client ${client.id}`, trace);
+      client.emit("error", { message: "Failed to sync notices" });
+    }
   }
 }
