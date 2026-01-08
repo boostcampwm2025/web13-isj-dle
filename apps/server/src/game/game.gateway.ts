@@ -76,7 +76,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage(NoticeEventType.NOTICE_SYNC)
   async handleNoticeSync(client: Socket, payload: { roomId: string }) {
-    if (!payload.roomId) {
+    if (!payload || !payload.roomId) {
       this.logger.warn(`⚠️ NOTICE_SYNC called without roomId from client: ${client.id}`);
       return;
     }
