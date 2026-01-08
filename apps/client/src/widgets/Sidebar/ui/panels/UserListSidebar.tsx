@@ -22,21 +22,25 @@ const UserListSidebar = () => {
     alert("초대 링크가 복사되었습니다\n" + url);
   };
 
+  if (!user) {
+    return <div>사용자 정보 로딩 중...</div>;
+  }
+
   return (
     <div className="flex h-full w-full flex-col gap-2">
       <div className="flex grow flex-col gap-1 overflow-y-auto">
-        {sameContactUsers.length > 1 && <UserGroup users={sameContactUsers} title="근처 사용자" userId={user!.id} />}
+        {sameContactUsers.length > 1 && <UserGroup users={sameContactUsers} title="근처 사용자" userId={user.id} />}
         {user && (
           <UserGroup
-            users={usersByRoom[user!.avatar.currentRoomId]}
-            title={`${user?.avatar.currentRoomId}`}
-            userId={user!.id}
+            users={usersByRoom[user.avatar.currentRoomId]}
+            title={`${user.avatar.currentRoomId}`}
+            userId={user.id}
           />
         )}
         {Object.entries(usersByRoom)
-          .filter(([roomId]) => roomId !== user?.avatar.currentRoomId)
+          .filter(([roomId]) => roomId !== user.avatar.currentRoomId)
           .map(([roomId, users]) => (
-            <UserGroup key={roomId} users={users} title={`${roomId}`} userId={user!.id} />
+            <UserGroup key={roomId} users={users} title={`${roomId}`} userId={user.id} />
           ))}
       </div>
       <div className="flex h-auto flex-row justify-between p-2">
