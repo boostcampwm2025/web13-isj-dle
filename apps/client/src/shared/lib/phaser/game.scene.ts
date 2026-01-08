@@ -75,7 +75,6 @@ export class GameScene extends Phaser.Scene {
 
       // mockAvatar
       const avatarModel: Avatar = {
-        id: "avatar-1",
         x: map.widthInPixels,
         y: map.heightInPixels,
         currentRoomId: "lobby",
@@ -84,7 +83,7 @@ export class GameScene extends Phaser.Scene {
         assetKey: "BOB",
       };
 
-      this.avatar = await this.loadAvatar(avatarModel);
+      this.avatar = this.loadAvatar(avatarModel);
       if (!this.avatar) return;
 
       // camera 설정
