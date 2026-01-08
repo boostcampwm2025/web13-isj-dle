@@ -17,6 +17,7 @@ WORKDIR /app/packages/shared
 RUN pnpm build
 
 WORKDIR /app/apps/client
+RUN echo "VITE_SERVER_URL=http://175.45.193.193/" > .env
 RUN pnpm build
 
 FROM nginx:alpine
