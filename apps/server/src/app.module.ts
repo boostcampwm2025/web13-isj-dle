@@ -23,7 +23,7 @@ import { UserModule } from "./user/user.module";
         database: configService.get<string>("DB_NAME"),
         autoLoadEntities: true,
         synchronize: true,
-        logging: true,
+        logging: false,
       }),
     }),
     GameModule,
