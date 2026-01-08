@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-import type { Avatar, AvatarAssetKey, AvatarDirection, CreateGameUserDto, User } from "@shared/types";
+import type { Avatar, AvatarAssetKey, AvatarDirection, CreateGameUserDto, RoomType, User } from "@shared/types";
 
 import { generateRandomAvatar } from "../avatar/avatar.generator";
 import { generateUniqueNickname } from "../nickname/nickname.generator";
@@ -49,7 +49,7 @@ export class UserManager {
     return this.sessions.get(id);
   }
 
-  getRoomSessions(roomId: string): User[] {
+  getRoomSessions(roomId: RoomType): User[] {
     return Array.from(this.sessions.values()).filter((user) => user.avatar.currentRoomId === roomId);
   }
 
@@ -71,7 +71,7 @@ export class UserManager {
     return true;
   }
 
-  updateSessionRoom(id: string, roomId: string): boolean {
+  updateSessionRoom(id: string, roomId: RoomType): boolean {
     const user = this.sessions.get(id);
 
     if (!user) {

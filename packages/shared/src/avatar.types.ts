@@ -1,11 +1,12 @@
 import type { AvatarAssetKey } from "./avatar-assets";
+import { RoomType } from "./room.types";
 
 export type AvatarDirection = "up" | "down" | "left" | "right";
 export type AvatarState = "idle" | "walk" | "sit";
 export interface Avatar {
   x: number;
   y: number;
-  currentRoomId: string;
+  currentRoomId: RoomType;
   direction: AvatarDirection;
   state: AvatarState;
   assetKey: AvatarAssetKey;
