@@ -11,14 +11,10 @@ const useNotice = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
-    if (!isConnected || !socket) {
-      console.log("Socket not connected");
-      return;
-    }
+    if (!isConnected || !socket) return;
 
     const handleNoticeSync = (notices: Notice[]) => {
       setNotices(notices);
-      console.log("Received notices:", notices);
     };
 
     socket.on(NoticeEventType.NOTICE_SYNC, handleNoticeSync);
