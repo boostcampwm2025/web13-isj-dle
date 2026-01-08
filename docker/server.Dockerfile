@@ -37,6 +37,8 @@ COPY --from=builder /app/apps/server/dist ./dist
 WORKDIR /app
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 
+WORKDIR /app/apps/server
+
 EXPOSE 3000
 
 CMD ["node", "dist/main.js"]
