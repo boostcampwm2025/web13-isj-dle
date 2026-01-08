@@ -14,7 +14,7 @@ export class NoticeService {
   }
 
   findByRoomId(roomId: string): Promise<NoticeEntity[]> {
-    return this.noticeRepository.find({ where: { roomId } });
+    return this.noticeRepository.find({ where: { roomId }, order: { timestamp: "DESC" } });
   }
 
   createNotice(title: string, content: string, roomId: string): Promise<NoticeEntity> {
