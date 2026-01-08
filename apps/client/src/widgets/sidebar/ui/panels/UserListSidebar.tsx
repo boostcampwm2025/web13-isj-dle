@@ -5,7 +5,11 @@ import type { User } from "@shared/types";
 
 const UserListSidebar = () => {
   const { user, users } = useUser();
-  const sameContactUsers = users.filter((u) => u.contactId === user?.contactId);
+  const sameContactUsers = users.filter((u) => {
+    if (!user?.contactId) return false;
+    return u.contactId === user.contactId;
+  });
+
   const usersByRoom: Record<string, User[]> = {};
   users.forEach((user) => {
     if (!usersByRoom[user.avatar.currentRoomId]) {
