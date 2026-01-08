@@ -29,23 +29,42 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleConnection(client: Socket) {
-    this.logger.log(`✅ Client connected: ${client.id}`);
-    this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
+    try {
+      this.logger.log(`✅ Client connected: ${client.id}`);
+      this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
 
-    // 임시 contactId
-    const contactId = `contact-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      // 임시 contactId
+      const contactId = `contact-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-    const user = this.userManager.createSession({
-      id: client.id,
-      contactId,
-    });
+      const user = this.userManager.createSession({
+        id: client.id,
+        contactId,
+      });
 
-    this.logger.log(`Game user created: ${user.nickname} (${user.avatar})`);
+      if (!user) {
+        this.logger.error(`Failed to create session for client: ${client.id}`);
+        client.disconnect();
+        return;
+      }
+
+      this.logger.log(`Game user created: ${user.nickname} (${user.avatar})`);
+    } catch (err) {
+      this.logger.error(`Failed to handle connection: ${client.id}`, err instanceof Error ? err.stack : String(err));
+      client.disconnect();
+    }
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`❌ Client disconnected: ${client.id}`);
-    this.userManager.deleteSession(client.id);
-    this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
+    try {
+      this.logger.log(`❌ Client disconnected: ${client.id}`);
+      const deleted = this.userManager.deleteSession(client.id);
+      if (!deleted) {
+        this.logger.warn(`Session not found for disconnected client: ${client.id}`);
+      }
+
+      this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
+    } catch (err) {
+      this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
+    }
   }
 }
