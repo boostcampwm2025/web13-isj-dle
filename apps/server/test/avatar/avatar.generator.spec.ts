@@ -1,6 +1,5 @@
 import { AVATAR_ASSETS } from "@shared/types";
-
-import { generateRandomAvatar } from "./avatar.generator";
+import { generateRandomAvatar } from "src/avatar/avatar.generator";
 
 describe("generateRandomAvatar", () => {
   test("유효한 아바타 키를 반환해야 함", () => {
