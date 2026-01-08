@@ -22,7 +22,7 @@ const UserGroup = ({ users, title, userId }: UserGroupProps) => {
         <div className="flex flex-col gap-1">
           {users.map((user, index) => (
             <div
-              key={index}
+              key={user.id}
               className={`flex flex-row justify-between ${index !== users.length - 1 ? "border-b" : ""} border-gray-200 p-2`}
               style={{
                 backgroundColor: userId === user.id ? "#e0f7fa" : "transparent",
