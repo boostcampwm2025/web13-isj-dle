@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { NoticeEventType } from "@shared/types";
+import { NoticeEventType, UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
@@ -49,7 +49,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
-      client.emit("connected", { user });
+      client.emit(UserEventType.USER_SYNC, { user, users: this.userManager.getAllSessions() });
+      client.broadcast.emit(UserEventType.USER_JOIN, { user });
 
       this.logger.log(`Game user created: ${user.nickname} (${user.avatar.assetKey})`);
     } catch (err) {
@@ -66,6 +67,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
       }
 
+      client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
       this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
     } catch (err) {
       this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));

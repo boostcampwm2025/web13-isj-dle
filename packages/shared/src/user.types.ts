@@ -8,3 +8,9 @@ export interface User {
   micOn: boolean;
   avatar: Avatar;
 }
+
+export enum UserEventType {
+  USER_SYNC = "user:sync",
+  USER_JOIN = "user:join",
+  USER_LEFT = "user:left",
+}
