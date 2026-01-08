@@ -8,7 +8,7 @@ interface SidebarProviderProps {
 }
 
 export const SidebarProvider = ({ children }: SidebarProviderProps) => {
-  const [sidebarKeys, setSidebarKeys] = useState<SidebarKey[]>(["users"]);
+  const [sidebarKeys, setSidebarKeys] = useState<SidebarKey[]>(["users", "notices"]);
 
   const addKey = (key: SidebarKey) => {
     if (!sidebarKeys.includes(key)) {
