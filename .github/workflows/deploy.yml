@@ -1,0 +1,132 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        app: [client, server]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/${{ matrix.app }}.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app }}:buildcache,mode=max
+          no-cache: false
+
+  deploy:
+    name: Deploy to Server
+    needs: build-and-push
+    runs-on: [self-hosted, moyo]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Deploy to Production
+        run: |
+          echo "🚀 Starting deployment..."
+
+          WORK_DIR="${GITHUB_WORKSPACE}/docker"
+
+          echo "📋 Copying configuration files..."
+          sudo cp ${WORK_DIR}/docker-compose.yml /opt/moyo/
+          sudo cp ${WORK_DIR}/nginx.conf /opt/moyo/ 2>/dev/null || true
+
+          cd /opt/moyo
+
+          export $(grep -E '^(GITHUB_REPOSITORY|IMAGE_TAG)=' .env | xargs)
+
+          echo "🐳 Pulling Docker images..."
+          sudo docker compose pull
+
+          echo "♻️  Restarting containers..."
+          sudo docker compose down server
+          sudo docker compose up -d server
+
+          echo "⏳ Waiting for server to be healthy..."
+
+          MAX_RETRIES=24
+          RETRY_INTERVAL=5
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i/$MAX_RETRIES..."
+
+            if sudo docker exec moyo-server node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" 2>/dev/null; then
+              echo "✅ Server health check passed!"
+              break
+            fi
+
+            if [ $i -eq $MAX_RETRIES ]; then
+              echo "❌ Server health check failed"
+              sudo docker compose ps
+              sudo docker compose logs --tail=100 server
+              exit 1
+            fi
+
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "♻️  Restarting client..."
+          sudo docker compose down client
+          sudo docker compose up -d client
+
+          echo "🧹 Cleaning up old images..."
+          sudo docker image prune -af --filter "until=24h"
+
+          echo ""
+          echo "==== ✅ Deployment Successful ===="
+          sudo docker compose ps
+
+          echo ""
+          echo "📋 Recent Logs:"
+          sudo docker compose logs --tail=20 server
+          sudo docker compose logs --tail=20 client

@@ -1,0 +1,63 @@
+name: CI - Build Test
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - "**"
+      - ".github/workflows/**"
+
+env:
+  IMAGE_NAME: moyo-app-test
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        app: [client, server]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.20.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build shared package
+        run: |
+          cd packages/shared
+          pnpm build
+
+      - name: Build ${{ matrix.app }}
+        id: build
+        run: |
+          cd apps/${{ matrix.app }}
+          pnpm build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (test only)
+        id: docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/${{ matrix.app }}.Dockerfile
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
