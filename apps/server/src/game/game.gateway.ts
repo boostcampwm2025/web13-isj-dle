@@ -8,7 +8,8 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { NoticeEventType, UserEventType } from "@shared/types";
+import { NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
+import type { RoomJoinPayload, RoomType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
@@ -89,6 +90,47 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const trace = error instanceof Error ? error.stack : String(error);
       this.logger.error(`❗ Failed to sync notices for room ${payload.roomId} from client ${client.id}`, trace);
       client.emit("error", { message: "Failed to sync notices" });
+    }
+  }
+
+  @SubscribeMessage(RoomEventType.ROOM_JOIN)
+  handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
+    if (!payload || !payload.roomId) {
+      this.logger.warn(`⚠️ ROOM_JOIN called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    try {
+      const user = this.userManager.getSession(client.id);
+      if (!user) {
+        this.logger.error(`❌ User session not found for client: ${client.id}`);
+        client.emit("error", { message: "User session not found" });
+        return;
+      }
+
+      client.join(payload.roomId);
+      this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
+
+      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId as RoomType);
+      if (!updated) {
+        this.logger.error(`❌ Failed to update room for user: ${client.id}`);
+        return;
+      }
+      const roomUsers = this.userManager.getRoomSessions(payload.roomId as RoomType);
+      const userList = roomUsers.map((u) => ({ id: u.id, nickname: u.nickname }));
+
+      this.server.emit(RoomEventType.ROOM_JOINED, {
+        userId: client.id,
+        roomId: payload.roomId,
+        nickname: user.nickname,
+        users: userList,
+      });
+
+      this.logger.log(`✅ Room join complete: ${user.nickname} → ${payload.roomId} (${userList.length} users)`);
+    } catch (error) {
+      const trace = error instanceof Error ? error.stack : String(error);
+      this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
+      client.emit("error", { message: "Failed to join room" });
     }
   }
 }
