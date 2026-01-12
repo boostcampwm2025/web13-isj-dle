@@ -26,12 +26,12 @@ export const useRoom = () => {
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
       console.log("[useRoom] room:joined event received:", payload);
 
-      const { roomId, nickname, users: allUsers } = payload;
+      const { roomId, userId, users } = payload;
 
-      console.log(`[useRoom] ${nickname} joined ${roomId}`);
-      console.log(`[useRoom] Syncing all users (${allUsers.length} total)`);
+      console.log(`[useRoom] User ${userId} joined ${roomId}`);
+      console.log(`[useRoom] Room users: ${users.length} in room`);
 
-      setUsers(allUsers);
+      setUsers(users);
     };
 
     socket.on(RoomEventType.ROOM_JOINED, handleRoomJoined);
