@@ -20,7 +20,6 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const isInitializedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // Strict Mode 대응: 이미 초기화되었으면 스킵
     if (isInitializedRef.current) return;
 
     if (containerRef.current && !game) {
@@ -31,7 +30,6 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     }
 
     return () => {
-      // cleanup 시 초기화 상태 리셋
       if (game) {
         game.destroy(true);
         setGame(null);
@@ -40,7 +38,6 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     };
   }, [game, setGame]);
 
-  // socket이 연결되면 GameScene에 전달
   useEffect(() => {
     if (!game || !isConnected || !socket) return;
 
@@ -54,7 +51,6 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     }
   }, [game, socket, isConnected]);
 
-  // 초기 user load
   useEffect(() => {
     if (!game || !user) return;
 
