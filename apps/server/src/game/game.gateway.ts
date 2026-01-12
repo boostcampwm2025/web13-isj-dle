@@ -108,23 +108,26 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
-      client.join(payload.roomId);
-      this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
-
-      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId as RoomType);
+      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
       if (!updated) {
         this.logger.error(`❌ Failed to update room for user: ${client.id}`);
         return;
       }
 
+      client.join(payload.roomId);
+      this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
+
+      const roomUsers = this.userManager.getRoomSessions(payload.roomId);
+
       this.server.emit(RoomEventType.ROOM_JOINED, {
         userId: client.id,
         roomId: payload.roomId,
-        nickname: user.nickname,
+        users: roomUsers,
       });
 
-      const roomUsers = this.userManager.getRoomSessions(payload.roomId as RoomType);
-      this.logger.log(`✅ Room join complete: ${user.nickname} → ${payload.roomId} (${roomUsers.length} users)`);
+      this.logger.log(
+        `✅ Room join complete: ${user.nickname} → ${payload.roomId} (${roomUsers.length} users in room)`,
+      );
     } catch (error) {
       const trace = error instanceof Error ? error.stack : String(error);
       this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
