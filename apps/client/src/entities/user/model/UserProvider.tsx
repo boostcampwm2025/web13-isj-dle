@@ -9,7 +9,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>([]);
 
   const addUser = useCallback((user: User) => {
-    setUsers((prev) => [...prev, user]);
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === user.id);
+      if (exists) return prev;
+      return [...prev, user];
+    });
   }, []);
 
   const removeUser = useCallback((userId: string) => {
