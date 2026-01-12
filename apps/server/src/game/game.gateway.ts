@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { NoticeEventType, UserEventType } from "@shared/types";
+import { AvatarDirection, AvatarState, NoticeEventType, UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
@@ -34,7 +34,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log(`📡 CORS origins: ${process.env.CLIENT_URL || "http://localhost:5173,http://localhost:3000"}`);
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     try {
       this.logger.log(`✅ Client connected: ${client.id}`);
       this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
@@ -49,6 +49,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
+      await client.join(user.avatar.currentRoomId);
       client.emit(UserEventType.USER_SYNC, { user, users: this.userManager.getAllSessions() });
       client.broadcast.emit(UserEventType.USER_JOIN, { user });
 
@@ -90,5 +91,27 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.error(`❗ Failed to sync notices for room ${payload.roomId} from client ${client.id}`, trace);
       client.emit("error", { message: "Failed to sync notices" });
     }
+  }
+
+  @SubscribeMessage(UserEventType.PLAYER_MOVE)
+  handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
+    const updated = this.userManager.updateSessionPosition(client.id, payload);
+    const user = this.userManager.getSession(client.id);
+
+    if (!updated || !user) {
+      this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);
+      return;
+    }
+
+    const roomId = user.avatar.currentRoomId;
+
+    this.logger.debug(
+      `➡️ PLAYER_MOVE: ${client.id} moved to (${payload.x}, ${payload.y}, ${payload.direction}) in room ${roomId}`,
+    );
+
+    this.server.to(roomId).emit(UserEventType.PLAYER_MOVED, {
+      userId: client.id,
+      ...payload,
+    });
   }
 }
