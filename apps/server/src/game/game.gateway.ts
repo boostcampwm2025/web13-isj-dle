@@ -9,7 +9,7 @@ import {
 } from "@nestjs/websockets";
 
 import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import type { RoomJoinPayload, RoomType } from "@shared/types";
+import type { RoomJoinPayload } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
