@@ -17,7 +17,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.CLIENT_URL?.split(",") || "*",
+    origin: process.env.CLIENT_URL?.split(",") || true,
     credentials: true,
   });
 
