@@ -11,14 +11,12 @@ export class LivekitController {
 
   @Post("token")
   async getToken(@Body() dto: GenerateTokenDto) {
-    const { roomName, participantId, participantName } = dto;
+    const { roomId, userId, nickname } = dto;
 
-    const token = await this.livekitService.generateToken(roomName, participantId, participantName);
+    const token = await this.livekitService.generateToken(roomId, userId, nickname);
     const url = this.livekitService.getLivekitUrl();
 
-    this.logger.log(
-      `Livekit token generated successfully for room: ${roomName}, participant: ${participantId} | ${participantName}`,
-    );
+    this.logger.log(`Livekit token generated successfully for room: ${roomId}, participant: ${userId} | ${nickname}`);
 
     return { token, url };
   }

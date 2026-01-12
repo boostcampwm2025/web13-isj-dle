@@ -3,13 +3,13 @@ import { IsNotEmpty, IsString } from "class-validator";
 export class GenerateTokenDto {
   @IsString()
   @IsNotEmpty()
-  roomName: string;
+  roomId: string;
 
   @IsString()
   @IsNotEmpty()
-  participantId: string;
+  userId: string;
 
   @IsString()
   @IsNotEmpty()
-  participantName: string;
+  nickname: string;
 }

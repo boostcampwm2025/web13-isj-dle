@@ -15,15 +15,15 @@ export class LivekitService {
     this.livekitUrl = this.configService.getOrThrow<string>("LIVEKIT_URL");
   }
 
-  async generateToken(roomName: string, participantId: string, participantName: string) {
+  async generateToken(roomId: string, userId: string, nickname: string) {
     const token = new AccessToken(this.apiKey, this.apiSecret, {
-      identity: participantId,
-      name: participantName,
+      identity: userId,
+      name: nickname,
     });
 
     token.addGrant({
       roomJoin: true,
-      room: roomName,
+      room: roomId,
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
