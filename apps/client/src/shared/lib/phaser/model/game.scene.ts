@@ -13,14 +13,32 @@ import {
 } from "./game.constants";
 import type { AvatarEntity, MapObj, MoveKeys } from "./game.types";
 import Phaser from "phaser";
+import type { Socket } from "socket.io-client";
 
-import { AVATAR_ASSETS, type Avatar, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
+import {
+  AVATAR_ASSETS,
+  type Avatar,
+  type AvatarAssetKey,
+  type AvatarDirection,
+  type AvatarState,
+  UserEventType,
+} from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
+  public isReady: boolean = false;
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
+  private socket?: Socket;
+  private lastEmitted: { x: number; y: number; direction: AvatarDirection; state: AvatarState; time: number } = {
+    x: 0,
+    y: 0,
+    direction: "down",
+    state: "idle",
+    time: 0,
+  };
+  private threshold: number = 16; // milliseconds
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -38,6 +56,14 @@ export class GameScene extends Phaser.Scene {
 
   get mapInfo(): Readonly<typeof this.mapObj> {
     return this.mapObj;
+  }
+
+  get isLoadPlayer(): boolean {
+    return !!this.avatar;
+  }
+
+  get isInitializedSocket(): boolean {
+    return !!this.socket;
   }
 
   preload() {
@@ -73,24 +99,6 @@ export class GameScene extends Phaser.Scene {
         }
       });
 
-      // mockAvatar
-      const avatarModel: Avatar = {
-        x: map.widthInPixels,
-        y: map.heightInPixels,
-        currentRoomId: "lobby",
-        direction: "down",
-        state: "idle",
-        assetKey: "BOB",
-      };
-
-      this.avatar = this.loadAvatar(avatarModel);
-      if (!this.avatar) return;
-
-      // camera 설정
-      this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
-      this.cameras.main.startFollow(this.avatar.sprite, false);
-      this.cameras.main.roundPixels = true;
-
       this.input.on(
         "wheel",
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
@@ -102,7 +110,7 @@ export class GameScene extends Phaser.Scene {
         },
       );
 
-      this.createAvatarAnimations(avatarModel.assetKey);
+      this.createAllAvatarAnimations();
 
       // keyboard 처리
       const keyboard = this.input.keyboard;
@@ -110,7 +118,7 @@ export class GameScene extends Phaser.Scene {
 
       this.cursors = keyboard.createCursorKeys();
 
-      const keys = keyboard.addKeys({
+      this.keys = keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
         left: Phaser.Input.Keyboard.KeyCodes.A,
@@ -118,53 +126,51 @@ export class GameScene extends Phaser.Scene {
         sit: Phaser.Input.Keyboard.KeyCodes.E,
       }) as MoveKeys;
 
-      this.keys = keys;
+      this.isReady = true;
+      this.events.emit("scene:ready");
     } catch (error) {
       console.error("Error loading tilesets:", error);
     }
   }
 
   update() {
-    if (!this.avatar) return;
+    if (!this.avatar || !this.cursors) return;
+    this.emitPlayerPosition();
 
-    const { sprite, state } = this.avatar;
+    const inputDirection = this.getNextDirection();
 
     // SIT 상태 처리
-    if (state === "sit") {
-      const inputDirection = this.getNextDirection();
-
-      if (inputDirection.direction) {
-        this.avatar.state = "idle";
-        this.avatar.direction = inputDirection.direction;
-        this.toIdle(sprite, inputDirection.direction);
-      }
-
+    if (this.avatar.state === "sit" && !inputDirection) {
       return;
     }
 
     // SIT 진입 처리
-    if (this.keys?.sit && Phaser.Input.Keyboard.JustDown(this.keys.sit)) {
+    if (this.keys?.sit.isDown) {
       const seatDirection = this.getSeatDirectionAtCurrentTile();
       if (seatDirection) {
         this.avatar.state = "sit";
         this.avatar.direction = seatDirection;
-        this.toSit(sprite, seatDirection);
+        this.toSit(this.avatar.sprite, seatDirection);
+        return;
       }
-      return;
     }
 
-    if (!this.avatar || !this.cursors) return;
-
-    const inputDirection = this.getNextDirection();
-
-    this.avatar.sprite.setVelocity(inputDirection.vx, inputDirection.vy);
-
+    // Walking / Idle 상태 처리
     if (inputDirection.direction) {
-      this.toWalk(sprite, inputDirection.direction);
+      this.avatar.state = "walk";
       this.avatar.direction = inputDirection.direction;
-    } else this.toIdle(this.avatar.sprite, this.avatar.direction);
+      this.toWalk(this.avatar.sprite, inputDirection.direction);
+    } else {
+      this.avatar.state = "idle";
+      this.toIdle(this.avatar.sprite, this.avatar.direction);
+    }
 
-    if (inputDirection.vx === 0 && inputDirection.vy === 0) {
+    // 이동 처리
+    const { vx, vy } = inputDirection;
+    this.avatar.sprite.setVelocity(vx, vy);
+
+    // Snap to grid 처리
+    if (vx === 0 && vy === 0) {
       const x = this.avatar.sprite.x;
       const y = this.avatar.sprite.y;
 
@@ -263,7 +269,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Create / Setup helpers (used by create)
-  loadAvatar(avatar: Avatar): AvatarEntity {
+  loadAvatar(avatar: Avatar) {
     const spawn = this.getAvatarSpawnPoint();
 
     const sprite = this.physics.add.sprite(spawn.x, spawn.y, avatar.assetKey, IDLE_FRAME[avatar.direction]);
@@ -277,12 +283,21 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.collider(sprite, tilemapLayer);
     });
 
-    return { sprite, direction: avatar.direction, state: avatar.state };
+    this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
+
+    // camera 설정
+    this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+    this.cameras.main.startFollow(sprite, false, 1, 1);
+    this.cameras.main.setRoundPixels(true);
+
+    this.emitPlayerPosition();
   }
 
   private getAvatarSpawnPoint() {
     const map = this.mapObj.map;
-    const objectLayer = map?.getObjectLayer("ObjectLayer-Spawn");
+    if (!map) throw new Error("Map not loaded");
+
+    const objectLayer = map.getObjectLayer("ObjectLayer-Spawn");
 
     if (!objectLayer || objectLayer.objects.length === 0) {
       throw new Error("Spawn object layer not found");
@@ -319,6 +334,12 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private createAllAvatarAnimations() {
+    (Object.keys(AVATAR_ASSETS) as AvatarAssetKey[]).forEach((assetKey) => {
+      this.createAvatarAnimations(assetKey);
+    });
+  }
+
   private createAvatarAnimations(assetKey: AvatarAssetKey) {
     const directions: AvatarDirection[] = ["down", "left", "right", "up"];
 
@@ -339,5 +360,43 @@ export class GameScene extends Phaser.Scene {
         repeat: -1,
       });
     });
+  }
+
+  // WebSocket 관련 메서드
+  private emitPlayerPosition() {
+    if (!this.socket || !this.avatar) return;
+
+    const currentX = Math.round(this.avatar.sprite.x);
+    const currentY = Math.round(this.avatar.sprite.y);
+
+    const now = Date.now();
+    if (
+      (this.lastEmitted.x === currentX &&
+        this.lastEmitted.y === currentY &&
+        this.lastEmitted.direction === this.avatar.direction &&
+        this.lastEmitted.state === this.avatar.state) ||
+      now - this.lastEmitted.time < this.threshold
+    ) {
+      return;
+    }
+
+    this.socket.emit(UserEventType.PLAYER_MOVE, {
+      x: currentX,
+      y: currentY,
+      direction: this.avatar.direction,
+      state: this.avatar.state,
+    });
+
+    this.lastEmitted = {
+      x: currentX,
+      y: currentY,
+      direction: this.avatar.direction,
+      state: this.avatar.state,
+      time: now,
+    };
+  }
+
+  setSocket(socket: Socket) {
+    this.socket = socket;
   }
 }
