@@ -3,7 +3,7 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { type User, UserEventType } from "@shared/types";
+import { type AvatarDirection, type AvatarState, type User, UserEventType } from "@shared/types";
 import { useUser } from "@src/entities/user";
 
 interface WebSocketProviderProps {
@@ -14,7 +14,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const { setUser, setUsers, addUser, removeUser } = useUser();
+  const { setUser, setUsers, addUser, removeUser, updateUserPosition } = useUser();
 
   useEffect(() => {
     const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
@@ -32,7 +32,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     socketRef.current = socketInstance;
 
-    const handleConnected = () => {
+    const handleConnect = () => {
       console.log("[WebSocket] Connected:", socketInstance.id);
       setSocket(socketInstance);
       setIsConnected(true);
@@ -79,7 +79,17 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       removeUser(data.userId);
     };
 
-    socketInstance.on("connect", handleConnected);
+    const handlePlayerMoved = (data: {
+      userId: string;
+      x: number;
+      y: number;
+      direction: AvatarDirection;
+      state: AvatarState;
+    }) => {
+      updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
+    };
+
+    socketInstance.on("connect", handleConnect);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("connect_error", handleConnectError);
     socketInstance.on("reconnect_attempt", handleReconnectAttempt);
@@ -89,6 +99,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketInstance.on(UserEventType.USER_SYNC, handleUserSync);
     socketInstance.on(UserEventType.USER_JOIN, handleUserJoin);
     socketInstance.on(UserEventType.USER_LEFT, handleUserLeft);
+    socketInstance.on(UserEventType.PLAYER_MOVED, handlePlayerMoved);
 
     return () => {
       if (socketRef.current) {
@@ -100,7 +111,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, [addUser, removeUser, setUser, setUsers]);
+  }, [addUser, removeUser, setUser, setUsers, updateUserPosition]);
 
   return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
 };

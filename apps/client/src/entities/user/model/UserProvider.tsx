@@ -2,7 +2,7 @@ import { UserContext } from "./user-context";
 
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
-import type { User } from "@shared/types";
+import type { AvatarDirection, AvatarState, User } from "@shared/types";
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,6 +31,22 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const updateUserPosition = useCallback(
+    (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, avatar: { ...u.avatar, x, y, direction, state } } : u)),
+      );
+
+      setUser((prev) => {
+        if (prev?.id === userId) {
+          return { ...prev, avatar: { ...prev.avatar, x, y, direction, state } };
+        }
+        return prev;
+      });
+    },
+    [],
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -40,8 +56,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       addUser,
       removeUser,
       updateUser,
+      updateUserPosition,
     }),
-    [user, users, addUser, removeUser, updateUser],
+    [user, users, addUser, removeUser, updateUser, updateUserPosition],
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

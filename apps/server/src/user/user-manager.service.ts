@@ -1,6 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-import type { Avatar, AvatarAssetKey, AvatarDirection, CreateGameUserDto, RoomType, User } from "@shared/types";
+import type {
+  Avatar,
+  AvatarAssetKey,
+  AvatarDirection,
+  AvatarState,
+  CreateGameUserDto,
+  RoomType,
+  User,
+} from "@shared/types";
 
 import { generateRandomAvatar } from "../avatar/avatar.generator";
 import { generateUniqueNickname } from "../nickname/nickname.generator";
@@ -57,7 +65,10 @@ export class UserManager {
     return Array.from(this.sessions.values());
   }
 
-  updateSessionPosition(id: string, position: { x: number; y: number; direction: AvatarDirection }): boolean {
+  updateSessionPosition(
+    id: string,
+    position: { x: number; y: number; direction: AvatarDirection; state: AvatarState },
+  ): boolean {
     const user = this.sessions.get(id);
 
     if (!user) {
@@ -66,7 +77,9 @@ export class UserManager {
     }
 
     user.avatar = { ...user.avatar, ...position };
-    this.logger.debug(`Position updated: ${id} -> (${position.x}, ${position.y}, ${position.direction})`);
+    this.logger.debug(
+      `Position updated: ${id} -> (${position.x}, ${position.y}, ${position.direction}, ${position.state})`,
+    );
 
     return true;
   }
