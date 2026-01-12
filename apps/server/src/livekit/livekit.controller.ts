@@ -16,7 +16,9 @@ export class LivekitController {
     const token = await this.livekitService.generateToken(roomName, participantId, participantName);
     const url = this.livekitService.getLivekitUrl();
 
-    this.logger.log(`Livekit token generated successfully: ${token}`);
+    this.logger.log(
+      `Livekit token generated successfully for room: ${roomName}, participant: ${participantId} | ${participantName}`,
+    );
 
     return { token, url };
   }
