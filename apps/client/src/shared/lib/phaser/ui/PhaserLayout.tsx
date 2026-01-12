@@ -3,10 +3,10 @@ import { GAME_SCENE_KEY } from "../model/game.constants";
 import type { GameScene } from "../model/game.scene";
 import { usePhaserGame } from "../model/use-phaser-game";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { getGameConfig } from "@shared/lib/phaser/model/game.config";
-import type { RoomType } from "@shared/types";
+import type { RoomType, User } from "@shared/types";
 import { useUser } from "@src/entities/user";
 import { RoomSelectorModal } from "@src/widgets/room-selector-modal";
 
@@ -17,11 +17,30 @@ interface PhaserLayoutProps {
 const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const { game, setGame, joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
-  const { user } = useUser();
+  const { user, users } = useUser();
+  const sameRoomUsersRef = useRef<User[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef<boolean>(false);
   const [roomSelectorOpen, setRoomSelectorOpen] = useState(false);
   const [selectedRoomRange, setSelectedRoomRange] = useState<string>("");
+
+  const sameRoomUsers = useMemo(() => {
+    if (!user) return [];
+    const roomId = user.avatar.currentRoomId;
+    const myId = user.id;
+    return users.filter((u) => u.id !== myId && u.avatar.currentRoomId === roomId);
+  }, [users, user]);
+
+  const sameRoomSig = useMemo(() => {
+    return sameRoomUsers
+      .map((u) => `${u.id}:${u.avatar.x}:${u.avatar.y}:${u.avatar.direction}:${u.avatar.state}`)
+      .sort()
+      .join("|");
+  }, [sameRoomUsers]);
+
+  useEffect(() => {
+    sameRoomUsersRef.current = sameRoomUsers;
+  }, [sameRoomUsers]);
 
   useEffect(() => {
     if (isInitializedRef.current) return;
@@ -98,6 +117,20 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
       game.registry.remove("openRoomSelector");
     };
   }, [game]);
+
+  useEffect(() => {
+    if (!game || !user) return;
+
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+
+    const render = () => gameScene.renderAnotherAvatars(sameRoomUsersRef.current);
+
+    if (!gameScene.isReady) {
+      gameScene.events.once("scene:ready", render);
+    } else {
+      render();
+    }
+  }, [game, user, sameRoomSig]);
 
   const handleRoomSelect = (roomId: RoomType) => {
     if (joinRoom) {
