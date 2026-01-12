@@ -1,5 +1,6 @@
+import { useLivekit } from "../model/use-livekit";
+
 import { LiveKitRoom, VideoConference } from "@livekit/components-react";
-import { useLivekit } from "@shared/lib/livekit/use-livekit.ts";
 import type { LivekitRoomConfig } from "@shared/types";
 
 interface VideoRoomProps {

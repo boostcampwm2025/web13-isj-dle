@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import type { LivekitRoomConfig, LivekitTokenResponse } from "@shared/types";
+import { requestLivekitToken } from "@features/video-conference/api/livekit.api";
+import type { LivekitRoomConfig } from "@shared/types";
 
 interface UseLivekitState {
   token: string | null;
@@ -25,18 +26,12 @@ export function useLivekit(config: LivekitRoomConfig | null): UseLivekitState {
       setLivekitState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/livekit/token`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(config),
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = (await res.json()) as LivekitTokenResponse;
+        const data = await requestLivekitToken(config, controller.signal);
 
         setLivekitState({ token: data.token, serverUrl: data.url, isLoading: false, error: null });
       } catch (error) {
         if (controller.signal.aborted) return;
+
         setLivekitState({
           token: null,
           serverUrl: null,
