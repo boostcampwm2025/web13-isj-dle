@@ -79,7 +79,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       removeUser(data.userId);
     };
 
-    socketInstance.on("connected", handleConnected);
+    socketInstance.on("connect", handleConnected);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("connect_error", handleConnectError);
     socketInstance.on("reconnect_attempt", handleReconnectAttempt);
