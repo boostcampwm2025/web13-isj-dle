@@ -96,20 +96,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage(UserEventType.PLAYER_MOVE)
   handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
     const updated = this.userManager.updateSessionPosition(client.id, payload);
+    const user = this.userManager.getSession(client.id);
 
-    if (!updated) {
+    if (!updated || !user) {
       this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);
       return;
     }
 
-    const rooms = Array.from(client.rooms);
-
-    if (rooms.length < 2) {
-      this.logger.warn(`⚠️ PLAYER_MOVE: Client ${client.id} is not in any game room`);
-      return;
-    }
-
-    const roomId = rooms[1];
+    const roomId = user.avatar.currentRoomId;
 
     this.logger.debug(
       `➡️ PLAYER_MOVE: ${client.id} moved to (${payload.x}, ${payload.y}, ${payload.direction}) in room ${roomId}`,
