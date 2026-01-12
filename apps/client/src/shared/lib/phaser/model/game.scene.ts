@@ -314,12 +314,30 @@ export class GameScene extends Phaser.Scene {
       console.log(`[GameScene] Entering room: ${targetRoomId}`);
       this.currentRoomId = targetRoomId;
 
-      const joinRoom = this.game.registry.get("joinRoom");
-      if (joinRoom && typeof joinRoom === "function") {
-        console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
-        joinRoom(targetRoomId);
+      const meetingRanges = [
+        "meeting (web 1-10)",
+        "meeting (web 11-20)",
+        "meeting (web 21-30)",
+        "meeting (ios 1-5)",
+        "meeting (android 1-3)",
+      ];
+
+      if (meetingRanges.includes(targetRoomId)) {
+        const openRoomSelector = this.game.registry.get("openRoomSelector");
+        if (openRoomSelector && typeof openRoomSelector === "function") {
+          console.log(`[GameScene] Opening room selector for: ${targetRoomId}`);
+          openRoomSelector(targetRoomId);
+        } else {
+          console.warn("[GameScene] openRoomSelector function not found in registry");
+        }
       } else {
-        console.warn("[GameScene] joinRoom function not found in registry");
+        const joinRoom = this.game.registry.get("joinRoom");
+        if (joinRoom && typeof joinRoom === "function") {
+          console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
+          joinRoom(targetRoomId);
+        } else {
+          console.warn("[GameScene] joinRoom function not found in registry");
+        }
       }
     }
   }
