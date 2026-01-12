@@ -21,6 +21,7 @@ import {
   type AvatarAssetKey,
   type AvatarDirection,
   type AvatarState,
+  type User,
   UserEventType,
 } from "@shared/types";
 
@@ -28,6 +29,7 @@ export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
+  private avatars: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
   private socket?: Socket;
@@ -156,17 +158,17 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Walking / Idle 상태 처리
-    if (inputDirection.direction) {
+    if (inputDirection) {
       this.avatar.state = "walk";
-      this.avatar.direction = inputDirection.direction;
-      this.toWalk(this.avatar.sprite, inputDirection.direction);
+      this.avatar.direction = inputDirection;
+      this.toWalk(this.avatar.sprite, inputDirection);
     } else {
       this.avatar.state = "idle";
       this.toIdle(this.avatar.sprite, this.avatar.direction);
     }
 
     // 이동 처리
-    const { vx, vy } = inputDirection;
+    const { vx, vy } = this.dirToVel(inputDirection);
     this.avatar.sprite.setVelocity(vx, vy);
 
     // Snap to grid 처리
@@ -185,32 +187,39 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Input / Animation
-  private getNextDirection(): { vx: number; vy: number; direction: AvatarDirection | null } {
-    if (!this.cursors || !this.keys) return { vx: 0, vy: 0, direction: null };
+  private getNextDirection(): AvatarDirection | null {
+    if (!this.cursors || !this.keys) return null;
 
+    const down = this.cursors.down.isDown || this.keys.down.isDown;
+    const up = this.cursors.up.isDown || this.keys.up.isDown;
     const left = this.cursors.left.isDown || this.keys.left.isDown;
     const right = this.cursors.right.isDown || this.keys.right.isDown;
-    const up = this.cursors.up.isDown || this.keys.up.isDown;
-    const down = this.cursors.down.isDown || this.keys.down.isDown;
 
-    if (left) return { vx: -AVATAR_MOVE_SPEED, vy: 0, direction: "left" };
-    if (right) return { vx: AVATAR_MOVE_SPEED, vy: 0, direction: "right" };
-    if (up) return { vx: 0, vy: -AVATAR_MOVE_SPEED, direction: "up" };
-    if (down) return { vx: 0, vy: AVATAR_MOVE_SPEED, direction: "down" };
-    return { vx: 0, vy: 0, direction: null };
+    const pressed: Record<AvatarDirection, boolean> = { up, down, left, right };
+
+    const fallback = (["left", "right", "up", "down"] as const).find((d) => pressed[d]) || null;
+    return fallback;
   }
 
-  private toIdle(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
+  private dirToVel(dir: AvatarDirection | null): { vx: number; vy: number } {
+    if (dir === "left") return { vx: -AVATAR_MOVE_SPEED, vy: 0 };
+    if (dir === "right") return { vx: AVATAR_MOVE_SPEED, vy: 0 };
+    if (dir === "up") return { vx: 0, vy: -AVATAR_MOVE_SPEED };
+    if (dir === "down") return { vx: 0, vy: AVATAR_MOVE_SPEED };
+    return { vx: 0, vy: 0 };
+  }
+
+  private toIdle(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection) {
     const key = `idle-${sprite.texture.key}-${dir}`;
     sprite.anims.play(key, true);
   }
 
-  private toWalk(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
+  private toWalk(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection) {
     const key = `walk-${sprite.texture.key}-${dir}`;
     sprite.anims.play(key, true);
   }
 
-  private toSit(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
+  private toSit(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection) {
     sprite.anims.stop();
     sprite.setFrame(SIT_FRAME[dir]);
   }
@@ -273,7 +282,6 @@ export class GameScene extends Phaser.Scene {
     const spawn = this.getAvatarSpawnPoint();
 
     const sprite = this.physics.add.sprite(spawn.x, spawn.y, avatar.assetKey, IDLE_FRAME[avatar.direction]);
-    sprite.setDepth(this.mapObj.depthCount);
     sprite.setOrigin(0.5, 0.75);
     sprite.body.setSize(TILE_SIZE - 2, TILE_SIZE - 2);
     sprite.body.setOffset(1, TILE_SIZE + 1);
@@ -291,6 +299,48 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
 
     this.emitPlayerPosition();
+  }
+
+  renderAnotherAvatars(users: User[]): void {
+    const missingUsers = [...this.avatars.keys()].filter((userId) => !users.find((u) => u.id === userId));
+    missingUsers.forEach((userId) => {
+      const avatar = this.avatars.get(userId);
+      if (avatar) {
+        avatar.destroy();
+        this.avatars.delete(userId);
+      }
+    });
+
+    users.sort((a, b) => a.avatar.y - b.avatar.y);
+
+    users.forEach((user, index) => {
+      this.renderSingleAnotherAvatar(user, index);
+    });
+    this.avatar?.sprite.setDepth(this.mapObj.depthCount + users.length);
+  }
+
+  private renderSingleAnotherAvatar(user: User, index: number): void {
+    const avatarModel = user.avatar;
+
+    let avatar = this.avatars.get(user.id);
+    if (avatar) {
+      avatar.setPosition(avatarModel.x, avatarModel.y);
+    } else {
+      avatar = this.add.sprite(avatarModel.x, avatarModel.y, avatarModel.assetKey, IDLE_FRAME[avatarModel.direction]);
+      avatar.setOrigin(0.5, 0.75);
+
+      this.avatars.set(user.id, avatar);
+    }
+
+    avatar.setDepth(this.mapObj.depthCount + index);
+
+    if (avatarModel.state === "sit") {
+      this.toSit(avatar, avatarModel.direction);
+    } else if (avatarModel.state === "walk") {
+      this.toWalk(avatar, avatarModel.direction);
+    } else {
+      this.toIdle(avatar, avatarModel.direction);
+    }
   }
 
   private getAvatarSpawnPoint() {
