@@ -311,6 +311,8 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    users.sort((a, b) => a.avatar.y - b.avatar.y);
+
     users.forEach((user, index) => {
       this.renderSingleAnotherAvatar(user, index);
     });
