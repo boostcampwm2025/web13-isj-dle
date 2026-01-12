@@ -1,4 +1,5 @@
 import { useWebSocket } from "../../websocket";
+import { GAME_REGISTRY_KEYS, setRegistryFunction } from "../model/game-registry.constants";
 import { GAME_SCENE_KEY } from "../model/game.constants";
 import type { GameScene } from "../model/game.scene";
 import { usePhaserGame } from "../model/use-phaser-game";
@@ -93,12 +94,12 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
 
   useEffect(() => {
     if (game && joinRoom) {
-      game.registry.set("joinRoom", joinRoom);
+      setRegistryFunction(game, "JOIN_ROOM", joinRoom);
     }
 
     return () => {
       if (game) {
-        game.registry.remove("joinRoom");
+        game.registry.remove(GAME_REGISTRY_KEYS.JOIN_ROOM);
       }
     };
   }, [game, joinRoom]);
@@ -111,10 +112,10 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
       setRoomSelectorOpen(true);
     };
 
-    game.registry.set("openRoomSelector", openRoomSelector);
+    setRegistryFunction(game, "OPEN_ROOM_SELECTOR", openRoomSelector);
 
     return () => {
-      game.registry.remove("openRoomSelector");
+      game.registry.remove(GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR);
     };
   }, [game]);
 

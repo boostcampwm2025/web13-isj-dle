@@ -1,3 +1,4 @@
+import { GAME_REGISTRY_KEYS, getRegistryFunction } from "./game-registry.constants";
 import {
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
@@ -325,20 +326,20 @@ export class GameScene extends Phaser.Scene {
       this.currentRoomId = targetRoomId;
 
       if (isMeetingRoomRange(targetRoomId)) {
-        const openRoomSelector = this.game.registry.get("openRoomSelector");
-        if (openRoomSelector && typeof openRoomSelector === "function") {
+        const openRoomSelector = getRegistryFunction(this.game, "OPEN_ROOM_SELECTOR");
+        if (openRoomSelector) {
           console.log(`[GameScene] Opening room selector for: ${targetRoomId}`);
           openRoomSelector(targetRoomId);
         } else {
-          console.warn("[GameScene] openRoomSelector function not found in registry");
+          console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR} function not found in registry`);
         }
       } else {
-        const joinRoom = this.game.registry.get("joinRoom");
-        if (joinRoom && typeof joinRoom === "function") {
+        const joinRoom = getRegistryFunction(this.game, "JOIN_ROOM");
+        if (joinRoom) {
           console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
           joinRoom(targetRoomId);
         } else {
-          console.warn("[GameScene] joinRoom function not found in registry");
+          console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.JOIN_ROOM} function not found in registry`);
         }
       }
     }
