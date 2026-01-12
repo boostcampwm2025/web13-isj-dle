@@ -1,4 +1,5 @@
 import type { RoomType } from "@shared/types";
+import { getRoomNumbers } from "@src/shared/config/room.config";
 
 interface RoomSelectorModalProps {
   isOpen: boolean;
@@ -6,21 +7,6 @@ interface RoomSelectorModalProps {
   onSelect: (roomId: RoomType) => void;
   onClose: () => void;
 }
-
-const getRoomNumbers = (roomRange: string): string[] => {
-  if (roomRange === "meeting (web 1-10)") {
-    return Array.from({ length: 10 }, (_, i) => `meeting (web ${i + 1})`);
-  } else if (roomRange === "meeting (web 11-20)") {
-    return Array.from({ length: 10 }, (_, i) => `meeting (web ${i + 11})`);
-  } else if (roomRange === "meeting (web 21-30)") {
-    return Array.from({ length: 10 }, (_, i) => `meeting (web ${i + 21})`);
-  } else if (roomRange === "meeting (ios 1-5)") {
-    return Array.from({ length: 5 }, (_, i) => `meeting (ios ${i + 1})`);
-  } else if (roomRange === "meeting (android 1-3)") {
-    return Array.from({ length: 3 }, (_, i) => `meeting (android ${i + 1})`);
-  }
-  return [];
-};
 
 export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: RoomSelectorModalProps) => {
   const rooms = isOpen && roomRange ? getRoomNumbers(roomRange) : [];

@@ -24,6 +24,7 @@ import {
   type User,
   UserEventType,
 } from "@shared/types";
+import { isMeetingRoomRange } from "@src/shared/config/room.config";
 
 export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
@@ -323,15 +324,7 @@ export class GameScene extends Phaser.Scene {
       console.log(`[GameScene] Entering room: ${targetRoomId}`);
       this.currentRoomId = targetRoomId;
 
-      const meetingRanges = [
-        "meeting (web 1-10)",
-        "meeting (web 11-20)",
-        "meeting (web 21-30)",
-        "meeting (ios 1-5)",
-        "meeting (android 1-3)",
-      ];
-
-      if (meetingRanges.includes(targetRoomId)) {
+      if (isMeetingRoomRange(targetRoomId)) {
         const openRoomSelector = this.game.registry.get("openRoomSelector");
         if (openRoomSelector && typeof openRoomSelector === "function") {
           console.log(`[GameScene] Opening room selector for: ${targetRoomId}`);
