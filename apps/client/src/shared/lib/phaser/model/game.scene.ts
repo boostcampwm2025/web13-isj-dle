@@ -39,6 +39,7 @@ export class GameScene extends Phaser.Scene {
     time: 0,
   };
   private threshold: number = 16; // milliseconds
+  private currentRoomId: string = "lobby";
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -138,6 +139,9 @@ export class GameScene extends Phaser.Scene {
     this.emitPlayerPosition();
 
     const inputDirection = this.getNextDirection();
+
+    // 방 진입 체크
+    this.checkRoomEntrance();
 
     // SIT 상태 처리
     if (this.avatar.state === "sit" && !inputDirection) {
@@ -266,6 +270,58 @@ export class GameScene extends Phaser.Scene {
     }
 
     return null;
+  }
+
+  private checkRoomEntrance() {
+    if (!this.avatar) return;
+
+    const { sprite } = this.avatar;
+    const map = this.mapObj.map;
+    if (!map) return;
+
+    const objectLayer = map.getObjectLayer("ObjectLayer-Area");
+    if (!objectLayer) {
+      console.warn("[GameScene] ObjectLayer-Area not found");
+      return;
+    }
+
+    let targetRoomId = "lobby";
+
+    for (const obj of objectLayer.objects) {
+      const objX = obj.x ?? 0;
+      const objY = obj.y ?? 0;
+      const objWidth = obj.width ?? 0;
+      const objHeight = obj.height ?? 0;
+
+      if (sprite.x >= objX && sprite.x <= objX + objWidth && sprite.y >= objY && sprite.y <= objY + objHeight) {
+        const properties = obj.properties as { name: string; value: unknown }[];
+        if (!properties) continue;
+
+        const typeProperty = properties.find((p) => p.name === "type");
+        if (typeProperty?.value !== "room") continue;
+
+        const idProperty = properties.find((p) => p.name === "id");
+        const roomId = idProperty?.value;
+
+        if (roomId && typeof roomId === "string") {
+          targetRoomId = roomId;
+          if (targetRoomId !== "lobby") break;
+        }
+      }
+    }
+
+    if (targetRoomId !== this.currentRoomId) {
+      console.log(`[GameScene] Entering room: ${targetRoomId}`);
+      this.currentRoomId = targetRoomId;
+
+      const joinRoom = this.game.registry.get("joinRoom");
+      if (joinRoom && typeof joinRoom === "function") {
+        console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
+        joinRoom(targetRoomId);
+      } else {
+        console.warn("[GameScene] joinRoom function not found in registry");
+      }
+    }
   }
 
   // Create / Setup helpers (used by create)
