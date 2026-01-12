@@ -15,7 +15,7 @@ interface PhaserLayoutProps {
 const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const { game, setGame } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
-  const { user } = useUser();
+  const { user, users } = useUser();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef<boolean>(false);
 
@@ -67,6 +67,25 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
       loadUserAvatar();
     }
   }, [game, user]);
+
+  useEffect(() => {
+    if (!game || !user) return;
+
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+
+    const renderAnotherUser = () => {
+      const anotherUsers = users.filter(
+        (u) => u.id !== user.id && u.avatar.currentRoomId === user.avatar.currentRoomId,
+      );
+      gameScene.renderAnotherAvatars(anotherUsers);
+    };
+
+    if (!gameScene.isReady) {
+      gameScene.events.once("scene:ready", renderAnotherUser);
+    } else {
+      renderAnotherUser();
+    }
+  }, [game, user, users]);
 
   return (
     <div
