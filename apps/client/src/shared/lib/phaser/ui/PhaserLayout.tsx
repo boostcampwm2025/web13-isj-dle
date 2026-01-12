@@ -13,7 +13,7 @@ interface PhaserLayoutProps {
 }
 
 const PhaserLayout = ({ children }: PhaserLayoutProps) => {
-  const { game, setGame } = usePhaserGame();
+  const { game, setGame, joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
   const { user } = useUser();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,6 +67,18 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
       loadUserAvatar();
     }
   }, [game, user]);
+
+  useEffect(() => {
+    if (game && joinRoom) {
+      game.registry.set("joinRoom", joinRoom);
+    }
+
+    return () => {
+      if (game) {
+        game.registry.remove("joinRoom");
+      }
+    };
+  }, [game, joinRoom]);
 
   return (
     <div
