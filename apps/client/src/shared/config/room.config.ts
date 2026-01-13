@@ -67,6 +67,10 @@ export const getVideoConferenceMode = (roomId: string | undefined, isSitting: bo
   const config = getVideoConferenceConfig(roomId);
   if (!config) return null;
 
+  if (roomId && isMeetingRoomRange(roomId)) {
+    return "thumbnail";
+  }
+
   if (isSitting && config.sittingMode) {
     return config.sittingMode;
   }
