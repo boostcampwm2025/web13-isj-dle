@@ -14,7 +14,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const { setUser, setUsers, addUser, removeUser, updateUserPosition } = useUser();
+  const { setUser, setUsers, addUser, removeUser, updateUser, updateUserPosition } = useUser();
 
   useEffect(() => {
     const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
@@ -89,6 +89,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
     };
 
+    const handleBoundaryUpdate = (updates: Record<string, string | null>) => {
+      console.log("[WebSocket] Boundary update received:", updates);
+
+      for (const [userId, contactId] of Object.entries(updates)) {
+        updateUser({ id: userId, contactId });
+      }
+    };
+
     socketInstance.on("connect", handleConnect);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("connect_error", handleConnectError);
@@ -100,6 +108,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketInstance.on(UserEventType.USER_JOIN, handleUserJoin);
     socketInstance.on(UserEventType.USER_LEFT, handleUserLeft);
     socketInstance.on(UserEventType.PLAYER_MOVED, handlePlayerMoved);
+    socketInstance.on(UserEventType.BOUNDARY_UPDATE, handleBoundaryUpdate);
 
     return () => {
       if (socketRef.current) {
@@ -111,7 +120,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, [addUser, removeUser, setUser, setUsers, updateUserPosition]);
+  }, [addUser, removeUser, setUser, setUsers, updateUser, updateUserPosition]);
 
   return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
 };

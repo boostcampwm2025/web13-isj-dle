@@ -1,13 +1,21 @@
 import type { ActionHook } from "./action.types";
+import type { LocalParticipant } from "livekit-client";
 import { Video, VideoOff } from "lucide-react";
 
 import { useState } from "react";
 
 export const useCameraAction: ActionHook = () => {
-  const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
+  const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
+  const [isCameraOn, setIsCameraOn] = useState<boolean>(false);
 
   const toggleCamera = () => {
-    setIsCameraOn((prev) => !prev);
+    const newState = !isCameraOn;
+    setIsCameraOn(newState);
+    if (localParticipant) {
+      localParticipant.setCameraEnabled(newState);
+    } else {
+      console.warn("Local participant is not available to toggle camera.");
+    }
   };
 
   return {
@@ -15,5 +23,6 @@ export const useCameraAction: ActionHook = () => {
     isOn: isCameraOn,
     icon: isCameraOn ? <Video color="green" /> : <VideoOff color="red" />,
     handleClick: toggleCamera,
+    setLocalParticipant,
   };
 };

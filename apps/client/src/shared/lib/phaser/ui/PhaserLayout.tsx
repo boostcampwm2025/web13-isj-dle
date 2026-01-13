@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getGameConfig } from "@shared/lib/phaser/model/game.config";
 import type { RoomType, User } from "@shared/types";
 import { useUser } from "@src/entities/user";
+import { VideoRoom } from "@src/features/video-conference";
 import { RoomSelectorModal } from "@src/widgets/room-selector-modal";
 
 interface PhaserLayoutProps {
@@ -20,6 +21,7 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const { socket, isConnected } = useWebSocket();
   const { user, users } = useUser();
   const sameRoomUsersRef = useRef<User[]>([]);
+  const userRef = useRef<User | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef<boolean>(false);
   const [roomSelectorOpen, setRoomSelectorOpen] = useState(false);
@@ -43,15 +45,17 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   }, [users, user]);
 
   const sameRoomSig = useMemo(() => {
-    return sameRoomUsers
-      .map((u) => `${u.id}:${u.avatar.x}:${u.avatar.y}:${u.avatar.direction}:${u.avatar.state}`)
+    const usersSig = sameRoomUsers
+      .map((u) => `${u.id}:${u.avatar.x}:${u.avatar.y}:${u.avatar.direction}:${u.avatar.state}:${u.contactId}`)
       .sort()
       .join("|");
-  }, [sameRoomUsers]);
+    return `${usersSig}|me:${user?.contactId}`;
+  }, [sameRoomUsers, user?.contactId]);
 
   useEffect(() => {
     sameRoomUsersRef.current = sameRoomUsers;
-  }, [sameRoomUsers]);
+    userRef.current = user;
+  }, [sameRoomUsers, user]);
 
   useEffect(() => {
     if (isInitializedRef.current) return;
@@ -134,7 +138,7 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
 
     const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
 
-    const render = () => gameScene.renderAnotherAvatars(sameRoomUsersRef.current);
+    const render = () => gameScene.renderAnotherAvatars(sameRoomUsersRef.current, userRef.current);
 
     if (!gameScene.isReady) {
       gameScene.events.once("scene:ready", render);
@@ -190,6 +194,8 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
         onSelect={handleRoomSelect}
         onClose={handleCloseModal}
       />
+
+      {user && <VideoRoom />}
     </div>
   );
 };
