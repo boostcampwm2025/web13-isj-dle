@@ -134,7 +134,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
         if (contactIdUpdates.size > 0) {
           const updates = Object.fromEntries(contactIdUpdates);
-          this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, { updates });
+          this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, updates);
         }
       }
 
@@ -195,7 +195,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // contactId 변경 사항 브로드캐스트
       if (contactIdUpdates.size > 0) {
         const updates = Object.fromEntries(contactIdUpdates);
-        this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, { updates });
+        this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
       }
     }
   }
