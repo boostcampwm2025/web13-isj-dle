@@ -13,6 +13,7 @@ import type { RoomJoinPayload } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
+import { BoundaryService } from "../boundary/boundary.service";
 import { UserManager } from "../user/user-manager.service";
 
 @WebSocketGateway({
@@ -28,6 +29,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   constructor(
     private readonly userManager: UserManager,
     private readonly noticeService: NoticeService,
+    private readonly boundaryService: BoundaryService,
   ) {}
 
   afterInit() {
@@ -95,7 +97,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
-  handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
+  async handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
     if (!payload || !payload.roomId) {
       this.logger.warn(`⚠️ ROOM_JOIN called without roomId from client: ${client.id}`);
       return;
@@ -109,13 +111,35 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
+      const previousRoomId = user.avatar.currentRoomId;
+
       const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
       if (!updated) {
         this.logger.error(`❌ Failed to update room for user: ${client.id}`);
         return;
       }
 
-      client.join(payload.roomId);
+      // 방 이동 시 contactId 초기화
+      this.userManager.updateSessionContactId(client.id, null);
+
+      // 이전 lobby 유저들의 boundary 재계산
+      if (previousRoomId === "lobby") {
+        const lobbyUsers = this.userManager.getRoomSessions("lobby");
+        const groups = this.boundaryService.findBoundaryGroups(lobbyUsers);
+        const contactIdUpdates = this.boundaryService.updateContactIds(lobbyUsers, groups);
+
+        for (const [userId, newContactId] of contactIdUpdates) {
+          this.userManager.updateSessionContactId(userId, newContactId);
+        }
+
+        if (contactIdUpdates.size > 0) {
+          const updates = Object.fromEntries(contactIdUpdates);
+          this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, updates);
+        }
+      }
+
+      await client.leave(previousRoomId);
+      await client.join(payload.roomId);
       this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
 
       const roomUsers = this.userManager.getRoomSessions(payload.roomId);
@@ -161,5 +185,23 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userId: client.id,
       ...payload,
     });
+
+    // Boundary 체크: lobby에서만 활성화
+    if (roomId === "lobby") {
+      const roomUsers = this.userManager.getRoomSessions(roomId);
+      const groups = this.boundaryService.findBoundaryGroups(roomUsers);
+      const contactIdUpdates = this.boundaryService.updateContactIds(roomUsers, groups);
+
+      // contactId가 변경된 유저들 업데이트
+      for (const [userId, newContactId] of contactIdUpdates) {
+        this.userManager.updateSessionContactId(userId, newContactId);
+      }
+
+      // contactId 변경 사항 브로드캐스트
+      if (contactIdUpdates.size > 0) {
+        const updates = Object.fromEntries(contactIdUpdates);
+        this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
+      }
+    }
   }
 }

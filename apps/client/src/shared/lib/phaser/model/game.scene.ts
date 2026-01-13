@@ -4,12 +4,13 @@ import {
   AVATAR_FRAME_WIDTH,
   AVATAR_MOVE_SPEED,
   AVATAR_SNAP_SPEED,
+  BOUNDARY_DASH,
+  BOUNDARY_OFFSET,
   GAME_SCENE_KEY,
   IDLE_FRAME,
   MAP_NAME,
   NICKNAME_OFFSET_Y,
   SIT_FRAME,
-  TILE_SIZE,
   TMJ_URL,
   WALK_FRAME,
 } from "./game.constants";
@@ -22,6 +23,8 @@ import {
   type AvatarAssetKey,
   type AvatarDirection,
   type AvatarState,
+  MINIMUM_NUMBER_OF_MEMBERS,
+  TILE_SIZE,
   type User,
   UserEventType,
 } from "@shared/types";
@@ -34,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private avatarNickname?: Phaser.GameObjects.DOMElement;
   private avatars: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private nicknameTexts: Map<string, Phaser.GameObjects.DOMElement> = new Map();
+  private boundaryGraphics?: Phaser.GameObjects.Graphics;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
   private socket?: Socket;
@@ -378,7 +382,7 @@ export class GameScene extends Phaser.Scene {
     this.emitPlayerPosition();
   }
 
-  renderAnotherAvatars(users: User[]): void {
+  renderAnotherAvatars(users: User[], currentUser?: User | null): void {
     const missingUsers = [...this.avatars.keys()].filter((userId) => !users.find((u) => u.id === userId));
     missingUsers.forEach((userId) => {
       const avatar = this.avatars.get(userId);
@@ -400,6 +404,264 @@ export class GameScene extends Phaser.Scene {
       this.renderSingleAnotherAvatar(user, index);
     });
     this.avatar?.sprite.setDepth(this.mapObj.depthCount + users.length);
+
+    this.renderBoundary(users, currentUser);
+  }
+
+  private renderBoundary(users: User[], currentUser?: User | null): void {
+    // 기존 그래픽 제거
+    if (this.boundaryGraphics) {
+      this.boundaryGraphics.clear();
+    } else {
+      this.boundaryGraphics = this.add.graphics();
+      this.boundaryGraphics.setDepth(this.mapObj.depthCount - 1);
+    }
+
+    if (currentUser?.avatar.currentRoomId !== "lobby") return;
+    const contactGroups = new Map<string, Array<{ x: number; y: number }>>();
+
+    for (const user of users) {
+      if (!user.contactId || user.avatar.currentRoomId !== "lobby" || user.avatar.state !== "idle") continue;
+
+      let group = contactGroups.get(user.contactId);
+      if (!group) {
+        group = [];
+        contactGroups.set(user.contactId, group);
+      }
+
+      group.push({ x: user.avatar.x, y: user.avatar.y });
+    }
+
+    if (currentUser?.contactId && this.avatar?.state === "idle") {
+      let group = contactGroups.get(currentUser.contactId);
+      if (!group) {
+        group = [];
+        contactGroups.set(currentUser.contactId, group);
+      }
+
+      group.push({ x: this.avatar.sprite.x, y: this.avatar.sprite.y });
+    }
+
+    // 각 그룹별로 바운더리 그리기
+    for (const [, points] of contactGroups) {
+      if (points.length < MINIMUM_NUMBER_OF_MEMBERS) continue;
+
+      const hull = this.computeConvexHull(points);
+      this.drawDashedHull(hull, BOUNDARY_OFFSET);
+    }
+  }
+
+  // Convex Hull 계산 (Graham Scan)
+  private computeConvexHull(points: Array<{ x: number; y: number }>): Array<{ x: number; y: number }> {
+    if (points.length <= MINIMUM_NUMBER_OF_MEMBERS) return points;
+
+    // 가장 아래쪽(y가 큰) 점 찾기, 같으면 왼쪽(x가 작은) 점
+    let start = 0;
+    for (let i = 1; i < points.length; i++) {
+      if (points[i].y > points[start].y || (points[i].y === points[start].y && points[i].x < points[start].x)) {
+        start = i;
+      }
+    }
+
+    const pivot = points[start];
+
+    // 각도 기준으로 정렬
+    const sorted = points
+      .filter((_, i) => i !== start)
+      .sort((a, b) => {
+        const angleA = Math.atan2(a.y - pivot.y, a.x - pivot.x);
+        const angleB = Math.atan2(b.y - pivot.y, b.x - pivot.x);
+        if (angleA !== angleB) return angleA - angleB;
+        // 같은 각도면 거리 순
+        const distA = (a.x - pivot.x) ** 2 + (a.y - pivot.y) ** 2;
+        const distB = (b.x - pivot.x) ** 2 + (b.y - pivot.y) ** 2;
+        return distA - distB;
+      });
+
+    const hull: Array<{ x: number; y: number }> = [pivot];
+
+    for (const point of sorted) {
+      while (hull.length > 1 && this.cross(hull[hull.length - 2], hull[hull.length - 1], point) <= 0) {
+        hull.pop();
+      }
+      hull.push(point);
+    }
+
+    return hull;
+  }
+
+  // 외적 계산 (방향 판단용)
+  private cross(o: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  }
+
+  // Convex Hull을 패딩 적용하여 점선으로 그리기
+  private drawDashedHull(hull: Array<{ x: number; y: number }>, padding: number): void {
+    if (!this.boundaryGraphics || hull.length < MINIMUM_NUMBER_OF_MEMBERS) return;
+
+    this.boundaryGraphics.lineStyle(1, 0x00ff00, 0.8);
+    this.drawDashedRoundedPolygon(hull, padding);
+  }
+
+  private drawDashedRoundedPolygon(hull: Array<{ x: number; y: number }>, padding: number): void {
+    if (!this.boundaryGraphics || hull.length < MINIMUM_NUMBER_OF_MEMBERS) return;
+
+    // hull 방향 계산 (시계 / 반시계)
+    let signedArea = 0;
+    for (let i = 0; i < hull.length; i++) {
+      const curr = hull[i];
+      const next = hull[(i + 1) % hull.length];
+      signedArea += (next.x - curr.x) * (next.y + curr.y);
+    }
+    const clockwise = signedArea > 0;
+
+    let isDrawing = true;
+    let dashRemaining = 4;
+
+    for (let i = 0; i < hull.length; i++) {
+      const curr = hull[i];
+      const next = hull[(i + 1) % hull.length];
+      const prev = hull[(i - 1 + hull.length) % hull.length];
+
+      // 현재 edge 방향
+      const dx = next.x - curr.x;
+      const dy = next.y - curr.y;
+      const len = Math.hypot(dx, dy);
+      if (len === 0) continue;
+
+      // 외부 법선
+      const sign = clockwise ? -1 : 1;
+      const nx = (sign * dy) / len;
+      const ny = (-sign * dx) / len;
+
+      const startX = curr.x + nx * padding;
+      const startY = curr.y + ny * padding;
+      const endX = next.x + nx * padding;
+      const endY = next.y + ny * padding;
+
+      // 코너용 이전 edge 법선
+      const pdx = curr.x - prev.x;
+      const pdy = curr.y - prev.y;
+      const plen = Math.hypot(pdx, pdy);
+
+      if (plen > 0) {
+        const pnx = (sign * pdy) / plen;
+        const pny = (-sign * pdx) / plen;
+
+        const prevX = curr.x + pnx * padding;
+        const prevY = curr.y + pny * padding;
+
+        const startAngle = Math.atan2(prevY - curr.y, prevX - curr.x);
+        const endAngle = Math.atan2(startY - curr.y, startX - curr.x);
+
+        const arcResult = this.drawDashedArc(curr.x, curr.y, padding, startAngle, endAngle, dashRemaining, isDrawing);
+        dashRemaining = arcResult.dashRemaining;
+        isDrawing = arcResult.isDrawing;
+      }
+
+      const lineResult = this.drawDashedLine(startX, startY, endX, endY, dashRemaining, isDrawing);
+      dashRemaining = lineResult.dashRemaining;
+      isDrawing = lineResult.isDrawing;
+    }
+  }
+
+  // 점선 직선 그리기
+  private drawDashedLine(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    dashRemaining: number,
+    isDrawing: boolean,
+  ): { dashRemaining: number; isDrawing: boolean } {
+    if (!this.boundaryGraphics) return { dashRemaining, isDrawing };
+
+    const dashLength = BOUNDARY_DASH.LENGTH;
+    const gapLength = BOUNDARY_DASH.GAP;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance === 0) return { dashRemaining, isDrawing };
+
+    const unitX = dx / distance;
+    const unitY = dy / distance;
+
+    let traveled = 0;
+    let cx = x1;
+    let cy = y1;
+
+    while (traveled < distance) {
+      const segLen = Math.min(dashRemaining, distance - traveled);
+
+      if (isDrawing) {
+        this.boundaryGraphics.beginPath();
+        this.boundaryGraphics.moveTo(cx, cy);
+        this.boundaryGraphics.lineTo(cx + unitX * segLen, cy + unitY * segLen);
+        this.boundaryGraphics.strokePath();
+      }
+
+      cx += unitX * segLen;
+      cy += unitY * segLen;
+      traveled += segLen;
+      dashRemaining -= segLen;
+
+      if (dashRemaining <= 0) {
+        isDrawing = !isDrawing;
+        dashRemaining = isDrawing ? dashLength : gapLength;
+      }
+    }
+
+    return { dashRemaining, isDrawing };
+  }
+
+  // 점선 호 그리기
+  private drawDashedArc(
+    cx: number,
+    cy: number,
+    radius: number,
+    startAngle: number,
+    endAngle: number,
+    dashRemaining: number,
+    isDrawing: boolean,
+  ): { dashRemaining: number; isDrawing: boolean } {
+    if (!this.boundaryGraphics) return { dashRemaining, isDrawing };
+
+    const dashLength = BOUNDARY_DASH.LENGTH;
+    const gapLength = BOUNDARY_DASH.GAP;
+
+    // 각도 정규화
+    while (endAngle < startAngle) endAngle += 2 * Math.PI;
+    const totalAngle = endAngle - startAngle;
+    const arcLength = totalAngle * radius;
+    const segments = Math.max(8, Math.ceil(arcLength / 4));
+
+    for (let i = 0; i < segments; i++) {
+      const a1 = startAngle + (i / segments) * totalAngle;
+      const a2 = startAngle + ((i + 1) / segments) * totalAngle;
+
+      const x1 = cx + Math.cos(a1) * radius;
+      const y1 = cy + Math.sin(a1) * radius;
+      const x2 = cx + Math.cos(a2) * radius;
+      const y2 = cy + Math.sin(a2) * radius;
+
+      const segLen = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+
+      if (isDrawing) {
+        this.boundaryGraphics.beginPath();
+        this.boundaryGraphics.moveTo(x1, y1);
+        this.boundaryGraphics.lineTo(x2, y2);
+        this.boundaryGraphics.strokePath();
+      }
+
+      dashRemaining -= segLen;
+      if (dashRemaining <= 0) {
+        isDrawing = !isDrawing;
+        dashRemaining = isDrawing ? dashLength : gapLength;
+      }
+    }
+
+    return { dashRemaining, isDrawing };
   }
 
   private renderSingleAnotherAvatar(user: User, index: number): void {
