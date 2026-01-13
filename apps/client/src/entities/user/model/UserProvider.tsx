@@ -21,11 +21,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateUser = useCallback((updated: Partial<User> & { id: string }) => {
-    setUsers((prev) => prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === updated.id
+          ? {
+              ...u,
+              ...updated,
+              avatar: updated.avatar ? { ...u.avatar, ...updated.avatar } : u.avatar,
+            }
+          : u,
+      ),
+    );
 
     setUser((prev) => {
       if (prev?.id === updated.id) {
-        return { ...prev, ...updated };
+        return {
+          ...prev,
+          ...updated,
+          avatar: updated.avatar ? { ...prev.avatar, ...updated.avatar } : prev.avatar,
+        };
       }
       return prev;
     });
