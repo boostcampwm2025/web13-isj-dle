@@ -8,14 +8,14 @@ export const useCameraAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
   const [isCameraOn, setIsCameraOn] = useState<boolean>(false);
 
-  const toggleCamera = () => {
+  const toggleCamera = async () => {
     const newState = !isCameraOn;
-    setIsCameraOn(newState);
     if (localParticipant) {
-      localParticipant.setCameraEnabled(newState);
+      await localParticipant.setCameraEnabled(newState);
     } else {
       console.warn("Local participant is not available to toggle camera.");
     }
+    setIsCameraOn(newState);
   };
 
   return {
