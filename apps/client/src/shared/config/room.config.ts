@@ -26,3 +26,55 @@ export const getRoomNumbers = (roomRange: string): string[] => {
 export const isMeetingRoomRange = (roomId: string): boolean => {
   return MEETING_ROOM_RANGES.includes(roomId as MeetingRoomRange);
 };
+
+export type VideoConferenceMode = "full-grid" | "thumbnail" | null;
+
+export interface VideoConferenceConfig {
+  defaultMode: VideoConferenceMode;
+  sittingMode?: VideoConferenceMode;
+}
+
+const VIDEO_CONFERENCE_CONFIG_MAP: Record<string, VideoConferenceConfig> = {
+  meeting: {
+    defaultMode: "full-grid",
+  },
+  seminar: {
+    defaultMode: "thumbnail",
+    sittingMode: "full-grid",
+  },
+  lobby: {
+    defaultMode: null,
+  },
+};
+
+export const getVideoConferenceConfig = (roomId: string | undefined): VideoConferenceConfig | null => {
+  if (!roomId) return null;
+
+  if (VIDEO_CONFERENCE_CONFIG_MAP[roomId]) {
+    return VIDEO_CONFERENCE_CONFIG_MAP[roomId];
+  }
+
+  for (const [key, config] of Object.entries(VIDEO_CONFERENCE_CONFIG_MAP)) {
+    if (roomId.startsWith(key)) {
+      return config;
+    }
+  }
+
+  return null;
+};
+
+export const getVideoConferenceMode = (roomId: string | undefined, isSitting: boolean = false): VideoConferenceMode => {
+  const config = getVideoConferenceConfig(roomId);
+  if (!config) return null;
+
+  if (isSitting && config.sittingMode) {
+    return config.sittingMode;
+  }
+
+  return config.defaultMode;
+};
+
+export const isVideoConferenceRoom = (roomId: string | undefined): boolean => {
+  const config = getVideoConferenceConfig(roomId);
+  return config !== null && config.defaultMode !== null;
+};
