@@ -1,22 +1,12 @@
-import { Track } from "livekit-client";
-
 import { useEffect } from "react";
 
-import {
-  GridLayout,
-  RoomAudioRenderer,
-  TrackRefContext,
-  VideoTrack,
-  isTrackReference,
-  useTracks,
-} from "@livekit/components-react";
+import { VideoConference } from "@livekit/components-react";
 import { useLocalParticipant } from "@livekit/components-react";
 import { useAction } from "@src/features/actions";
 
 const RoomContent = () => {
   const { getHookByKey } = useAction();
   const { localParticipant } = useLocalParticipant();
-  const tracks = useTracks([Track.Source.Camera]);
 
   useEffect(() => {
     const { setLocalParticipant: setMicLocalParticipant } = getHookByKey("mic");
@@ -34,16 +24,7 @@ const RoomContent = () => {
     };
   }, [getHookByKey, localParticipant]);
 
-  return (
-    <>
-      <GridLayout tracks={tracks}>
-        <TrackRefContext.Consumer>
-          {(trackRef) => (isTrackReference(trackRef) ? <VideoTrack trackRef={trackRef} /> : null)}
-        </TrackRefContext.Consumer>
-      </GridLayout>
-      <RoomAudioRenderer />
-    </>
-  );
+  return <VideoConference />;
 };
 
 export default RoomContent;
