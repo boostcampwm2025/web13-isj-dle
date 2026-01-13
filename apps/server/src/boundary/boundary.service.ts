@@ -1,10 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-import type { User } from "@shared/types";
+import { MINIMUM_NUMBER_OF_MEMBERS, TILE_SIZE, type User } from "@shared/types";
 
-const BOUNDARY_RANGE = 2;
-const TILE_SIZE = 16;
-const MINIMUM_NUMBER_OF_MEMBERS = 2;
+const BOUNDARY_RANGE = 1;
 
 export interface BoundaryGroup {
   groupId: string;
