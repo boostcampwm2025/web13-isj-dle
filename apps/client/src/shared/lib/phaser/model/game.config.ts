@@ -5,6 +5,9 @@ export function getGameConfig(containerRef: HTMLElement): Phaser.Types.Core.Game
   return {
     type: Phaser.AUTO,
     parent: containerRef,
+    dom: {
+      createContainer: true,
+    },
     scene: GameScene,
     pixelArt: true,
     render: { roundPixels: true },
