@@ -1,8 +1,7 @@
 import { PhaserContext } from "./use-phaser-game";
+import { useRoom } from "./use-room";
 
 import { type ReactNode, useMemo, useState } from "react";
-
-import { useRoom } from "@src/entities/room";
 
 interface PhaserProviderProps {
   children?: ReactNode;
