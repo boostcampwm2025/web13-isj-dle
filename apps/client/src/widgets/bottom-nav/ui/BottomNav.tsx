@@ -1,15 +1,15 @@
-import { BOTTOM_NAVIGATION_MAP } from "../model/bottom-nav.constants";
 import { useBottomNav } from "../model/use-bottom-nav";
 
+import { useAction } from "@src/features/actions";
+
 const BottomNav = () => {
+  const { getHookByKey } = useAction();
   const { bottomNavigation } = useBottomNav();
 
   return (
     <div className="pointer-events-auto fixed bottom-12 left-1/2 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
       {bottomNavigation.map((key) => {
-        const bottomNavItem = BOTTOM_NAVIGATION_MAP[key];
-        if (!bottomNavItem) return null;
-        const { title, icon, handleClick } = bottomNavItem();
+        const { title, icon, handleClick } = getHookByKey(key);
 
         return (
           <div key={key} className="group relative">

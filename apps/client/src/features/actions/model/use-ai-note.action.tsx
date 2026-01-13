@@ -1,6 +1,7 @@
+import type { ActionHook } from "./action.types";
 import { Sparkles } from "lucide-react";
 
-export const useAiNoteAction = () => {
+export const useAiNoteAction: ActionHook = () => {
   const handleClick = () => {
     console.log("AI Note action clicked");
   };

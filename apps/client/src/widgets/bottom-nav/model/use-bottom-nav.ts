@@ -1,12 +1,12 @@
-import type { BottomNavKey } from "./bottom-nav.types";
-
 import { createContext, useContext } from "react";
 
+import type { ActionKey } from "@src/features/actions";
+
 interface BottomNavContextType {
-  bottomNavigation: BottomNavKey[];
-  addKey: (key: BottomNavKey) => void;
-  removeKey: (key: BottomNavKey) => void;
-  setBottomNavigation: (keys: BottomNavKey[]) => void;
+  bottomNavigation: ActionKey[];
+  addKey: (key: ActionKey) => void;
+  removeKey: (key: ActionKey) => void;
+  setBottomNavigation: (keys: ActionKey[]) => void;
 }
 
 export const BottomNavContext = createContext<BottomNavContextType | null>(null);

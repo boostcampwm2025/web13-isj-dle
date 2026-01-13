@@ -1,7 +1,7 @@
-import type { BottomNavHook } from "../model/bottom-nav.types";
+import type { ActionHook } from "./action.types";
 import { LogOut } from "lucide-react";
 
-export const useLeaveAction: BottomNavHook = () => {
+export const useLeaveAction: ActionHook = () => {
   const handleLeave = () => {
     const confirmed = window.confirm("정말 나가시겠습니까?");
     if (confirmed) {

@@ -1,9 +1,9 @@
-import type { BottomNavHook } from "../model/bottom-nav.types";
+import type { ActionHook } from "./action.types";
 import { Mic, MicOff } from "lucide-react";
 
 import { useState } from "react";
 
-export const useMicAction: BottomNavHook = () => {
+export const useMicAction: ActionHook = () => {
   const [isMicOn, setIsMicOn] = useState<boolean>(true);
 
   const toggleMic = () => {

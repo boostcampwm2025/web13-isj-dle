@@ -1,9 +1,9 @@
-import type { BottomNavHook } from "../model/bottom-nav.types";
+import type { ActionHook } from "./action.types";
 import { ScreenShare, ScreenShareOff } from "lucide-react";
 
 import { useState } from "react";
 
-export const useScreenShareAction: BottomNavHook = () => {
+export const useScreenShareAction: ActionHook = () => {
   const [isScreenShareOn, setIsScreenShareOn] = useState<boolean>(true);
 
   const toggleScreenShare = () => {

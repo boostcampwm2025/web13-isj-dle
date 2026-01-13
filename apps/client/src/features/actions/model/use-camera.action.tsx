@@ -1,9 +1,9 @@
-import type { BottomNavHook } from "../model/bottom-nav.types";
+import type { ActionHook } from "./action.types";
 import { Video, VideoOff } from "lucide-react";
 
 import { useState } from "react";
 
-export const useCameraAction: BottomNavHook = () => {
+export const useCameraAction: ActionHook = () => {
   const [isCameraOn, setIsCameraOn] = useState<boolean>(true);
 
   const toggleCamera = () => {

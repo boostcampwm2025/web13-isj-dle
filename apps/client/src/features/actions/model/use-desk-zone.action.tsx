@@ -1,6 +1,7 @@
+import type { ActionHook } from "./action.types";
 import { Briefcase } from "lucide-react";
 
-export const useDeskZoneAction = () => {
+export const useDeskZoneAction: ActionHook = () => {
   const handleClick = () => {
     console.log("Desk Zone action clicked");
   };
