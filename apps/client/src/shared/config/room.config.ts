@@ -78,3 +78,14 @@ export const isVideoConferenceRoom = (roomId: string | undefined): boolean => {
   const config = getVideoConferenceConfig(roomId);
   return config !== null && config.defaultMode !== null;
 };
+
+export function getVideoRoomClassName(mode: VideoConferenceMode): string {
+  switch (mode) {
+    case "full-grid":
+      return "fixed inset-0 z-[9999] bg-black";
+    case "thumbnail":
+      return "fixed top-5 right-5 w-96 h-72 z-[9999] bg-black rounded-lg shadow-2xl overflow-hidden";
+    default:
+      return "";
+  }
+}

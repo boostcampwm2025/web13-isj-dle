@@ -1,6 +1,7 @@
 import { useLivekit } from "../model/use-livekit";
 
 import { LiveKitRoom, VideoConference } from "@livekit/components-react";
+import "@livekit/components-styles";
 import type { LivekitRoomConfig } from "@shared/types";
 
 interface VideoRoomProps {
@@ -17,17 +18,17 @@ export function VideoRoom({ config, onDisconnect, initialVideo, initialAudio }: 
   if (error || !token || !serverUrl) return <div>Failed to connect: {error}</div>;
 
   return (
-    <div className="video-room-container">
-      <LiveKitRoom
-        serverUrl={serverUrl}
-        token={token}
-        connect
-        video={initialVideo ?? true}
-        audio={initialAudio ?? true}
-        onDisconnected={onDisconnect}
-      >
-        <VideoConference />
-      </LiveKitRoom>
-    </div>
+    <LiveKitRoom
+      serverUrl={serverUrl}
+      token={token}
+      connect
+      video={initialVideo ?? true}
+      audio={initialAudio ?? true}
+      onDisconnected={onDisconnect}
+      data-lk-theme="default"
+      style={{ width: "100%", height: "100%" }}
+    >
+      <VideoConference />
+    </LiveKitRoom>
   );
 }
