@@ -4,7 +4,7 @@ import { GAME_SCENE_KEY } from "../model/game.constants";
 import type { GameScene } from "../model/game.scene";
 import { usePhaserGame } from "../model/use-phaser-game";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGameConfig } from "@shared/lib/phaser/model/game.config";
 import type { RoomType, User } from "@shared/types";
@@ -24,6 +24,16 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const isInitializedRef = useRef<boolean>(false);
   const [roomSelectorOpen, setRoomSelectorOpen] = useState(false);
   const [selectedRoomRange, setSelectedRoomRange] = useState<string>("");
+  const currentRoomId = user?.avatar.currentRoomId;
+  const [prevRoomId, setPrevRoomId] = useState(currentRoomId);
+
+  if (currentRoomId !== prevRoomId) {
+    setPrevRoomId(currentRoomId);
+
+    if (roomSelectorOpen && currentRoomId === "lobby") {
+      setRoomSelectorOpen(false);
+    }
+  }
 
   const sameRoomUsers = useMemo(() => {
     if (!user) return [];
@@ -133,14 +143,14 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     }
   }, [game, user, sameRoomSig]);
 
+  const handleCloseModal = useCallback(() => {
+    setRoomSelectorOpen(false);
+  }, []);
+
   const handleRoomSelect = (roomId: RoomType) => {
     if (joinRoom) {
       joinRoom(roomId);
     }
-    setRoomSelectorOpen(false);
-  };
-
-  const handleCloseModal = () => {
     setRoomSelectorOpen(false);
   };
 
