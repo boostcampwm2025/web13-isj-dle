@@ -113,6 +113,20 @@ export class UserManager {
     return true;
   }
 
+  updateSessionContactId(id: string, contactId: string | null): boolean {
+    const user = this.sessions.get(id);
+
+    if (!user) {
+      this.logger.warn(`Session not found for updating contactId: ${id}`);
+      return false;
+    }
+
+    user.contactId = contactId;
+    this.logger.debug(`ContactId Updated: ${id} -> ${contactId}`);
+
+    return true;
+  }
+
   deleteSession(id: string): boolean {
     const deleted = this.sessions.delete(id);
     if (deleted) {
