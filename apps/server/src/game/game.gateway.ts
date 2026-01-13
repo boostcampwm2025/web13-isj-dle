@@ -119,11 +119,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
 
       const roomUsers = this.userManager.getRoomSessions(payload.roomId);
+      const updatedUser = this.userManager.getSession(client.id);
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
         userId: client.id,
         roomId: payload.roomId,
-        users: roomUsers,
+      });
+
+      client.emit(UserEventType.USER_SYNC, {
+        user: updatedUser,
+        users: this.userManager.getAllSessions(),
       });
 
       this.logger.log(

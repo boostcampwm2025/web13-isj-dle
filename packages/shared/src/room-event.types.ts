@@ -1,5 +1,4 @@
 import type { RoomType } from "./room.types";
-import type { User } from "./user.types";
 
 export enum RoomEventType {
   ROOM_JOIN = "room:join",
@@ -13,5 +12,4 @@ export interface RoomJoinPayload {
 export interface RoomJoinedPayload {
   userId: string;
   roomId: RoomType;
-  users: User[];
 }

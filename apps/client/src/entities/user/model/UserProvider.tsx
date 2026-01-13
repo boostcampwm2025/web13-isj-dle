@@ -1,4 +1,5 @@
 import { UserContext } from "./user-context";
+import type { UserUpdate } from "./user.types";
 
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
@@ -9,19 +10,37 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>([]);
 
   const addUser = useCallback((user: User) => {
-    setUsers((prev) => [...prev, user]);
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === user.id);
+      if (exists) return prev;
+      return [...prev, user];
+    });
   }, []);
 
   const removeUser = useCallback((userId: string) => {
     setUsers((prev) => prev.filter((u) => u.id !== userId));
   }, []);
 
-  const updateUser = useCallback((updated: Partial<User> & { id: string }) => {
-    setUsers((prev) => prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
+  const updateUser = useCallback((updated: UserUpdate) => {
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === updated.id
+          ? {
+              ...u,
+              ...updated,
+              avatar: updated.avatar ? { ...u.avatar, ...updated.avatar } : u.avatar,
+            }
+          : u,
+      ),
+    );
 
     setUser((prev) => {
       if (prev?.id === updated.id) {
-        return { ...prev, ...updated };
+        return {
+          ...prev,
+          ...updated,
+          avatar: updated.avatar ? { ...prev.avatar, ...updated.avatar } : prev.avatar,
+        };
       }
       return prev;
     });

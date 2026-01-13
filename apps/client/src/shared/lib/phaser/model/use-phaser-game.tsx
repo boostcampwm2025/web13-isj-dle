@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 interface PhaserContextType {
   game: Phaser.Game | null;
   setGame: (game: Phaser.Game | null) => void;
+  joinRoom?: (roomId: string) => void;
 }
 
 export const PhaserContext = createContext<PhaserContextType | null>(null);
