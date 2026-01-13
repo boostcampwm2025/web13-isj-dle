@@ -64,8 +64,8 @@ export function VideoRoomWidget() {
 
   return (
     <div className={className}>
-      <VideoRoom config={config} onDisconnect={() => {}} />
-
+      {/*<VideoRoom config={config} onDisconnect={() => {}} />*/}
+      <VideoRoom onDisconnect={() => {}} />
       {videoMode === "full-grid" && (
         <button
           onClick={handleMinimize}
