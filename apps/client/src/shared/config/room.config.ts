@@ -27,7 +27,12 @@ export const isMeetingRoomRange = (roomId: string): boolean => {
   return MEETING_ROOM_RANGES.includes(roomId as MeetingRoomRange);
 };
 
-export type VideoConferenceMode = "full-grid" | "thumbnail" | null;
+export const VIDEO_CONFERENCE_MODE = {
+  FULL_GRID: "full-grid",
+  THUMBNAIL: "thumbnail",
+};
+
+export type VideoConferenceMode = (typeof VIDEO_CONFERENCE_MODE)[keyof typeof VIDEO_CONFERENCE_MODE] | null;
 
 export interface VideoConferenceConfig {
   defaultMode: VideoConferenceMode;
@@ -36,11 +41,11 @@ export interface VideoConferenceConfig {
 
 const VIDEO_CONFERENCE_CONFIG_MAP: Record<string, VideoConferenceConfig> = {
   meeting: {
-    defaultMode: "full-grid",
+    defaultMode: VIDEO_CONFERENCE_MODE.FULL_GRID,
   },
   seminar: {
-    defaultMode: "thumbnail",
-    sittingMode: "full-grid",
+    defaultMode: VIDEO_CONFERENCE_MODE.THUMBNAIL,
+    sittingMode: VIDEO_CONFERENCE_MODE.FULL_GRID,
   },
   lobby: {
     defaultMode: null,
@@ -68,7 +73,7 @@ export const getVideoConferenceMode = (roomId: string | undefined, isSitting: bo
   if (!config) return null;
 
   if (roomId && isMeetingRoomRange(roomId)) {
-    return "thumbnail";
+    return VIDEO_CONFERENCE_MODE.THUMBNAIL;
   }
 
   if (isSitting && config.sittingMode) {
@@ -85,9 +90,9 @@ export const isVideoConferenceRoom = (roomId: string | undefined): boolean => {
 
 export function getVideoRoomClassName(mode: VideoConferenceMode): string {
   switch (mode) {
-    case "full-grid":
+    case VIDEO_CONFERENCE_MODE.FULL_GRID:
       return "fixed inset-0 z-[9999] bg-black";
-    case "thumbnail":
+    case VIDEO_CONFERENCE_MODE.THUMBNAIL:
       return "fixed top-5 right-5 w-96 h-72 z-[9999] bg-black rounded-lg shadow-2xl overflow-hidden";
     default:
       return "";
