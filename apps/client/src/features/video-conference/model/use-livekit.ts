@@ -12,12 +12,17 @@ interface UseLivekitState {
   isOpen: boolean;
 }
 
-export function useLivekit(): UseLivekitState {
-  const { user } = useUser();
+export const useLivekit = (): UseLivekitState => {
+  const { user, users } = useUser();
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
   const roomId = user?.avatar.currentRoomId;
   const userId = user?.id;
   const nickname = user?.nickname;
+
+  // users 배열에서 현재 유저의 최신 contactId 가져오기
+  const currentUserFromList = users.find((u) => u.id === userId);
+  const contactId = currentUserFromList?.contactId ?? user?.contactId;
+
   const [livekitState, setLivekitState] = useState<UseLivekitState>({
     token: null,
     serverUrl: null,
@@ -29,22 +34,24 @@ export function useLivekit(): UseLivekitState {
   useEffect(() => {
     if (!roomId || !userId || !nickname) return;
 
-    const restoreConfig = () => {
-      setConfig({
-        roomId,
-        userId,
-        nickname,
-      });
+    // lobby에서 contactId가 있으면 contactId를 roomId로 사용
+    const effectiveRoomId = roomId === "lobby" && contactId ? contactId : roomId;
 
-      if (roomId === "lobby" || roomId === "desk zone" || (roomId.startsWith("meeting (") && roomId.includes("-"))) {
-        setLivekitState((prev) => ({ ...prev, isOpen: false }));
-      } else {
-        setLivekitState((prev) => ({ ...prev, isOpen: true }));
-      }
-    };
+    setConfig({
+      roomId: effectiveRoomId,
+      userId,
+      nickname,
+    });
 
-    restoreConfig();
-  }, [roomId, userId, nickname]);
+    // lobby는 contactId가 있을 때만 연결
+    if (roomId === "lobby") {
+      setLivekitState((prev) => ({ ...prev, isOpen: !!contactId }));
+    } else if (roomId === "desk zone" || (roomId.startsWith("meeting (") && roomId.includes("-"))) {
+      setLivekitState((prev) => ({ ...prev, isOpen: false }));
+    } else {
+      setLivekitState((prev) => ({ ...prev, isOpen: true }));
+    }
+  }, [roomId, userId, nickname, contactId]);
 
   useEffect(() => {
     if (!config) return;
@@ -79,4 +86,4 @@ export function useLivekit(): UseLivekitState {
   }, [config, livekitState.isOpen]);
 
   return livekitState;
-}
+};
