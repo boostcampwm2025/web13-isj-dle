@@ -1,4 +1,5 @@
 import { UserContext } from "./user-context";
+import type { UserUpdate } from "./user.types";
 
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
@@ -20,7 +21,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUsers((prev) => prev.filter((u) => u.id !== userId));
   }, []);
 
-  const updateUser = useCallback((updated: Partial<User> & { id: string }) => {
+  const updateUser = useCallback((updated: UserUpdate) => {
     setUsers((prev) =>
       prev.map((u) =>
         u.id === updated.id

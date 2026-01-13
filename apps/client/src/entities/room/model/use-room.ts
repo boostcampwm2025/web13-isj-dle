@@ -6,7 +6,7 @@ import { useWebSocket } from "@src/shared/lib/websocket";
 
 export const useRoom = () => {
   const { socket, isConnected } = useWebSocket();
-  const { setUsers } = useUser();
+  const { updateUser } = useUser();
 
   const joinRoom = useCallback(
     (roomId: string) => {
@@ -26,12 +26,16 @@ export const useRoom = () => {
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
       console.log("[useRoom] room:joined event received:", payload);
 
-      const { roomId, userId, users } = payload;
+      const { roomId, userId } = payload;
 
       console.log(`[useRoom] User ${userId} joined ${roomId}`);
-      console.log(`[useRoom] Room users: ${users.length} in room`);
 
-      setUsers(users);
+      updateUser({
+        id: userId,
+        avatar: {
+          currentRoomId: roomId,
+        },
+      });
     };
 
     socket.on(RoomEventType.ROOM_JOINED, handleRoomJoined);
@@ -40,7 +44,7 @@ export const useRoom = () => {
       console.log("[useRoom] Cleaning up room:joined listener");
       socket.off(RoomEventType.ROOM_JOINED, handleRoomJoined);
     };
-  }, [socket, setUsers]);
+  }, [socket, updateUser]);
 
   return {
     joinRoom,
