@@ -26,6 +26,7 @@ const ActionProvider = ({ children }: ActionProviderProps) => {
   const getHookByKey = (key: ActionKey): ReturnType<ActionHook> => {
     return actions[key];
   };
+
   return <ActionContext.Provider value={{ getHookByKey }}>{children}</ActionContext.Provider>;
 };
 
