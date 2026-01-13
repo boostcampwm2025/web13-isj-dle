@@ -40,9 +40,42 @@ export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: Room
           maxHeight: "80vh",
           overflow: "auto",
           boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+          position: "relative",
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* 닫기 버튼 */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: "16px",
+            right: "16px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            width: "32px",
+            height: "32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "4px",
+            transition: "background-color 0.2s",
+            fontSize: "24px",
+            color: "#666",
+            lineHeight: "1",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#f3f4f6";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
+          aria-label="닫기"
+        >
+          ×
+        </button>
+
         <div style={{ marginBottom: "16px" }}>
           <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "8px" }}>회의실 선택</h2>
           <p style={{ fontSize: "14px", color: "#666" }}>입장할 회의실을 선택하세요</p>
