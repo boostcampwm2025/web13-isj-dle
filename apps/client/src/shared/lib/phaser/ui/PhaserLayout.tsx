@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getGameConfig } from "@shared/lib/phaser/model/game.config";
 import type { RoomType, User } from "@shared/types";
 import { useUser } from "@src/entities/user";
+import { VideoRoom } from "@src/features/video-conference";
 import { RoomSelectorModal } from "@src/widgets/room-selector-modal";
 
 interface PhaserLayoutProps {
@@ -193,6 +194,8 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
         onSelect={handleRoomSelect}
         onClose={handleCloseModal}
       />
+
+      {user && <VideoRoom />}
     </div>
   );
 };
