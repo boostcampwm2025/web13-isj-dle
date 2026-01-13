@@ -1,32 +1,158 @@
+import { useWebSocket } from "../../websocket";
+import { GAME_REGISTRY_KEYS, setRegistryFunction } from "../model/game-registry.constants";
+import { GAME_SCENE_KEY } from "../model/game.constants";
+import type { GameScene } from "../model/game.scene";
 import { usePhaserGame } from "../model/use-phaser-game";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGameConfig } from "@shared/lib/phaser/model/game.config";
+import type { RoomType, User } from "@shared/types";
+import { useUser } from "@src/entities/user";
+import { RoomSelectorModal } from "@src/widgets/room-selector-modal";
 
 interface PhaserLayoutProps {
   children: React.ReactNode;
 }
 
 const PhaserLayout = ({ children }: PhaserLayoutProps) => {
-  const { game, setGame } = usePhaserGame();
+  const { game, setGame, joinRoom } = usePhaserGame();
+  const { socket, isConnected } = useWebSocket();
+  const { user, users } = useUser();
+  const sameRoomUsersRef = useRef<User[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef<boolean>(false);
+  const [roomSelectorOpen, setRoomSelectorOpen] = useState(false);
+  const [selectedRoomRange, setSelectedRoomRange] = useState<string>("");
+  const currentRoomId = user?.avatar.currentRoomId;
+  const [prevRoomId, setPrevRoomId] = useState(currentRoomId);
+
+  if (currentRoomId !== prevRoomId) {
+    setPrevRoomId(currentRoomId);
+
+    if (roomSelectorOpen && currentRoomId === "lobby") {
+      setRoomSelectorOpen(false);
+    }
+  }
+
+  const sameRoomUsers = useMemo(() => {
+    if (!user) return [];
+    const roomId = user.avatar.currentRoomId;
+    const myId = user.id;
+    return users.filter((u) => u.id !== myId && u.avatar.currentRoomId === roomId);
+  }, [users, user]);
+
+  const sameRoomSig = useMemo(() => {
+    return sameRoomUsers
+      .map((u) => `${u.id}:${u.avatar.x}:${u.avatar.y}:${u.avatar.direction}:${u.avatar.state}`)
+      .sort()
+      .join("|");
+  }, [sameRoomUsers]);
 
   useEffect(() => {
+    sameRoomUsersRef.current = sameRoomUsers;
+  }, [sameRoomUsers]);
+
+  useEffect(() => {
+    if (isInitializedRef.current) return;
+
     if (containerRef.current && !game) {
       const config = getGameConfig(containerRef.current);
-
       const gameInstance = new Phaser.Game(config);
       setGame(gameInstance);
+      isInitializedRef.current = true;
     }
 
     return () => {
       if (game) {
         game.destroy(true);
         setGame(null);
+        isInitializedRef.current = false;
       }
     };
   }, [game, setGame]);
+
+  useEffect(() => {
+    if (!game || !isConnected || !socket) return;
+
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (gameScene.isInitializedSocket) return;
+
+    if (!gameScene.isReady) {
+      gameScene.events.once("scene:ready", () => gameScene.setSocket(socket));
+    } else {
+      gameScene.setSocket(socket);
+    }
+  }, [game, socket, isConnected]);
+
+  useEffect(() => {
+    if (!game || !user) return;
+
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (gameScene.isLoadPlayer) return;
+
+    const loadUserAvatar = () => {
+      gameScene.loadAvatar(user.avatar);
+    };
+
+    if (!gameScene.isReady) {
+      gameScene.events.once("scene:ready", loadUserAvatar);
+    } else {
+      loadUserAvatar();
+    }
+  }, [game, user]);
+
+  useEffect(() => {
+    if (game && joinRoom) {
+      setRegistryFunction(game, "JOIN_ROOM", joinRoom);
+    }
+
+    return () => {
+      if (game) {
+        game.registry.remove(GAME_REGISTRY_KEYS.JOIN_ROOM);
+      }
+    };
+  }, [game, joinRoom]);
+
+  useEffect(() => {
+    if (!game) return;
+
+    const openRoomSelector = (roomRange: string) => {
+      setSelectedRoomRange(roomRange);
+      setRoomSelectorOpen(true);
+    };
+
+    setRegistryFunction(game, "OPEN_ROOM_SELECTOR", openRoomSelector);
+
+    return () => {
+      game.registry.remove(GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR);
+    };
+  }, [game]);
+
+  useEffect(() => {
+    if (!game || !user) return;
+
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+
+    const render = () => gameScene.renderAnotherAvatars(sameRoomUsersRef.current);
+
+    if (!gameScene.isReady) {
+      gameScene.events.once("scene:ready", render);
+    } else {
+      render();
+    }
+  }, [game, user, sameRoomSig]);
+
+  const handleCloseModal = useCallback(() => {
+    setRoomSelectorOpen(false);
+  }, []);
+
+  const handleRoomSelect = (roomId: RoomType) => {
+    if (joinRoom) {
+      joinRoom(roomId);
+    }
+    setRoomSelectorOpen(false);
+  };
 
   return (
     <div
@@ -57,6 +183,13 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
       >
         {children}
       </div>
+      {/* 회의실 선택 모달 */}
+      <RoomSelectorModal
+        isOpen={roomSelectorOpen}
+        roomRange={selectedRoomRange}
+        onSelect={handleRoomSelect}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

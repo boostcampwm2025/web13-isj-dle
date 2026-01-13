@@ -8,7 +8,8 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { NoticeEventType, UserEventType } from "@shared/types";
+import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
+import type { RoomJoinPayload } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
@@ -34,7 +35,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log(`📡 CORS origins: ${process.env.CLIENT_URL || "http://localhost:5173,http://localhost:3000"}`);
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     try {
       this.logger.log(`✅ Client connected: ${client.id}`);
       this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
@@ -49,6 +50,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
+      await client.join(user.avatar.currentRoomId);
       client.emit(UserEventType.USER_SYNC, { user, users: this.userManager.getAllSessions() });
       client.broadcast.emit(UserEventType.USER_JOIN, { user });
 
@@ -90,5 +92,74 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.error(`❗ Failed to sync notices for room ${payload.roomId} from client ${client.id}`, trace);
       client.emit("error", { message: "Failed to sync notices" });
     }
+  }
+
+  @SubscribeMessage(RoomEventType.ROOM_JOIN)
+  handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
+    if (!payload || !payload.roomId) {
+      this.logger.warn(`⚠️ ROOM_JOIN called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    try {
+      const user = this.userManager.getSession(client.id);
+      if (!user) {
+        this.logger.error(`❌ User session not found for client: ${client.id}`);
+        client.emit("error", { message: "User session not found" });
+        return;
+      }
+
+      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
+      if (!updated) {
+        this.logger.error(`❌ Failed to update room for user: ${client.id}`);
+        return;
+      }
+
+      client.join(payload.roomId);
+      this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
+
+      const roomUsers = this.userManager.getRoomSessions(payload.roomId);
+      const updatedUser = this.userManager.getSession(client.id);
+
+      this.server.emit(RoomEventType.ROOM_JOINED, {
+        userId: client.id,
+        roomId: payload.roomId,
+      });
+
+      client.emit(UserEventType.USER_SYNC, {
+        user: updatedUser,
+        users: this.userManager.getAllSessions(),
+      });
+
+      this.logger.log(
+        `✅ Room join complete: ${user.nickname} → ${payload.roomId} (${roomUsers.length} users in room)`,
+      );
+    } catch (error) {
+      const trace = error instanceof Error ? error.stack : String(error);
+      this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
+      client.emit("error", { message: "Failed to join room" });
+    }
+  }
+
+  @SubscribeMessage(UserEventType.PLAYER_MOVE)
+  handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
+    const updated = this.userManager.updateSessionPosition(client.id, payload);
+    const user = this.userManager.getSession(client.id);
+
+    if (!updated || !user) {
+      this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);
+      return;
+    }
+
+    const roomId = user.avatar.currentRoomId;
+
+    this.logger.debug(
+      `➡️ PLAYER_MOVE: ${client.id} moved to (${payload.x}, ${payload.y}, ${payload.direction}) in room ${roomId}`,
+    );
+
+    this.server.to(roomId).emit(UserEventType.PLAYER_MOVED, {
+      userId: client.id,
+      ...payload,
+    });
   }
 }

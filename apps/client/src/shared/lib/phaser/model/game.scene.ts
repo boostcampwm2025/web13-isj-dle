@@ -1,3 +1,4 @@
+import { GAME_REGISTRY_KEYS, getRegistryFunction } from "./game-registry.constants";
 import {
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
@@ -13,14 +14,36 @@ import {
 } from "./game.constants";
 import type { AvatarEntity, MapObj, MoveKeys } from "./game.types";
 import Phaser from "phaser";
+import type { Socket } from "socket.io-client";
 
-import { AVATAR_ASSETS, type Avatar, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
+import {
+  AVATAR_ASSETS,
+  type Avatar,
+  type AvatarAssetKey,
+  type AvatarDirection,
+  type AvatarState,
+  type User,
+  UserEventType,
+} from "@shared/types";
+import { isMeetingRoomRange } from "@src/shared/config/room.config";
 
 export class GameScene extends Phaser.Scene {
+  public isReady: boolean = false;
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
+  private avatars: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
+  private socket?: Socket;
+  private lastEmitted: { x: number; y: number; direction: AvatarDirection; state: AvatarState; time: number } = {
+    x: 0,
+    y: 0,
+    direction: "down",
+    state: "idle",
+    time: 0,
+  };
+  private threshold: number = 16; // milliseconds
+  private currentRoomId: string = "lobby";
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -38,6 +61,14 @@ export class GameScene extends Phaser.Scene {
 
   get mapInfo(): Readonly<typeof this.mapObj> {
     return this.mapObj;
+  }
+
+  get isLoadPlayer(): boolean {
+    return !!this.avatar;
+  }
+
+  get isInitializedSocket(): boolean {
+    return !!this.socket;
   }
 
   preload() {
@@ -73,24 +104,6 @@ export class GameScene extends Phaser.Scene {
         }
       });
 
-      // mockAvatar
-      const avatarModel: Avatar = {
-        x: map.widthInPixels,
-        y: map.heightInPixels,
-        currentRoomId: "lobby",
-        direction: "down",
-        state: "idle",
-        assetKey: "BOB",
-      };
-
-      this.avatar = this.loadAvatar(avatarModel);
-      if (!this.avatar) return;
-
-      // camera 설정
-      this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
-      this.cameras.main.startFollow(this.avatar.sprite, false);
-      this.cameras.main.roundPixels = true;
-
       this.input.on(
         "wheel",
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
@@ -102,7 +115,7 @@ export class GameScene extends Phaser.Scene {
         },
       );
 
-      this.createAvatarAnimations(avatarModel.assetKey);
+      this.createAllAvatarAnimations();
 
       // keyboard 처리
       const keyboard = this.input.keyboard;
@@ -110,7 +123,7 @@ export class GameScene extends Phaser.Scene {
 
       this.cursors = keyboard.createCursorKeys();
 
-      const keys = keyboard.addKeys({
+      this.keys = keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
         left: Phaser.Input.Keyboard.KeyCodes.A,
@@ -118,53 +131,54 @@ export class GameScene extends Phaser.Scene {
         sit: Phaser.Input.Keyboard.KeyCodes.E,
       }) as MoveKeys;
 
-      this.keys = keys;
+      this.isReady = true;
+      this.events.emit("scene:ready");
     } catch (error) {
       console.error("Error loading tilesets:", error);
     }
   }
 
   update() {
-    if (!this.avatar) return;
+    if (!this.avatar || !this.cursors) return;
+    this.emitPlayerPosition();
 
-    const { sprite, state } = this.avatar;
+    const inputDirection = this.getNextDirection();
+
+    // 방 진입 체크
+    this.checkRoomEntrance();
 
     // SIT 상태 처리
-    if (state === "sit") {
-      const inputDirection = this.getNextDirection();
-
-      if (inputDirection.direction) {
-        this.avatar.state = "idle";
-        this.avatar.direction = inputDirection.direction;
-        this.toIdle(sprite, inputDirection.direction);
-      }
-
+    if (this.avatar.state === "sit" && !inputDirection) {
       return;
     }
 
     // SIT 진입 처리
-    if (this.keys?.sit && Phaser.Input.Keyboard.JustDown(this.keys.sit)) {
+    if (this.keys?.sit.isDown) {
       const seatDirection = this.getSeatDirectionAtCurrentTile();
       if (seatDirection) {
         this.avatar.state = "sit";
         this.avatar.direction = seatDirection;
-        this.toSit(sprite, seatDirection);
+        this.toSit(this.avatar.sprite, seatDirection);
+        return;
       }
-      return;
     }
 
-    if (!this.avatar || !this.cursors) return;
+    // Walking / Idle 상태 처리
+    if (inputDirection) {
+      this.avatar.state = "walk";
+      this.avatar.direction = inputDirection;
+      this.toWalk(this.avatar.sprite, inputDirection);
+    } else {
+      this.avatar.state = "idle";
+      this.toIdle(this.avatar.sprite, this.avatar.direction);
+    }
 
-    const inputDirection = this.getNextDirection();
+    // 이동 처리
+    const { vx, vy } = this.dirToVel(inputDirection);
+    this.avatar.sprite.setVelocity(vx, vy);
 
-    this.avatar.sprite.setVelocity(inputDirection.vx, inputDirection.vy);
-
-    if (inputDirection.direction) {
-      this.toWalk(sprite, inputDirection.direction);
-      this.avatar.direction = inputDirection.direction;
-    } else this.toIdle(this.avatar.sprite, this.avatar.direction);
-
-    if (inputDirection.vx === 0 && inputDirection.vy === 0) {
+    // Snap to grid 처리
+    if (vx === 0 && vy === 0) {
       const x = this.avatar.sprite.x;
       const y = this.avatar.sprite.y;
 
@@ -179,32 +193,39 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Input / Animation
-  private getNextDirection(): { vx: number; vy: number; direction: AvatarDirection | null } {
-    if (!this.cursors || !this.keys) return { vx: 0, vy: 0, direction: null };
+  private getNextDirection(): AvatarDirection | null {
+    if (!this.cursors || !this.keys) return null;
 
+    const down = this.cursors.down.isDown || this.keys.down.isDown;
+    const up = this.cursors.up.isDown || this.keys.up.isDown;
     const left = this.cursors.left.isDown || this.keys.left.isDown;
     const right = this.cursors.right.isDown || this.keys.right.isDown;
-    const up = this.cursors.up.isDown || this.keys.up.isDown;
-    const down = this.cursors.down.isDown || this.keys.down.isDown;
 
-    if (left) return { vx: -AVATAR_MOVE_SPEED, vy: 0, direction: "left" };
-    if (right) return { vx: AVATAR_MOVE_SPEED, vy: 0, direction: "right" };
-    if (up) return { vx: 0, vy: -AVATAR_MOVE_SPEED, direction: "up" };
-    if (down) return { vx: 0, vy: AVATAR_MOVE_SPEED, direction: "down" };
-    return { vx: 0, vy: 0, direction: null };
+    const pressed: Record<AvatarDirection, boolean> = { up, down, left, right };
+
+    const fallback = (["left", "right", "up", "down"] as const).find((d) => pressed[d]) || null;
+    return fallback;
   }
 
-  private toIdle(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
+  private dirToVel(dir: AvatarDirection | null): { vx: number; vy: number } {
+    if (dir === "left") return { vx: -AVATAR_MOVE_SPEED, vy: 0 };
+    if (dir === "right") return { vx: AVATAR_MOVE_SPEED, vy: 0 };
+    if (dir === "up") return { vx: 0, vy: -AVATAR_MOVE_SPEED };
+    if (dir === "down") return { vx: 0, vy: AVATAR_MOVE_SPEED };
+    return { vx: 0, vy: 0 };
+  }
+
+  private toIdle(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection) {
     const key = `idle-${sprite.texture.key}-${dir}`;
     sprite.anims.play(key, true);
   }
 
-  private toWalk(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
+  private toWalk(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection) {
     const key = `walk-${sprite.texture.key}-${dir}`;
     sprite.anims.play(key, true);
   }
 
-  private toSit(sprite: Phaser.Physics.Arcade.Sprite, dir: AvatarDirection) {
+  private toSit(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection) {
     sprite.anims.stop();
     sprite.setFrame(SIT_FRAME[dir]);
   }
@@ -262,12 +283,73 @@ export class GameScene extends Phaser.Scene {
     return null;
   }
 
+  private checkRoomEntrance() {
+    if (!this.avatar) return;
+
+    const { sprite } = this.avatar;
+    const map = this.mapObj.map;
+    if (!map) return;
+
+    const objectLayer = map.getObjectLayer("ObjectLayer-Area");
+    if (!objectLayer) {
+      console.warn("[GameScene] ObjectLayer-Area not found");
+      return;
+    }
+
+    let targetRoomId = "lobby";
+
+    for (const obj of objectLayer.objects) {
+      const objX = obj.x ?? 0;
+      const objY = obj.y ?? 0;
+      const objWidth = obj.width ?? 0;
+      const objHeight = obj.height ?? 0;
+
+      if (sprite.x >= objX && sprite.x <= objX + objWidth && sprite.y >= objY && sprite.y <= objY + objHeight) {
+        const properties = obj.properties as { name: string; value: unknown }[];
+        if (!properties) continue;
+
+        const typeProperty = properties.find((p) => p.name === "type");
+        if (typeProperty?.value !== "room") continue;
+
+        const idProperty = properties.find((p) => p.name === "id");
+        const roomId = idProperty?.value;
+
+        if (roomId && typeof roomId === "string") {
+          targetRoomId = roomId;
+          if (targetRoomId !== "lobby") break;
+        }
+      }
+    }
+
+    if (targetRoomId !== this.currentRoomId) {
+      console.log(`[GameScene] Entering room: ${targetRoomId}`);
+      this.currentRoomId = targetRoomId;
+
+      const joinRoom = getRegistryFunction(this.game, "JOIN_ROOM");
+      if (joinRoom) {
+        console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
+        joinRoom(targetRoomId);
+      } else {
+        console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.JOIN_ROOM} function not found in registry`);
+      }
+
+      if (isMeetingRoomRange(targetRoomId)) {
+        const openRoomSelector = getRegistryFunction(this.game, "OPEN_ROOM_SELECTOR");
+        if (openRoomSelector) {
+          console.log(`[GameScene] Opening room selector for: ${targetRoomId}`);
+          openRoomSelector(targetRoomId);
+        } else {
+          console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR} function not found in registry`);
+        }
+      }
+    }
+  }
+
   // Create / Setup helpers (used by create)
-  loadAvatar(avatar: Avatar): AvatarEntity {
+  loadAvatar(avatar: Avatar) {
     const spawn = this.getAvatarSpawnPoint();
 
     const sprite = this.physics.add.sprite(spawn.x, spawn.y, avatar.assetKey, IDLE_FRAME[avatar.direction]);
-    sprite.setDepth(this.mapObj.depthCount);
     sprite.setOrigin(0.5, 0.75);
     sprite.body.setSize(TILE_SIZE - 2, TILE_SIZE - 2);
     sprite.body.setOffset(1, TILE_SIZE + 1);
@@ -277,12 +359,63 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.collider(sprite, tilemapLayer);
     });
 
-    return { sprite, direction: avatar.direction, state: avatar.state };
+    this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
+
+    // camera 설정
+    this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+    this.cameras.main.startFollow(sprite, false, 1, 1);
+    this.cameras.main.setRoundPixels(true);
+
+    this.emitPlayerPosition();
+  }
+
+  renderAnotherAvatars(users: User[]): void {
+    const missingUsers = [...this.avatars.keys()].filter((userId) => !users.find((u) => u.id === userId));
+    missingUsers.forEach((userId) => {
+      const avatar = this.avatars.get(userId);
+      if (avatar) {
+        avatar.destroy();
+        this.avatars.delete(userId);
+      }
+    });
+
+    users.sort((a, b) => a.avatar.y - b.avatar.y);
+
+    users.forEach((user, index) => {
+      this.renderSingleAnotherAvatar(user, index);
+    });
+    this.avatar?.sprite.setDepth(this.mapObj.depthCount + users.length);
+  }
+
+  private renderSingleAnotherAvatar(user: User, index: number): void {
+    const avatarModel = user.avatar;
+
+    let avatar = this.avatars.get(user.id);
+    if (avatar) {
+      avatar.setPosition(avatarModel.x, avatarModel.y);
+    } else {
+      avatar = this.add.sprite(avatarModel.x, avatarModel.y, avatarModel.assetKey, IDLE_FRAME[avatarModel.direction]);
+      avatar.setOrigin(0.5, 0.75);
+
+      this.avatars.set(user.id, avatar);
+    }
+
+    avatar.setDepth(this.mapObj.depthCount + index);
+
+    if (avatarModel.state === "sit") {
+      this.toSit(avatar, avatarModel.direction);
+    } else if (avatarModel.state === "walk") {
+      this.toWalk(avatar, avatarModel.direction);
+    } else {
+      this.toIdle(avatar, avatarModel.direction);
+    }
   }
 
   private getAvatarSpawnPoint() {
     const map = this.mapObj.map;
-    const objectLayer = map?.getObjectLayer("ObjectLayer-Spawn");
+    if (!map) throw new Error("Map not loaded");
+
+    const objectLayer = map.getObjectLayer("ObjectLayer-Spawn");
 
     if (!objectLayer || objectLayer.objects.length === 0) {
       throw new Error("Spawn object layer not found");
@@ -319,6 +452,12 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private createAllAvatarAnimations() {
+    (Object.keys(AVATAR_ASSETS) as AvatarAssetKey[]).forEach((assetKey) => {
+      this.createAvatarAnimations(assetKey);
+    });
+  }
+
   private createAvatarAnimations(assetKey: AvatarAssetKey) {
     const directions: AvatarDirection[] = ["down", "left", "right", "up"];
 
@@ -339,5 +478,43 @@ export class GameScene extends Phaser.Scene {
         repeat: -1,
       });
     });
+  }
+
+  // WebSocket 관련 메서드
+  private emitPlayerPosition() {
+    if (!this.socket || !this.avatar) return;
+
+    const currentX = Math.round(this.avatar.sprite.x);
+    const currentY = Math.round(this.avatar.sprite.y);
+
+    const now = Date.now();
+    if (
+      (this.lastEmitted.x === currentX &&
+        this.lastEmitted.y === currentY &&
+        this.lastEmitted.direction === this.avatar.direction &&
+        this.lastEmitted.state === this.avatar.state) ||
+      now - this.lastEmitted.time < this.threshold
+    ) {
+      return;
+    }
+
+    this.socket.emit(UserEventType.PLAYER_MOVE, {
+      x: currentX,
+      y: currentY,
+      direction: this.avatar.direction,
+      state: this.avatar.state,
+    });
+
+    this.lastEmitted = {
+      x: currentX,
+      y: currentY,
+      direction: this.avatar.direction,
+      state: this.avatar.state,
+      time: now,
+    };
+  }
+
+  setSocket(socket: Socket) {
+    this.socket = socket;
   }
 }

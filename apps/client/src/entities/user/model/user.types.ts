@@ -1,4 +1,9 @@
-import type { User } from "@shared/types";
+import type { Avatar, AvatarDirection, AvatarState, User } from "@shared/types";
+
+export type UserUpdate = Partial<Omit<User, "avatar">> & {
+  id: string;
+  avatar?: Partial<Avatar>;
+};
 
 export interface UserContextType {
   user: User | null;
@@ -7,5 +12,6 @@ export interface UserContextType {
   setUsers: (users: User[]) => void;
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
-  updateUser: (updated: Partial<User> & { id: string }) => void;
+  updateUser: (updated: UserUpdate) => void;
+  updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
 }
