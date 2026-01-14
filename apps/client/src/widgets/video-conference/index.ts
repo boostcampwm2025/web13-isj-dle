@@ -1,1 +1,1 @@
-export { VideoRoomWidget } from "./ui/VideoRoomWidget";
+export { default as VideoConference } from "./ui/VideoConference";

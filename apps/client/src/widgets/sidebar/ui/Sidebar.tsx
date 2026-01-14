@@ -5,7 +5,7 @@ const Sidebar = () => {
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
 
   return (
-    <div className="fixed top-0 right-0 flex h-full">
+    <div className="fixed top-0 right-0 flex h-full text-black">
       <div
         className="pointer-events-auto absolute top-0 right-0 flex h-full flex-row gap-2 rounded-l-3xl border-r border-gray-200 bg-gray-300 transition-transform ease-in-out"
         style={{

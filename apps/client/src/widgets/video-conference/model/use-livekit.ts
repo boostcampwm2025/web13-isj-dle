@@ -1,6 +1,7 @@
+import { requestLivekitToken } from "../api/livekit.api";
+
 import { useEffect, useState } from "react";
 
-import { requestLivekitToken } from "@features/video-conference/api/livekit.api";
 import type { LivekitRoomConfig } from "@shared/types";
 import { useUser } from "@src/entities/user";
 
@@ -12,7 +13,7 @@ interface UseLivekitState {
   isOpen: boolean;
 }
 
-export const useLivekit = (): UseLivekitState => {
+export function useLivekit(): UseLivekitState {
   const { user, users } = useUser();
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
   const roomId = user?.avatar.currentRoomId;
@@ -83,7 +84,7 @@ export const useLivekit = (): UseLivekitState => {
   }, [config, livekitState.isOpen]);
 
   return livekitState;
-};
+}
 
 export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
   return roomId === "lobby" && contactId ? contactId : roomId;

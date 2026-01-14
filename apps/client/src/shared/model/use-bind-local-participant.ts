@@ -1,10 +1,9 @@
 import { useEffect } from "react";
 
-import { VideoConference } from "@livekit/components-react";
 import { useLocalParticipant } from "@livekit/components-react";
 import { useAction } from "@src/features/actions";
 
-const RoomContent = () => {
+export const useBindLocalParticipant = () => {
   const { getHookByKey } = useAction();
   const { localParticipant } = useLocalParticipant();
 
@@ -24,7 +23,5 @@ const RoomContent = () => {
     };
   }, [getHookByKey, localParticipant]);
 
-  return <VideoConference />;
+  return null;
 };
-
-export default RoomContent;
