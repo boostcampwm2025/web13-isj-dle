@@ -1,6 +1,9 @@
 import { useProximityParticipants } from "../model/use-proximity-participants";
 import type { Participant } from "livekit-client";
 import { Track } from "livekit-client";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 
@@ -49,6 +52,34 @@ const ParticipantTile = ({ participant }: ParticipantTileProps) => {
 
 const ProximityThumbnailList = () => {
   const proximityParticipants = useProximityParticipants();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollability = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    setCanScrollLeft(container.scrollLeft > 0);
+    setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    checkScrollability();
+  }, [proximityParticipants.length, checkScrollability]);
+
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = 136; // w-32 (128px) + gap-2 (8px)
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+
+    setTimeout(checkScrollability, 300);
+  };
 
   if (proximityParticipants.length === 0) return null;
 
@@ -64,12 +95,37 @@ const ProximityThumbnailList = () => {
   };
 
   return (
-    <div className={`flex gap-2 rounded-lg bg-black/30 p-2 ${isScrollable ? "max-w-140 overflow-x-auto" : ""}`}>
-      {proximityParticipants.map((participant, index) => (
-        <div key={participant.sid} className={getResponsiveClass(index)}>
-          <ParticipantTile participant={participant} />
-        </div>
-      ))}
+    <div className="flex items-center gap-1">
+      {isScrollable && (
+        <button
+          onClick={() => scroll("left")}
+          disabled={!canScrollLeft}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
+        >
+          <ChevronLeft size={20} />
+        </button>
+      )}
+      <div
+        ref={scrollContainerRef}
+        onScroll={checkScrollability}
+        className={`flex gap-2 rounded-lg bg-black/30 p-2 ${isScrollable ? "scrollbar-hide max-w-140 overflow-x-auto" : ""}`}
+        style={isScrollable ? { scrollbarWidth: "none", msOverflowStyle: "none" } : undefined}
+      >
+        {proximityParticipants.map((participant, index) => (
+          <div key={participant.sid} className={getResponsiveClass(index)}>
+            <ParticipantTile participant={participant} />
+          </div>
+        ))}
+      </div>
+      {isScrollable && (
+        <button
+          onClick={() => scroll("right")}
+          disabled={!canScrollRight}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
+        >
+          <ChevronRight size={20} />
+        </button>
+      )}
     </div>
   );
 };
