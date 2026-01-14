@@ -50,13 +50,10 @@ const ParticipantTile = ({ participant }: ParticipantTileProps) => {
 };
 
 const VideoThumbnailList = () => {
-  const allParticipants = useParticipants();
+  const participants = useParticipants();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-
-  // proximity가 비어있으면 모든 참가자 사용
-  const displayParticipants = allParticipants;
 
   const checkScrollability = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -68,7 +65,7 @@ const VideoThumbnailList = () => {
 
   useEffect(() => {
     checkScrollability();
-  }, [displayParticipants.length, checkScrollability]);
+  }, [participants.length, checkScrollability]);
 
   const scroll = (direction: "left" | "right") => {
     const container = scrollContainerRef.current;
@@ -81,9 +78,9 @@ const VideoThumbnailList = () => {
     });
   };
 
-  if (displayParticipants.length === 0) return null;
+  if (participants.length === 0) return null;
 
-  const isScrollable = displayParticipants.length > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
+  const isScrollable = participants.length > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
 
   // 반응형 클래스: 화면 크기에 따라 표시 개수 조절
   const getResponsiveClass = (index: number) => {
@@ -111,7 +108,7 @@ const VideoThumbnailList = () => {
         className={`flex gap-2 rounded-lg bg-black/30 p-2 ${isScrollable ? "scrollbar-hide max-w-140 overflow-x-auto" : ""}`}
         style={isScrollable ? { scrollbarWidth: "none", msOverflowStyle: "none" } : undefined}
       >
-        {displayParticipants.map((participant, index) => (
+        {participants.map((participant, index) => (
           <div key={participant.sid} className={getResponsiveClass(index)}>
             <ParticipantTile participant={participant} />
           </div>
