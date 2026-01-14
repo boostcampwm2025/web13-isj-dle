@@ -19,9 +19,8 @@ import {
   usePinnedTracks,
   useTracks,
 } from "@livekit/components-react";
-import type { VideoConferenceMode } from "@shared/config/room.config";
-import { useBindLocalParticipant } from "@shared/model/use-bind-local-participant";
-import { SIDEBAR_WIDTH } from "@widgets/sidebar/model/sidebar.constants";
+import { SIDEBAR_WIDTH, type VideoConferenceMode } from "@shared/config";
+import { useBindLocalParticipant } from "@shared/model";
 
 interface VideoFullGridProps {
   setMode: (mode: VideoConferenceMode | null) => void;

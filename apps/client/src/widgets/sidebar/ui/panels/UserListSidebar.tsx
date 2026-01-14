@@ -1,7 +1,7 @@
-import { useUserStore } from "../../../../entities/user";
-import { useGroupedUsers } from "../../../../entities/user/model/use-grouped-users";
-import { useInviteLink } from "../../../../features/invite/model/use-invite-link";
-import { UserGroup } from "../../../../shared/ui";
+import { useUserStore } from "@entities/user";
+import { useGroupedUsers } from "@entities/user";
+import { useInviteLink } from "@features/invite";
+import { UserGroup } from "@shared/ui";
 
 const UserListSidebar = () => {
   const user = useUserStore((state) => state.user);

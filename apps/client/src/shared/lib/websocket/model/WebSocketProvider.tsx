@@ -3,8 +3,8 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { useUserStore } from "@entities/user";
 import { type AvatarDirection, type AvatarState, type User, UserEventType } from "@shared/types";
-import { useUserStore } from "@src/entities/user";
 
 interface WebSocketProviderProps {
   children: ReactNode;

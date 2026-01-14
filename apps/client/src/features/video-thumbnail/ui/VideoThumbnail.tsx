@@ -1,7 +1,7 @@
 import VideoThumbnailList from "./VideoThumbnailList";
 
 import { RoomAudioRenderer } from "@livekit/components-react";
-import { useBindLocalParticipant } from "@shared/model/use-bind-local-participant";
+import { useBindLocalParticipant } from "@shared/model";
 
 const VideoThumbnail = () => {
   useBindLocalParticipant();

@@ -18,6 +18,7 @@ import type { AvatarEntity, MapObj, MoveKeys } from "./game.types";
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
+import { isMeetingRoomRange } from "@shared/config";
 import {
   AVATAR_ASSETS,
   type AvatarAssetKey,
@@ -28,7 +29,6 @@ import {
   type User,
   UserEventType,
 } from "@shared/types";
-import { isMeetingRoomRange } from "@src/shared/config/room.config";
 
 export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;

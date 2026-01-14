@@ -6,7 +6,7 @@ import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { VIDEO_CONFERENCE_MODE } from "@src/shared/config/room.config";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { BottomNav } from "@widgets/bottom-nav";
 import { Sidebar } from "@widgets/sidebar";
 import { useSidebarStore } from "@widgets/sidebar";

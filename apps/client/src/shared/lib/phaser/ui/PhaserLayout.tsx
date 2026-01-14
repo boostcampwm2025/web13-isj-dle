@@ -1,4 +1,3 @@
-import { useWebSocket } from "../../websocket";
 import { useAvatarLoader } from "../model/use-avatar-loader";
 import { useAvatarRenderer } from "../model/use-avatar-renderer";
 import { useGameInitialization } from "../model/use-game-initialization";
@@ -9,8 +8,9 @@ import { useRoomSelector } from "../model/use-room-selector";
 
 import { useRef } from "react";
 
-import { useUserStore } from "@src/entities/user";
-import { RoomSelectorModal } from "@src/widgets/room-selector-modal";
+import { useUserStore } from "@entities/user";
+import { useWebSocket } from "@shared/lib/websocket";
+import { RoomSelectorModal } from "@widgets/room-selector-modal";
 
 interface PhaserLayoutProps {
   children: React.ReactNode;

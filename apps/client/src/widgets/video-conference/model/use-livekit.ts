@@ -2,8 +2,8 @@ import { requestLivekitToken } from "../api/livekit.api";
 
 import { useEffect, useState } from "react";
 
+import { useUserStore } from "@entities/user";
 import type { LivekitRoomConfig } from "@shared/types";
-import { useUserStore } from "@src/entities/user";
 
 interface UseLivekitState {
   token: string | null;

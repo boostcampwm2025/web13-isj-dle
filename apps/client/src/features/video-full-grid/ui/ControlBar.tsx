@@ -8,7 +8,7 @@ import { Minimize } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
 import { MediaDeviceMenu, StartMediaButton, TrackToggle, usePersistentUserChoices } from "@livekit/components-react";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@src/shared/config/room.config";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";

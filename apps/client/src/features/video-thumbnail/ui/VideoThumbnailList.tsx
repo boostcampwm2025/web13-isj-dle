@@ -2,8 +2,7 @@ import ParticipantTile from "./ParticipantTile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useParticipants } from "@livekit/components-react";
-import { useResponsiveVisibility } from "@shared/model/use-responsive-visibility";
-import { useScrollableContainer } from "@shared/model/use-scrollable-container";
+import { useResponsiveVisibility, useScrollableContainer } from "@shared/model";
 
 const VideoThumbnailList = () => {
   const participants = useParticipants();

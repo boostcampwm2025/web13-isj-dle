@@ -1,6 +1,6 @@
 import { useBottomNavStore } from "../model/bottom-nav.store";
 
-import { useAction } from "@src/features/actions";
+import { useAction } from "@features/actions";
 
 const BottomNav = () => {
   const { getHookByKey } = useAction();

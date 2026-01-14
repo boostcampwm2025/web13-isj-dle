@@ -2,10 +2,10 @@ import { getEffectiveRoomId } from "./use-livekit";
 
 import { useEffect, useState } from "react";
 
-import { useUserStore } from "@src/entities/user";
-import { type ActionKey, useAction } from "@src/features/actions";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@src/shared/config/room.config";
-import { useBottomNavStore } from "@src/widgets/bottom-nav";
+import { useUserStore } from "@entities/user";
+import { type ActionKey, useAction } from "@features/actions";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { useBottomNavStore } from "@widgets/bottom-nav";
 
 export const useVideoConference = () => {
   const { getHookByKey } = useAction();

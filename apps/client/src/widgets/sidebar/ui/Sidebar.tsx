@@ -1,5 +1,7 @@
-import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_MAP, SIDEBAR_WIDTH } from "../model/sidebar.constants";
+import { SIDEBAR_MAP } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
+
+import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_WIDTH } from "@shared/config";
 
 const Sidebar = () => {
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();

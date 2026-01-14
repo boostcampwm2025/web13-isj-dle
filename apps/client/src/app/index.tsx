@@ -1,7 +1,7 @@
 import Providers from "./providers";
 import "./styles/index.css";
 
-import PhaserLayout from "@shared/lib/phaser/ui/PhaserLayout";
+import { PhaserLayout } from "@shared/lib/phaser";
 import { VideoConference } from "@widgets/video-conference";
 
 function App() {

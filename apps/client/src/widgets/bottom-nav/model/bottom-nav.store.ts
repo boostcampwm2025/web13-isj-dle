@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { ActionKey } from "@src/features/actions";
+import type { ActionKey } from "@features/actions";
 
 interface BottomNavState {
   bottomNavigation: ActionKey[];

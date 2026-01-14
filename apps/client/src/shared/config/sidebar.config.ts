@@ -1,0 +1,2 @@
+export const SIDEBAR_WIDTH = 350;
+export const SIDEBAR_ANIMATION_DURATION = 500;

@@ -1,4 +1,4 @@
-import { useToggle } from "@shared/model/use-toggle";
+import { useToggle } from "@shared/model";
 import type { User } from "@shared/types";
 
 interface UserGroupProps {
