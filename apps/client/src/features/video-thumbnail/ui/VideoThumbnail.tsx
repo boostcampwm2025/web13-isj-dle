@@ -1,5 +1,6 @@
 import VideoThumbnailList from "./VideoThumbnailList";
 
+import { RoomAudioRenderer } from "@livekit/components-react";
 import { useBindLocalParticipant } from "@shared/model/use-bind-local-participant";
 
 const VideoThumbnail = () => {
@@ -9,6 +10,7 @@ const VideoThumbnail = () => {
     <div className="pointer-events-none fixed top-0 right-0 left-0 z-40 flex justify-center">
       <div className="pointer-events-auto">
         <VideoThumbnailList />
+        <RoomAudioRenderer />
       </div>
     </div>
   );
