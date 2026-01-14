@@ -165,6 +165,25 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
+  @SubscribeMessage(UserEventType.USER_UPDATE)
+  handleUserUpdate(client: Socket, payload: { cameraOn?: boolean; micOn?: boolean }) {
+    const updated = this.userManager.updateSessionMedia(client.id, payload);
+    const user = this.userManager.getSession(client.id);
+
+    if (!updated || !user) {
+      this.logger.warn(`⚠️ USER_UPDATE: Session not found for client: ${client.id}`);
+      return;
+    }
+
+    this.logger.debug(`🎥 USER_UPDATE: ${client.id} -> (camera: ${user.cameraOn}, mic: ${user.micOn})`);
+
+    this.server.emit(UserEventType.USER_UPDATE, {
+      userId: client.id,
+      cameraOn: user.cameraOn,
+      micOn: user.micOn,
+    });
+  }
+
   @SubscribeMessage(UserEventType.PLAYER_MOVE)
   handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
     const updated = this.userManager.updateSessionPosition(client.id, payload);
