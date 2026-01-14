@@ -26,10 +26,10 @@ export const IDLE_FRAME: Record<AvatarDirection, number> = {
 };
 
 export const WALK_FRAME: Record<AvatarDirection, number[]> = {
-  down: [68, 69, 70],
-  left: [63, 64, 65],
-  right: [51, 52, 53],
-  up: [56, 57, 58],
+  down: [66, 67, 68, 69, 70, 71],
+  left: [60, 61, 62, 63, 64, 65],
+  right: [48, 49, 50, 51, 52, 53],
+  up: [54, 55, 56, 57, 58, 59],
 };
 
 export const SIT_FRAME: Record<AvatarDirection, number> = {
