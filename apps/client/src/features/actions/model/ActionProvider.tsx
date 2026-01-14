@@ -6,6 +6,7 @@ import { useDeskZoneAction } from "./use-desk-zone.action";
 import { useLeaveAction } from "./use-leave.action";
 import { useMicAction } from "./use-mic.action";
 import { useScreenShareAction } from "./use-screen-share.action";
+import { useViewModeAction } from "./use-view-mode.action";
 
 import type { ReactNode } from "react";
 
@@ -21,6 +22,7 @@ const ActionProvider = ({ children }: ActionProviderProps) => {
     screen_share: useScreenShareAction(),
     desk_zone: useDeskZoneAction(),
     leave: useLeaveAction(),
+    view_mode: useViewModeAction(),
   };
 
   const getHookByKey = (key: ActionKey): ReturnType<ActionHook> => {
