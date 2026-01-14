@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useParticipants } from "@livekit/components-react";
 import { useResponsiveVisibility, useScrollableContainer } from "@shared/model";
 
+const ICON_SIZE = 20;
+
 const VideoThumbnailList = () => {
   const participants = useParticipants();
   const { scrollContainerRef, canScrollLeft, canScrollRight, checkScrollability, scroll } = useScrollableContainer(
@@ -23,7 +25,7 @@ const VideoThumbnailList = () => {
           disabled={!canScrollLeft}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={ICON_SIZE} />
         </button>
       )}
       <div
@@ -44,7 +46,7 @@ const VideoThumbnailList = () => {
           disabled={!canScrollRight}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={ICON_SIZE} />
         </button>
       )}
     </div>
