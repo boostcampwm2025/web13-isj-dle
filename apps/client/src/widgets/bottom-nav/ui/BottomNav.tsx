@@ -1,10 +1,10 @@
-import { useBottomNav } from "../model/use-bottom-nav";
+import { useBottomNavStore } from "../model/bottom-nav.store";
 
 import { useAction } from "@src/features/actions";
 
 const BottomNav = () => {
   const { getHookByKey } = useAction();
-  const { bottomNavigation } = useBottomNav();
+  const bottomNavigation = useBottomNavStore((state) => state.bottomNavigation);
 
   return (
     <div className="pointer-events-auto fixed bottom-12 left-1/2 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">

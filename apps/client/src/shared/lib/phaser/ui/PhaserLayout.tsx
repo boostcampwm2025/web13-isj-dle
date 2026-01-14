@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGameConfig } from "@shared/lib/phaser/model/game.config";
 import type { RoomType, User } from "@shared/types";
-import { useUser } from "@src/entities/user";
+import { useUserStore } from "@src/entities/user";
 import { RoomSelectorModal } from "@src/widgets/room-selector-modal";
 
 interface PhaserLayoutProps {
@@ -18,7 +18,8 @@ interface PhaserLayoutProps {
 const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const { game, setGame, joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
-  const { user, users } = useUser();
+  const user = useUserStore((state) => state.user);
+  const users = useUserStore((state) => state.users);
   const sameRoomUsersRef = useRef<User[]>([]);
   const userRef = useRef<User | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

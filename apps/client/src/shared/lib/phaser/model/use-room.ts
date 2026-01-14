@@ -1,12 +1,12 @@
 import { useCallback, useEffect } from "react";
 
 import { RoomEventType, type RoomJoinedPayload } from "@shared/types";
-import { useUser } from "@src/entities/user/model/user-context";
+import { useUserStore } from "@src/entities/user";
 import { useWebSocket } from "@src/shared/lib/websocket";
 
 export const useRoom = () => {
   const { socket, isConnected } = useWebSocket();
-  const { updateUser } = useUser();
+  const updateUser = useUserStore((state) => state.updateUser);
 
   const joinRoom = useCallback(
     (roomId: string) => {

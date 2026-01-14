@@ -1,4 +1,4 @@
-import { useUser } from "../../../entities/user";
+import { useUserStore } from "../../../entities/user";
 import { useWebSocket } from "../../../shared/lib/websocket";
 
 import { useEffect, useState } from "react";
@@ -7,7 +7,7 @@ import { type Notice, NoticeEventType } from "@shared/types";
 
 const useNotice = () => {
   const { socket, isConnected } = useWebSocket();
-  const { user } = useUser();
+  const user = useUserStore((state) => state.user);
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {

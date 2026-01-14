@@ -1,11 +1,15 @@
 import { SIDEBAR_MAP } from "./sidebar.constants";
+import { useSidebarStore } from "./sidebar.store";
 import type { SidebarKey } from "./sidebar.types";
-import { useSidebar } from "./use-sidebar";
 
 import { useMemo } from "react";
 
 const useSidebarState = () => {
-  const { sidebarKeys, isOpen, currentKey, setCurrentKey, toggleSidebar } = useSidebar();
+  const sidebarKeys = useSidebarStore((s) => s.sidebarKeys);
+  const isOpen = useSidebarStore((s) => s.isOpen);
+  const currentKey = useSidebarStore((s) => s.currentKey);
+  const setCurrentKey = useSidebarStore((s) => s.setCurrentKey);
+  const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
 
   const validCurrentKey = useMemo(() => {
     if (currentKey && sidebarKeys.includes(currentKey)) {

@@ -4,7 +4,7 @@ import { Socket, io } from "socket.io-client";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { type AvatarDirection, type AvatarState, type User, UserEventType } from "@shared/types";
-import { useUser } from "@src/entities/user";
+import { useUserStore } from "@src/entities/user";
 
 interface WebSocketProviderProps {
   children: ReactNode;
@@ -14,7 +14,12 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const { setUser, setUsers, addUser, removeUser, updateUser, updateUserPosition } = useUser();
+  const setUser = useUserStore((s) => s.setUser);
+  const setUsers = useUserStore((s) => s.setUsers);
+  const addUser = useUserStore((s) => s.addUser);
+  const removeUser = useUserStore((s) => s.removeUser);
+  const updateUser = useUserStore((s) => s.updateUser);
+  const updateUserPosition = useUserStore((s) => s.updateUserPosition);
 
   useEffect(() => {
     const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";

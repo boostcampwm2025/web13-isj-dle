@@ -3,7 +3,7 @@ import { requestLivekitToken } from "../api/livekit.api";
 import { useEffect, useState } from "react";
 
 import type { LivekitRoomConfig } from "@shared/types";
-import { useUser } from "@src/entities/user";
+import { useUserStore } from "@src/entities/user";
 
 interface UseLivekitState {
   token: string | null;
@@ -14,7 +14,8 @@ interface UseLivekitState {
 }
 
 export function useLivekit(): UseLivekitState {
-  const { user, users } = useUser();
+  const user = useUserStore((state) => state.user);
+  const users = useUserStore((state) => state.users);
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
   const roomId = user?.avatar.currentRoomId;
   const userId = user?.id;

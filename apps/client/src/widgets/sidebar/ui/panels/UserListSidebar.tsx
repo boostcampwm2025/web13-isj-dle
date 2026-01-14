@@ -1,10 +1,12 @@
-import { useUser } from "../../../../entities/user";
+import { useUserStore } from "../../../../entities/user";
 import { UserGroup } from "../../../../shared/ui";
 
 import type { User } from "@shared/types";
 
 const UserListSidebar = () => {
-  const { user, users } = useUser();
+  const user = useUserStore((state) => state.user);
+  const users = useUserStore((state) => state.users);
+
   const sameContactUsers = users.filter((u) => {
     if (!user?.contactId) return false;
     return u.contactId === user.contactId;
