@@ -18,7 +18,14 @@ const useSidebarState = () => {
     return sidebarKeys[0] || null;
   }, [currentKey, sidebarKeys]);
 
-  const handleTabClick = (key: SidebarKey) => setCurrentKey(key);
+  const setIsOpen = useSidebarStore((s) => s.setIsOpen);
+
+  const handleTabClick = (key: SidebarKey) => {
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+    setCurrentKey(key);
+  };
   const currentPanel = validCurrentKey ? SIDEBAR_MAP[validCurrentKey] : null;
 
   return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar };
