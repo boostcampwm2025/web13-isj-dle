@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 
 import type { LivekitRoomConfig } from "@shared/types";
 import { useUser } from "@src/entities/user";
-import { type ActionKey, useAction } from "@src/features/actions";
-import { useBottomNav } from "@src/widgets/bottom-nav";
 
 interface UseLivekitState {
   token: string | null;
@@ -13,14 +11,10 @@ interface UseLivekitState {
   isLoading: boolean;
   error: string | null;
   isOpen: boolean;
-  mode: "full-grid" | "thumbnail" | null;
-  setMode: (mode: "full-grid" | "thumbnail" | null) => void;
 }
 
-export function useLivekit(): UseLivekitState & { setMode: (mode: "full-grid" | "thumbnail" | null) => void } {
+export function useLivekit(): UseLivekitState {
   const { user, users } = useUser();
-  const { getHookByKey } = useAction();
-  const { addKey, removeKey } = useBottomNav();
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
   const roomId = user?.avatar.currentRoomId;
   const userId = user?.id;
@@ -36,13 +30,7 @@ export function useLivekit(): UseLivekitState & { setMode: (mode: "full-grid" | 
     isLoading: false,
     error: null,
     isOpen: false,
-    mode: null,
-    setMode: () => {},
   });
-
-  const setMode = (mode: "full-grid" | "thumbnail" | null) => {
-    setLivekitState((prev) => ({ ...prev, mode }));
-  };
 
   useEffect(() => {
     if (!roomId || !userId || !nickname) return;
@@ -62,18 +50,6 @@ export function useLivekit(): UseLivekitState & { setMode: (mode: "full-grid" | 
       setLivekitState((prev) => ({ ...prev, isOpen: true }));
     }
   }, [roomId, userId, nickname, contactId]);
-
-  useEffect(() => {
-    const actionKey: ActionKey = "view_mode";
-    const viewModeHook = getHookByKey(actionKey);
-    if (livekitState.mode === "thumbnail") {
-      addKey(actionKey);
-      viewModeHook.setTrigger?.(() => setMode("full-grid"));
-    } else {
-      removeKey(actionKey);
-      viewModeHook.setTrigger?.(null);
-    }
-  }, [addKey, getHookByKey, livekitState.mode, removeKey]);
 
   useEffect(() => {
     if (!config) return;
@@ -107,7 +83,7 @@ export function useLivekit(): UseLivekitState & { setMode: (mode: "full-grid" | 
     return () => controller.abort();
   }, [config, livekitState.isOpen]);
 
-  return { ...livekitState, setMode };
+  return livekitState;
 }
 
 export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
