@@ -43,7 +43,7 @@ export const useVideoConference = () => {
       const effectiveRoomId = getEffectiveRoomId(currentRoomId, contactId);
       setRoomId(effectiveRoomId);
 
-      if (currentRoomId === "lobby" && !contactId) {
+      if ((currentRoomId === "lobby" && !contactId) || currentRoomId === "desk zone") {
         setMode(null);
       } else {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
