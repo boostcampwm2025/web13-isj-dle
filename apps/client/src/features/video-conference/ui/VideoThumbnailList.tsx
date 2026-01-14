@@ -50,7 +50,7 @@ const ParticipantTile = ({ participant }: ParticipantTileProps) => {
   );
 };
 
-const ProximityThumbnailList = () => {
+const VideoThumbnailList = () => {
   const proximityParticipants = useProximityParticipants();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -77,8 +77,6 @@ const ProximityThumbnailList = () => {
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
-
-    setTimeout(checkScrollability, 300);
   };
 
   if (proximityParticipants.length === 0) return null;
@@ -130,4 +128,4 @@ const ProximityThumbnailList = () => {
   );
 };
 
-export default ProximityThumbnailList;
+export default VideoThumbnailList;
