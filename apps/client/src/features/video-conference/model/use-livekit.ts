@@ -34,11 +34,8 @@ export const useLivekit = (): UseLivekitState => {
   useEffect(() => {
     if (!roomId || !userId || !nickname) return;
 
-    // lobby에서 contactId가 있으면 contactId를 roomId로 사용
-    const effectiveRoomId = roomId === "lobby" && contactId ? contactId : roomId;
-
     setConfig({
-      roomId: effectiveRoomId,
+      roomId: getEffectiveRoomId(roomId, contactId),
       userId,
       nickname,
     });
@@ -86,4 +83,8 @@ export const useLivekit = (): UseLivekitState => {
   }, [config, livekitState.isOpen]);
 
   return livekitState;
+};
+
+export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
+  return roomId === "lobby" && contactId ? contactId : roomId;
 };

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { useUser } from "@entities/user";
-import { LiveKitRoomWrapper, ProximityThumbnailsWrapper, VideoRoom } from "@features/video-conference";
+import { LiveKitRoomWrapper, VideoRoom, VideoThumbnailsWrapper, getEffectiveRoomId } from "@features/video-conference";
 import { useWebSocket } from "@shared/lib/websocket";
 import type { LivekitRoomConfig } from "@shared/types";
 import {
@@ -49,11 +49,8 @@ export const VideoRoomWidget = () => {
       return null;
     }
 
-    // lobby에서 contactId가 있으면 contactId를 roomId로 사용
-    const effectiveRoomId = currentRoomId === "lobby" && contactId ? contactId : currentRoomId;
-
     return {
-      roomId: effectiveRoomId,
+      roomId: getEffectiveRoomId(currentRoomId, contactId),
       userId: userId,
       nickname: nickname,
     };
@@ -79,7 +76,7 @@ export const VideoRoomWidget = () => {
   if (videoMode === "thumbnail") {
     return (
       <LiveKitRoomWrapper>
-        <ProximityThumbnailsWrapper />
+        <VideoThumbnailsWrapper />
         <button
           onClick={handleMaximize}
           className="absolute top-2 left-2 z-10000 rounded bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-colors hover:bg-white/20"
