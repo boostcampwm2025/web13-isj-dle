@@ -1,6 +1,6 @@
 import { BottomNavContext } from "./use-bottom-nav";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import { type ActionKey } from "@src/features/actions";
 
@@ -18,26 +18,18 @@ export const BottomNavProvider = ({ children }: BottomNavProviderProps) => {
     "leave",
   ]);
 
-  const addKey = (key: ActionKey) => {
-    if (!bottomNavigation.includes(key)) {
-      setBottomNavigation((prev) => [...prev, key]);
-    }
-  };
+  const addKey = useCallback((key: ActionKey) => {
+    setBottomNavigation((prev) => (prev.includes(key) ? prev : [...prev, key]));
+  }, []);
 
-  const removeKey = (key: ActionKey) => {
-    setBottomNavigation((prev) => prev.filter((k) => k !== key));
-  };
+  const removeKey = useCallback((key: ActionKey) => {
+    setBottomNavigation((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : prev));
+  }, []);
 
-  return (
-    <BottomNavContext.Provider
-      value={{
-        bottomNavigation,
-        setBottomNavigation,
-        addKey,
-        removeKey,
-      }}
-    >
-      {children}
-    </BottomNavContext.Provider>
+  const value = useMemo(
+    () => ({ bottomNavigation, setBottomNavigation, addKey, removeKey }),
+    [bottomNavigation, addKey, removeKey],
   );
+
+  return <BottomNavContext.Provider value={value}>{children}</BottomNavContext.Provider>;
 };
