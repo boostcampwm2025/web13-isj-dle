@@ -39,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private nicknameTexts: Map<string, Phaser.GameObjects.DOMElement> = new Map();
   private boundaryGraphics?: Phaser.GameObjects.Graphics;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private lastDir: AvatarDirection = "down";
   private keys?: MoveKeys;
   private socket?: Socket;
   private lastEmitted: { x: number; y: number; direction: AvatarDirection; state: AvatarState; time: number } = {
@@ -137,6 +138,15 @@ export class GameScene extends Phaser.Scene {
         sit: Phaser.Input.Keyboard.KeyCodes.E,
       }) as MoveKeys;
 
+      keyboard.on("keydown", (e: KeyboardEvent) => {
+        const k = e.code;
+
+        if (k === "ArrowLeft" || k === "KeyA") this.lastDir = "left";
+        else if (k === "ArrowRight" || k === "KeyD") this.lastDir = "right";
+        else if (k === "ArrowUp" || k === "KeyW") this.lastDir = "up";
+        else if (k === "ArrowDown" || k === "KeyS") this.lastDir = "down";
+      });
+
       this.isReady = true;
       this.events.emit("scene:ready");
     } catch (error) {
@@ -212,6 +222,10 @@ export class GameScene extends Phaser.Scene {
     const right = this.cursors.right.isDown || this.keys.right.isDown;
 
     const pressed: Record<AvatarDirection, boolean> = { up, down, left, right };
+
+    if (pressed[this.lastDir]) {
+      return this.lastDir;
+    }
 
     const fallback = (["left", "right", "up", "down"] as const).find((d) => pressed[d]) || null;
     return fallback;
