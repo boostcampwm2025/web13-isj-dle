@@ -69,18 +69,15 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleUserSync = (data: { user: User; users: User[] }) => {
-      console.log("[WebSocket] User sync received:", data);
       setUser(data.user);
       setUsers(data.users);
     };
 
     const handleUserJoin = (data: { user: User }) => {
-      console.log("[WebSocket] User joined:", data.user);
       addUser(data.user);
     };
 
     const handleUserLeft = (data: { userId: string }) => {
-      console.log("[WebSocket] User left:", data.userId);
       removeUser(data.userId);
     };
 
@@ -95,8 +92,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleBoundaryUpdate = (updates: Record<string, string | null>) => {
-      console.log("[WebSocket] Boundary update received:", updates);
-
       for (const [userId, contactId] of Object.entries(updates)) {
         updateUser({ id: userId, contactId });
       }

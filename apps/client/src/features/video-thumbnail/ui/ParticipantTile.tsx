@@ -9,12 +9,7 @@ interface ParticipantTileProps {
 const ParticipantTile = ({ participant }: ParticipantTileProps) => {
   const isSpeaking = useIsSpeaking(participant);
   const cameraTrack = participant.getTrackPublication(Track.Source.Camera);
-  const micTrack = participant.getTrackPublication(Track.Source.Microphone);
   const hasVideo = cameraTrack?.track && !cameraTrack.isMuted;
-
-  console.log(
-    `[ParticipantTile] ${participant.identity} - isSpeaking: ${isSpeaking}, hasMic: ${!!micTrack?.track}, micMuted: ${micTrack?.isMuted}`,
-  );
 
   return (
     <div

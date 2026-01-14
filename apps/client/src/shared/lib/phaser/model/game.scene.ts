@@ -346,12 +346,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (targetRoomId !== this.currentRoomId) {
-      console.log(`[GameScene] Entering room: ${targetRoomId}`);
       this.currentRoomId = targetRoomId;
 
       const joinRoom = getRegistryFunction(this.game, "JOIN_ROOM");
       if (joinRoom) {
-        console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
         joinRoom(targetRoomId);
       } else {
         console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.JOIN_ROOM} function not found in registry`);
@@ -360,7 +358,6 @@ export class GameScene extends Phaser.Scene {
       if (isMeetingRoomRange(targetRoomId)) {
         const openRoomSelector = getRegistryFunction(this.game, "OPEN_ROOM_SELECTOR");
         if (openRoomSelector) {
-          console.log(`[GameScene] Opening room selector for: ${targetRoomId}`);
           openRoomSelector(targetRoomId);
         } else {
           console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR} function not found in registry`);

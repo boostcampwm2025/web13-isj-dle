@@ -3,7 +3,7 @@ import { Briefcase } from "lucide-react";
 
 export const useDeskZoneAction: ActionHook = () => {
   const handleClick = () => {
-    console.log("Desk Zone action clicked");
+    // TODO: Implement navigation to desk zone
   };
 
   return {

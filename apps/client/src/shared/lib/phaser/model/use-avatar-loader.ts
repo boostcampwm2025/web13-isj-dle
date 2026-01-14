@@ -14,7 +14,6 @@ export const useAvatarLoader = (game: Phaser.Game | null, user: User | null) => 
 
     const loadUserAvatar = () => {
       gameScene.loadAvatar(user);
-      console.log("Avatar loaded for user:", user.id);
     };
 
     if (!gameScene.isReady) {

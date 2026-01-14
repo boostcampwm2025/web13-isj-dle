@@ -65,7 +65,6 @@ export function useLivekit(): UseLivekitState {
         }
 
         const data = await requestLivekitToken(config, controller.signal);
-        console.log("[useLivekit] fetched token for room:", config.roomId);
 
         setLivekitState((prev) => ({ ...prev, token: data.token, serverUrl: data.url, isLoading: false, error: null }));
       } catch (error) {

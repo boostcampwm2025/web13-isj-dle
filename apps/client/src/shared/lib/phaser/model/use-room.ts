@@ -15,7 +15,6 @@ export const useRoom = () => {
         return;
       }
 
-      console.log(`[useRoom] Joining room: ${roomId}`);
       socket.emit(RoomEventType.ROOM_JOIN, { roomId });
     },
     [socket, isConnected],
@@ -24,11 +23,7 @@ export const useRoom = () => {
   useEffect(() => {
     if (!socket) return;
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
-      console.log("[useRoom] room:joined event received:", payload);
-
       const { roomId, userId } = payload;
-
-      console.log(`[useRoom] User ${userId} joined ${roomId}`);
 
       updateUser({
         id: userId,
@@ -41,7 +36,6 @@ export const useRoom = () => {
     socket.on(RoomEventType.ROOM_JOINED, handleRoomJoined);
 
     return () => {
-      console.log("[useRoom] Cleaning up room:joined listener");
       socket.off(RoomEventType.ROOM_JOINED, handleRoomJoined);
     };
   }, [socket, updateUser]);

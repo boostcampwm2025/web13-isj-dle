@@ -10,10 +10,7 @@ const useNotice = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
-    if (!isConnected || !socket || !user) {
-      console.log("초기화 중...");
-      return;
-    }
+    if (!isConnected || !socket || !user) return;
 
     const handleNoticeSync = (notices: Notice[]) => {
       setNotices(notices);

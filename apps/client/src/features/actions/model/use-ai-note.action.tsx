@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 
 export const useAiNoteAction: ActionHook = () => {
   const handleClick = () => {
-    console.log("AI Note action clicked");
+    // TODO: Implement AI note summarization action
   };
 
   return {
