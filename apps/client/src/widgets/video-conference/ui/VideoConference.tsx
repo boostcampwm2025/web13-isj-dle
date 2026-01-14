@@ -6,10 +6,10 @@ import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { VIDEO_CONFERENCE_MODE } from "@src/shared/config/room.config";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { BottomNav } from "@widgets/bottom-nav";
 import { Sidebar } from "@widgets/sidebar";
-import { useSidebar } from "@widgets/sidebar";
+import { useSidebarStore } from "@widgets/sidebar";
 
 const VideoConference = () => {
   const { getHookByKey } = useAction();
@@ -17,7 +17,7 @@ const VideoConference = () => {
   const { isOn: isCameraOn } = getHookByKey("camera");
   const { token, serverUrl } = useLivekit();
   const { mode, setMode, roomId } = useVideoConference();
-  const { isOpen: isSidebarOpen } = useSidebar();
+  const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
   return (
     <LiveKitRoom

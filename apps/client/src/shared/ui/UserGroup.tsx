@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import { useToggle } from "@shared/model";
 import type { User } from "@shared/types";
 
 interface UserGroupProps {
@@ -9,13 +8,13 @@ interface UserGroupProps {
 }
 
 const UserGroup = ({ users, title, userId }: UserGroupProps) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const { isOpen, toggle } = useToggle(true);
 
   if (!users || users.length === 0) return null;
 
   return (
     <div className="mb-4">
-      <div className="mb-2 cursor-pointer text-sm font-semibold text-gray-500" onClick={() => setIsOpen(!isOpen)}>
+      <div className="mb-2 cursor-pointer text-sm font-semibold text-gray-500" onClick={toggle}>
         {isOpen ? "▼" : "▶"} {title}
       </div>
       {isOpen && (

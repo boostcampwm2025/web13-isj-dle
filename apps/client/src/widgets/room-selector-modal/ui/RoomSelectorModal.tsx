@@ -1,5 +1,5 @@
+import { getRoomNumbers } from "@shared/config";
 import type { RoomType } from "@shared/types";
-import { getRoomNumbers } from "@src/shared/config/room.config";
 
 interface RoomSelectorModalProps {
   isOpen: boolean;

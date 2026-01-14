@@ -18,6 +18,7 @@ import type { AvatarEntity, MapObj, MoveKeys } from "./game.types";
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
+import { isMeetingRoomRange } from "@shared/config";
 import {
   AVATAR_ASSETS,
   type AvatarAssetKey,
@@ -28,7 +29,6 @@ import {
   type User,
   UserEventType,
 } from "@shared/types";
-import { isMeetingRoomRange } from "@src/shared/config/room.config";
 
 export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
@@ -39,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private nicknameTexts: Map<string, Phaser.GameObjects.DOMElement> = new Map();
   private boundaryGraphics?: Phaser.GameObjects.Graphics;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private lastDir: AvatarDirection = "down";
   private keys?: MoveKeys;
   private socket?: Socket;
   private lastEmitted: { x: number; y: number; direction: AvatarDirection; state: AvatarState; time: number } = {
@@ -137,6 +138,15 @@ export class GameScene extends Phaser.Scene {
         sit: Phaser.Input.Keyboard.KeyCodes.E,
       }) as MoveKeys;
 
+      keyboard.on("keydown", (e: KeyboardEvent) => {
+        const k = e.code;
+
+        if (k === "ArrowLeft" || k === "KeyA") this.lastDir = "left";
+        else if (k === "ArrowRight" || k === "KeyD") this.lastDir = "right";
+        else if (k === "ArrowUp" || k === "KeyW") this.lastDir = "up";
+        else if (k === "ArrowDown" || k === "KeyS") this.lastDir = "down";
+      });
+
       this.isReady = true;
       this.events.emit("scene:ready");
     } catch (error) {
@@ -212,6 +222,10 @@ export class GameScene extends Phaser.Scene {
     const right = this.cursors.right.isDown || this.keys.right.isDown;
 
     const pressed: Record<AvatarDirection, boolean> = { up, down, left, right };
+
+    if (pressed[this.lastDir]) {
+      return this.lastDir;
+    }
 
     const fallback = (["left", "right", "up", "down"] as const).find((d) => pressed[d]) || null;
     return fallback;
@@ -332,12 +346,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (targetRoomId !== this.currentRoomId) {
-      console.log(`[GameScene] Entering room: ${targetRoomId}`);
       this.currentRoomId = targetRoomId;
 
       const joinRoom = getRegistryFunction(this.game, "JOIN_ROOM");
       if (joinRoom) {
-        console.log(`[GameScene] Calling joinRoom(${targetRoomId})`);
         joinRoom(targetRoomId);
       } else {
         console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.JOIN_ROOM} function not found in registry`);
@@ -346,7 +358,6 @@ export class GameScene extends Phaser.Scene {
       if (isMeetingRoomRange(targetRoomId)) {
         const openRoomSelector = getRegistryFunction(this.game, "OPEN_ROOM_SELECTOR");
         if (openRoomSelector) {
-          console.log(`[GameScene] Opening room selector for: ${targetRoomId}`);
           openRoomSelector(targetRoomId);
         } else {
           console.warn(`[GameScene] ${GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR} function not found in registry`);

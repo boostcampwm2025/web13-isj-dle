@@ -15,6 +15,10 @@ export function getGameConfig(containerRef: HTMLElement): Phaser.Types.Core.Game
       mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
+    fps: {
+      target: 60,
+      forceSetTimeOut: true,
+    },
     physics: {
       default: "arcade",
       arcade: {

@@ -1,12 +1,12 @@
 import { useCallback, useEffect } from "react";
 
+import { useUserStore } from "@entities/user";
+import { useWebSocket } from "@shared/lib/websocket";
 import { RoomEventType, type RoomJoinedPayload } from "@shared/types";
-import { useUser } from "@src/entities/user/model/user-context";
-import { useWebSocket } from "@src/shared/lib/websocket";
 
 export const useRoom = () => {
   const { socket, isConnected } = useWebSocket();
-  const { updateUser } = useUser();
+  const updateUser = useUserStore((state) => state.updateUser);
 
   const joinRoom = useCallback(
     (roomId: string) => {
@@ -15,7 +15,6 @@ export const useRoom = () => {
         return;
       }
 
-      console.log(`[useRoom] Joining room: ${roomId}`);
       socket.emit(RoomEventType.ROOM_JOIN, { roomId });
     },
     [socket, isConnected],
@@ -24,11 +23,7 @@ export const useRoom = () => {
   useEffect(() => {
     if (!socket) return;
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
-      console.log("[useRoom] room:joined event received:", payload);
-
       const { roomId, userId } = payload;
-
-      console.log(`[useRoom] User ${userId} joined ${roomId}`);
 
       updateUser({
         id: userId,
@@ -41,7 +36,6 @@ export const useRoom = () => {
     socket.on(RoomEventType.ROOM_JOINED, handleRoomJoined);
 
     return () => {
-      console.log("[useRoom] Cleaning up room:joined listener");
       socket.off(RoomEventType.ROOM_JOINED, handleRoomJoined);
     };
   }, [socket, updateUser]);

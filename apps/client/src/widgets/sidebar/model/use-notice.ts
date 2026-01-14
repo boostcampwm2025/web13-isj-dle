@@ -1,20 +1,16 @@
-import { useUser } from "../../../entities/user";
-import { useWebSocket } from "../../../shared/lib/websocket";
-
 import { useEffect, useState } from "react";
 
+import { useUserStore } from "@entities/user";
+import { useWebSocket } from "@shared/lib/websocket";
 import { type Notice, NoticeEventType } from "@shared/types";
 
 const useNotice = () => {
   const { socket, isConnected } = useWebSocket();
-  const { user } = useUser();
+  const user = useUserStore((state) => state.user);
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
-    if (!isConnected || !socket || !user) {
-      console.log("초기화 중...");
-      return;
-    }
+    if (!isConnected || !socket || !user) return;
 
     const handleNoticeSync = (notices: Notice[]) => {
       setNotices(notices);

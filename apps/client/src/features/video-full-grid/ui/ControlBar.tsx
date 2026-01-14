@@ -1,20 +1,14 @@
-import type { ControlBar } from "../model/control-bar.types";
+import { useControlBarState } from "../model/use-control-bar-state";
+import { useVisibleControls } from "../model/use-visible-controls";
 import { useMediaQuery } from "../model/useMediaQuery";
-import { supportsScreenSharing, trackSourceToProtocol } from "../model/utils";
+import { supportsScreenSharing } from "../model/utils";
 import { Track } from "livekit-client";
 import { Minimize } from "lucide-react";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
-import {
-  MediaDeviceMenu,
-  StartMediaButton,
-  TrackToggle,
-  useLocalParticipantPermissions,
-  useMaybeLayoutContext,
-  usePersistentUserChoices,
-} from "@livekit/components-react";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@src/shared/config/room.config";
+import { MediaDeviceMenu, StartMediaButton, TrackToggle, usePersistentUserChoices } from "@livekit/components-react";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";
@@ -22,53 +16,17 @@ interface ControlBarProps {
 }
 
 export function ControlBar({ variation, setMode }: ControlBarProps) {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const layoutContext = useMaybeLayoutContext();
-  useEffect(() => {
-    if (layoutContext?.widget.state?.showChat !== undefined) {
-      setIsChatOpen(layoutContext?.widget.state?.showChat);
-    }
-  }, [layoutContext?.widget.state?.showChat]);
-  const isTooLittleSpace = useMediaQuery(`(max-width: ${isChatOpen ? 1000 : 760}px)`);
+  const { onScreenShareChange, isScreenShareEnabled } = useControlBarState();
+  const visibleControls = useVisibleControls();
+  const isTooLittleSpace = useMediaQuery(`(max-width: 760px)`);
 
   const defaultVariation = isTooLittleSpace ? "minimal" : "verbose";
   variation ??= defaultVariation;
-
-  const visibleControls: ControlBar = { leave: false };
-
-  const localPermissions = useLocalParticipantPermissions();
-
-  if (!localPermissions) {
-    visibleControls.camera = false;
-    visibleControls.chat = false;
-    visibleControls.microphone = false;
-    visibleControls.screenShare = false;
-  } else {
-    const canPublishSource = (source: Track.Source) => {
-      return (
-        localPermissions.canPublish &&
-        (localPermissions.canPublishSources.length === 0 ||
-          localPermissions.canPublishSources.includes(trackSourceToProtocol(source)))
-      );
-    };
-    visibleControls.camera ??= canPublishSource(Track.Source.Camera);
-    visibleControls.microphone ??= canPublishSource(Track.Source.Microphone);
-    visibleControls.screenShare ??= canPublishSource(Track.Source.ScreenShare);
-  }
 
   const showIcon = useMemo(() => variation === "minimal" || variation === "verbose", [variation]);
   const showText = useMemo(() => variation === "textOnly" || variation === "verbose", [variation]);
 
   const browserSupportsScreenSharing = supportsScreenSharing();
-
-  const [isScreenShareEnabled, setIsScreenShareEnabled] = useState(false);
-
-  const onScreenShareChange = useCallback(
-    (enabled: boolean) => {
-      setIsScreenShareEnabled(enabled);
-    },
-    [setIsScreenShareEnabled],
-  );
 
   const { saveAudioInputEnabled, saveVideoInputEnabled, saveAudioInputDeviceId, saveVideoInputDeviceId } =
     usePersistentUserChoices({ preventSave: false });

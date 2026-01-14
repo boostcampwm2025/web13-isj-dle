@@ -2,8 +2,8 @@ import { requestLivekitToken } from "../api/livekit.api";
 
 import { useEffect, useState } from "react";
 
+import { useUserStore } from "@entities/user";
 import type { LivekitRoomConfig } from "@shared/types";
-import { useUser } from "@src/entities/user";
 
 interface UseLivekitState {
   token: string | null;
@@ -14,7 +14,8 @@ interface UseLivekitState {
 }
 
 export function useLivekit(): UseLivekitState {
-  const { user, users } = useUser();
+  const user = useUserStore((state) => state.user);
+  const users = useUserStore((state) => state.users);
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
   const roomId = user?.avatar.currentRoomId;
   const userId = user?.id;
@@ -64,7 +65,6 @@ export function useLivekit(): UseLivekitState {
         }
 
         const data = await requestLivekitToken(config, controller.signal);
-        console.log("[useLivekit] fetched token for room:", config.roomId);
 
         setLivekitState((prev) => ({ ...prev, token: data.token, serverUrl: data.url, isLoading: false, error: null }));
       } catch (error) {

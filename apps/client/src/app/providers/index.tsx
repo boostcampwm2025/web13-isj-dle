@@ -1,9 +1,6 @@
-import { UserProvider } from "@src/entities/user/model/UserProvider";
-import { ActionProvider } from "@src/features/actions";
-import { PhaserProvider } from "@src/shared/lib/phaser/model/PhaserProvider";
-import { WebSocketProvider } from "@src/shared/lib/websocket";
-import { BottomNavProvider } from "@src/widgets/bottom-nav";
-import { SidebarProvider } from "@src/widgets/sidebar";
+import { ActionProvider } from "@features/actions";
+import { PhaserProvider } from "@shared/lib/phaser";
+import { WebSocketProvider } from "@shared/lib/websocket";
 
 interface ProviderProps {
   children?: React.ReactNode;
@@ -11,17 +8,11 @@ interface ProviderProps {
 
 const Providers = ({ children }: ProviderProps) => {
   return (
-    <UserProvider>
-      <WebSocketProvider>
-        <SidebarProvider>
-          <ActionProvider>
-            <BottomNavProvider>
-              <PhaserProvider>{children}</PhaserProvider>
-            </BottomNavProvider>
-          </ActionProvider>
-        </SidebarProvider>
-      </WebSocketProvider>
-    </UserProvider>
+    <WebSocketProvider>
+      <ActionProvider>
+        <PhaserProvider>{children}</PhaserProvider>
+      </ActionProvider>
+    </WebSocketProvider>
   );
 };
 

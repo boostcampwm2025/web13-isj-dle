@@ -2,18 +2,21 @@ import { getEffectiveRoomId } from "./use-livekit";
 
 import { useEffect, useState } from "react";
 
-import { useUser } from "@src/entities/user";
-import { type ActionKey, useAction } from "@src/features/actions";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@src/shared/config/room.config";
-import { useBottomNav } from "@src/widgets/bottom-nav";
+import { useUserStore } from "@entities/user";
+import { type ActionKey, useAction } from "@features/actions";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { useBottomNavStore } from "@widgets/bottom-nav";
 
 export const useVideoConference = () => {
   const { getHookByKey } = useAction();
-  const { addKey, removeKey } = useBottomNav();
+  const addKey = useBottomNavStore((state) => state.addKey);
+  const removeKey = useBottomNavStore((state) => state.removeKey);
   const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
 
-  const { user, users } = useUser();
+  const user = useUserStore((state) => state.user);
+  const users = useUserStore((state) => state.users);
+
   const currentRoomId = user?.avatar.currentRoomId;
   const userId = user?.id;
   const nickname = user?.nickname;
@@ -40,7 +43,7 @@ export const useVideoConference = () => {
       const effectiveRoomId = getEffectiveRoomId(currentRoomId, contactId);
       setRoomId(effectiveRoomId);
 
-      if (currentRoomId === "lobby" && !contactId) {
+      if ((currentRoomId === "lobby" && !contactId) || currentRoomId === "desk zone") {
         setMode(null);
       } else {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
