@@ -1,3 +1,5 @@
+import { Users } from "lucide-react";
+
 import { useUserStore } from "@entities/user";
 import { useGroupedUsers } from "@entities/user";
 import { useInviteLink } from "@features/invite";
@@ -32,7 +34,10 @@ const UserListSidebar = () => {
           ))}
       </div>
       <div className="flex h-auto flex-row justify-between p-2">
-        <div>👥 {users.length}</div>
+        <div className="flex items-center gap-1">
+          <Users className="h-4 w-4" />
+          {users.length}
+        </div>
         <div className="cursor-pointer rounded-md bg-gray-200 px-2 py-1 hover:bg-gray-300" onClick={handleInviteClick}>
           사용자 초대
         </div>
