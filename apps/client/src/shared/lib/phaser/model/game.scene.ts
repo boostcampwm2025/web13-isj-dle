@@ -9,6 +9,7 @@ import {
   GAME_SCENE_KEY,
   IDLE_FRAME,
   MAP_NAME,
+  NICKNAME_OFFSET_Y,
   SIT_FRAME,
   TMJ_URL,
   WALK_FRAME,
@@ -19,7 +20,6 @@ import type { Socket } from "socket.io-client";
 
 import {
   AVATAR_ASSETS,
-  type Avatar,
   type AvatarAssetKey,
   type AvatarDirection,
   type AvatarState,
@@ -34,7 +34,9 @@ export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
+  private avatarNickname?: Phaser.GameObjects.DOMElement;
   private avatars: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private nicknameTexts: Map<string, Phaser.GameObjects.DOMElement> = new Map();
   private boundaryGraphics?: Phaser.GameObjects.Graphics;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys?: MoveKeys;
@@ -145,6 +147,10 @@ export class GameScene extends Phaser.Scene {
   update() {
     if (!this.avatar || !this.cursors) return;
     this.emitPlayerPosition();
+
+    if (this.avatarNickname) {
+      this.updateNicknamePosition(this.avatarNickname, this.avatar.sprite);
+    }
 
     const inputDirection = this.getNextDirection();
 
@@ -350,7 +356,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Create / Setup helpers (used by create)
-  loadAvatar(avatar: Avatar) {
+  loadAvatar(user: User) {
+    const avatar = user.avatar;
     const spawn = this.getAvatarSpawnPoint();
 
     const sprite = this.physics.add.sprite(spawn.x, spawn.y, avatar.assetKey, IDLE_FRAME[avatar.direction]);
@@ -365,7 +372,9 @@ export class GameScene extends Phaser.Scene {
 
     this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
 
-    // camera 설정
+    this.avatarNickname = this.createNicknameText(spawn.x, spawn.y - NICKNAME_OFFSET_Y, user.nickname);
+    this.avatarNickname.setDepth(Number.MAX_SAFE_INTEGER);
+
     this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
     this.cameras.main.startFollow(sprite, false, 1, 1);
     this.cameras.main.setRoundPixels(true);
@@ -380,6 +389,12 @@ export class GameScene extends Phaser.Scene {
       if (avatar) {
         avatar.destroy();
         this.avatars.delete(userId);
+      }
+
+      const nicknameText = this.nicknameTexts.get(userId);
+      if (nicknameText) {
+        nicknameText.destroy();
+        this.nicknameTexts.delete(userId);
       }
     });
 
@@ -671,6 +686,16 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.toIdle(avatar, avatarModel.direction);
     }
+
+    let nicknameText = this.nicknameTexts.get(user.id);
+    if (nicknameText) {
+      this.updateNicknamePosition(nicknameText, avatar);
+    } else {
+      nicknameText = this.createNicknameText(avatarModel.x, avatarModel.y - NICKNAME_OFFSET_Y, user.nickname);
+      this.nicknameTexts.set(user.id, nicknameText);
+    }
+
+    nicknameText.setDepth(this.mapObj.depthCount + index);
   }
 
   private getAvatarSpawnPoint() {
@@ -774,6 +799,23 @@ export class GameScene extends Phaser.Scene {
       state: this.avatar.state,
       time: now,
     };
+  }
+
+  private createNicknameText(x: number, y: number, nickname: string): Phaser.GameObjects.DOMElement {
+    const div = document.createElement("div");
+    div.textContent = nickname;
+    div.className =
+      "text-[5px] text-white bg-black/66 px-1 py-0.5 rounded whitespace-nowrap pointer-events-none select-none";
+
+    const domElement = this.add.dom(x, y, div);
+
+    domElement.setOrigin(0.5, 1);
+
+    return domElement;
+  }
+
+  private updateNicknamePosition(domElement: Phaser.GameObjects.DOMElement, sprite: Phaser.GameObjects.Sprite): void {
+    domElement.setPosition(sprite.x, sprite.y - NICKNAME_OFFSET_Y);
   }
 
   setSocket(socket: Socket) {

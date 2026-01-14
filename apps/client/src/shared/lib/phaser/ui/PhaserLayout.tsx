@@ -96,7 +96,7 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     if (gameScene.isLoadPlayer) return;
 
     const loadUserAvatar = () => {
-      gameScene.loadAvatar(user.avatar);
+      gameScene.loadAvatar(user);
     };
 
     if (!gameScene.isReady) {
