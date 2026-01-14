@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 
 import { useUser } from "@src/entities/user";
 import { type ActionKey, useAction } from "@src/features/actions";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@src/shared/config/room.config";
 import { useBottomNav } from "@src/widgets/bottom-nav";
 
 export const useVideoConference = () => {
   const { getHookByKey } = useAction();
   const { addKey, removeKey } = useBottomNav();
-  const [mode, setMode] = useState<"full-grid" | "thumbnail" | null>(null);
+  const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
 
   const { user, users } = useUser();
@@ -23,9 +24,9 @@ export const useVideoConference = () => {
   useEffect(() => {
     const actionKey: ActionKey = "view_mode";
     const viewModeHook = getHookByKey(actionKey);
-    if (mode === "thumbnail") {
+    if (mode === VIDEO_CONFERENCE_MODE.THUMBNAIL) {
       addKey(actionKey);
-      viewModeHook.setTrigger?.(() => setMode("full-grid"));
+      viewModeHook.setTrigger?.(() => setMode(VIDEO_CONFERENCE_MODE.FULL_GRID));
     } else {
       removeKey(actionKey);
       viewModeHook.setTrigger?.(null);
@@ -42,7 +43,7 @@ export const useVideoConference = () => {
       if (currentRoomId === "lobby" && !contactId) {
         setMode(null);
       } else {
-        setMode("thumbnail");
+        setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
       }
     };
 

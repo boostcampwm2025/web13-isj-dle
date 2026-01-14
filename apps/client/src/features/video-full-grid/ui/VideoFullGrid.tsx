@@ -21,10 +21,11 @@ import {
   useTracks,
 } from "@livekit/components-react";
 import { useAction } from "@src/features/actions";
+import type { VideoConferenceMode } from "@src/shared/config/room.config";
 import { SIDEBAR_WIDTH } from "@widgets/sidebar/model/sidebar.constants";
 
 interface VideoFullGridProps {
-  setMode: (mode: "full-grid" | "thumbnail" | null) => void;
+  setMode: (mode: VideoConferenceMode | null) => void;
   isSidebarOpen: boolean;
 }
 

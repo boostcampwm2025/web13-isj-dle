@@ -6,6 +6,7 @@ import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
+import { VIDEO_CONFERENCE_MODE } from "@src/shared/config/room.config";
 import { BottomNav } from "@widgets/bottom-nav";
 import { Sidebar } from "@widgets/sidebar";
 import { useSidebar } from "@widgets/sidebar";
@@ -20,7 +21,7 @@ const VideoConference = () => {
 
   return (
     <LiveKitRoom
-      data-lk-theme={mode === "full-grid" ? "default" : "none"}
+      data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
       key={roomId || ""}
       serverUrl={serverUrl || ""}
       token={token || ""}
@@ -28,9 +29,9 @@ const VideoConference = () => {
       video={isCameraOn}
       audio={isMicOn}
     >
-      {mode !== "full-grid" && <BottomNav />}
-      {mode === "full-grid" && <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />}
-      {mode === "thumbnail" && <VideoThumbnail />}
+      {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+      {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />}
+      {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
       <Sidebar />
     </LiveKitRoom>
   );

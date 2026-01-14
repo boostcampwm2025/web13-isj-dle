@@ -14,10 +14,11 @@ import {
   useMaybeLayoutContext,
   usePersistentUserChoices,
 } from "@livekit/components-react";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@src/shared/config/room.config";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";
-  setMode: (mode: "full-grid" | "thumbnail" | null) => void;
+  setMode: (mode: VideoConferenceMode | null) => void;
 }
 
 export function ControlBar({ variation, setMode }: ControlBarProps) {
@@ -123,7 +124,7 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
       <button
         className="lk-button"
         onClick={() => {
-          setMode("thumbnail");
+          setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
         }}
       >
         <Minimize />

@@ -30,7 +30,7 @@ export const isMeetingRoomRange = (roomId: string): boolean => {
 export const VIDEO_CONFERENCE_MODE = {
   FULL_GRID: "full-grid",
   THUMBNAIL: "thumbnail",
-};
+} as const;
 
 export type VideoConferenceMode = (typeof VIDEO_CONFERENCE_MODE)[keyof typeof VIDEO_CONFERENCE_MODE] | null;
 
