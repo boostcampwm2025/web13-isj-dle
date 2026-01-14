@@ -7,8 +7,11 @@ import { Minimize } from "lucide-react";
 
 import { useCallback, useMemo } from "react";
 
+import { useUserStore } from "@entities/user";
 import { MediaDeviceMenu, StartMediaButton, TrackToggle, usePersistentUserChoices } from "@livekit/components-react";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { useWebSocket } from "@shared/lib/websocket";
+import { UserEventType } from "@shared/types";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";
@@ -19,6 +22,9 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
   const { onScreenShareChange, isScreenShareEnabled } = useControlBarState();
   const visibleControls = useVisibleControls();
   const isTooLittleSpace = useMediaQuery(`(max-width: 760px)`);
+  const { socket } = useWebSocket();
+  const user = useUserStore((state) => state.user);
+  const updateUser = useUserStore((state) => state.updateUser);
 
   const defaultVariation = isTooLittleSpace ? "minimal" : "verbose";
   variation ??= defaultVariation;
@@ -32,13 +38,29 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
     usePersistentUserChoices({ preventSave: false });
 
   const microphoneOnChange = useCallback(
-    (enabled: boolean, isUserInitiated: boolean) => (isUserInitiated ? saveAudioInputEnabled(enabled) : null),
-    [saveAudioInputEnabled],
+    (enabled: boolean, isUserInitiated: boolean) => {
+      if (isUserInitiated) {
+        saveAudioInputEnabled(enabled);
+        if (user) {
+          updateUser({ id: user.id, micOn: enabled });
+        }
+        socket?.emit(UserEventType.USER_UPDATE, { micOn: enabled });
+      }
+    },
+    [saveAudioInputEnabled, socket, user, updateUser],
   );
 
   const cameraOnChange = useCallback(
-    (enabled: boolean, isUserInitiated: boolean) => (isUserInitiated ? saveVideoInputEnabled(enabled) : null),
-    [saveVideoInputEnabled],
+    (enabled: boolean, isUserInitiated: boolean) => {
+      if (isUserInitiated) {
+        saveVideoInputEnabled(enabled);
+        if (user) {
+          updateUser({ id: user.id, cameraOn: enabled });
+        }
+        socket?.emit(UserEventType.USER_UPDATE, { cameraOn: enabled });
+      }
+    },
+    [saveVideoInputEnabled, socket, user, updateUser],
   );
 
   return (

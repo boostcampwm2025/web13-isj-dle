@@ -81,6 +81,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       removeUser(data.userId);
     };
 
+    const handleUserUpdate = (data: { userId: string; micOn: boolean; cameraOn: boolean }) => {
+      updateUser({ id: data.userId, micOn: data.micOn, cameraOn: data.cameraOn });
+    };
+
     const handlePlayerMoved = (data: {
       userId: string;
       x: number;
@@ -107,6 +111,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketInstance.on(UserEventType.USER_SYNC, handleUserSync);
     socketInstance.on(UserEventType.USER_JOIN, handleUserJoin);
     socketInstance.on(UserEventType.USER_LEFT, handleUserLeft);
+    socketInstance.on(UserEventType.USER_UPDATE, handleUserUpdate);
     socketInstance.on(UserEventType.PLAYER_MOVED, handlePlayerMoved);
     socketInstance.on(UserEventType.BOUNDARY_UPDATE, handleBoundaryUpdate);
 
