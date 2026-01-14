@@ -16,12 +16,11 @@ import {
   type TrackReferenceOrPlaceholder,
   isTrackReference,
   useCreateLayoutContext,
-  useLocalParticipant,
   usePinnedTracks,
   useTracks,
 } from "@livekit/components-react";
-import { useAction } from "@src/features/actions";
-import type { VideoConferenceMode } from "@src/shared/config/room.config";
+import type { VideoConferenceMode } from "@shared/config/room.config";
+import { useBindLocalParticipant } from "@shared/model/use-bind-local-participant";
 import { SIDEBAR_WIDTH } from "@widgets/sidebar/model/sidebar.constants";
 
 interface VideoFullGridProps {
@@ -30,6 +29,7 @@ interface VideoFullGridProps {
 }
 
 const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
+  useBindLocalParticipant();
   const lastAutoFocusedScreenShareTrack = useRef<TrackReferenceOrPlaceholder | null>(null);
 
   const tracks = useTracks(
@@ -48,25 +48,6 @@ const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
 
   const focusTrack = usePinnedTracks(layoutContext)?.[0];
   const carouselTracks = tracks.filter((track) => !isEqualTrackRef(track, focusTrack));
-
-  const { getHookByKey } = useAction();
-  const { localParticipant } = useLocalParticipant();
-
-  useEffect(() => {
-    const { setLocalParticipant: setMicLocalParticipant } = getHookByKey("mic");
-    const { setLocalParticipant: setCameraLocalParticipant } = getHookByKey("camera");
-    const { setLocalParticipant: setScreenShareLocalParticipant } = getHookByKey("screen_share");
-
-    setMicLocalParticipant?.(localParticipant);
-    setCameraLocalParticipant?.(localParticipant);
-    setScreenShareLocalParticipant?.(localParticipant);
-
-    return () => {
-      setMicLocalParticipant?.(null);
-      setCameraLocalParticipant?.(null);
-      setScreenShareLocalParticipant?.(null);
-    };
-  }, [getHookByKey, localParticipant]);
 
   useEffect(() => {
     if (
