@@ -8,11 +8,17 @@ export const useChatTextarea = (send: (message: string) => Promise<ReceivedChatM
   const MAX_ROWS = 3;
   const LINE_HEIGHT = 20;
 
+  const resetHeight = (el: HTMLTextAreaElement) => {
+    el.style.height = "auto";
+    el.style.overflowY = "hidden";
+  };
+
   const sendMessage = async () => {
     if (textareaRef.current && textareaRef.current.value.trim() !== "") {
       await send(textareaRef.current.value);
       textareaRef.current.value = "";
       textareaRef.current.focus();
+      resetHeight(textareaRef.current);
     }
   };
 
@@ -29,7 +35,7 @@ export const useChatTextarea = (send: (message: string) => Promise<ReceivedChatM
   const handleInput = () => {
     if (!textareaRef.current) return;
 
-    textareaRef.current.style.height = "auto";
+    resetHeight(textareaRef.current);
     const maxHeight = LINE_HEIGHT * MAX_ROWS;
 
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`;
