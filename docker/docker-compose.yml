@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   server:
     image: ghcr.io/${GITHUB_REPOSITORY}/server:${IMAGE_TAG:-latest}
