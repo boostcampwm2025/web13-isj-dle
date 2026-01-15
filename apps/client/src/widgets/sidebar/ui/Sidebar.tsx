@@ -21,7 +21,9 @@ const Sidebar = () => {
             <div className="h-full w-full">
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2" />
-              <div className="h-[calc(100%-2.5rem)] overflow-y-auto">{currentPanel.Panel}</div>
+              <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
+                <currentPanel.Panel />
+              </div>
             </div>
           ) : (
             <div className="text-gray-400">Select a panel</div>
@@ -30,7 +32,12 @@ const Sidebar = () => {
         <div className="w-0.5 shrink-0 bg-gray-400" />
         <div className="scrollbar-hide my-2 mr-2 flex w-12 shrink-0 flex-col gap-4 overflow-y-auto">
           {sidebarKeys.map((key) => {
-            const { icon } = SIDEBAR_MAP[key];
+            // SIDEBAR_MAP에 정의되지 않은 키는 렌더링하지 않음 (안전 장치)
+            const sidebarItem = SIDEBAR_MAP[key];
+            if (!sidebarItem) return null;
+
+            const IconComponent = sidebarItem.Icon;
+
             return (
               <button
                 key={key}
@@ -39,7 +46,7 @@ const Sidebar = () => {
                 }`}
                 onClick={() => handleTabClick(key)}
               >
-                {icon}
+                <IconComponent size={20} />
               </button>
             );
           })}
