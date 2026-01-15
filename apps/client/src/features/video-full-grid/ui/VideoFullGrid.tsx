@@ -19,7 +19,7 @@ import {
   usePinnedTracks,
   useTracks,
 } from "@livekit/components-react";
-import { SIDEBAR_WIDTH, type VideoConferenceMode } from "@shared/config";
+import { SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH, type VideoConferenceMode } from "@shared/config";
 import { useBindLocalParticipant } from "@shared/model";
 
 interface VideoFullGridProps {
@@ -78,7 +78,7 @@ const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
     <div
       className="lk-video-conference pointer-events-auto transition-all duration-500 ease-in-out"
       style={{
-        width: isSidebarOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : "100%",
+        width: isSidebarOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : `calc(100% - ${SIDEBAR_TAB_WIDTH}px)`,
       }}
     >
       <LayoutContextProvider value={layoutContext}>
