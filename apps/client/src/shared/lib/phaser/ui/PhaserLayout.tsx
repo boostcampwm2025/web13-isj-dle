@@ -36,32 +36,9 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   useAvatarRenderer(game, users, user);
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        ref={containerRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 10,
-          pointerEvents: "none",
-        }}
-      >
-        {children}
-      </div>
+    <div className="relative h-screen w-screen overflow-hidden">
+      <div ref={containerRef} className="absolute inset-0 z-0" />
+      <div className="pointer-events-none absolute inset-0 z-10">{children}</div>
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}
