@@ -64,7 +64,7 @@ const ChatSidebar = () => {
           );
         })}
       </ul>
-      <form className="flex gap-2 border-t border-gray-800 pt-2" onSubmit={(e) => e.preventDefault()}>
+      <div className="flex gap-2 border-t border-gray-800 pt-2">
         <textarea
           className="w-full resize-none rounded-md border border-gray-300 px-2 py-1"
           disabled={isSending}
@@ -76,14 +76,13 @@ const ChatSidebar = () => {
           onKeyUp={(ev) => ev.stopPropagation()}
         />
         <button
-          type="submit"
           className="relative inline-flex cursor-pointer items-center justify-center p-0"
           disabled={isSending}
           onClick={sendMessage}
         >
           <Send size={16} />
         </button>
-      </form>
+      </div>
     </div>
   );
 };
