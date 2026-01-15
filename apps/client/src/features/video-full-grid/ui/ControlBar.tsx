@@ -7,8 +7,11 @@ import { Minimize } from "lucide-react";
 
 import { useCallback, useMemo } from "react";
 
+import { useUserStore } from "@entities/user";
 import { MediaDeviceMenu, StartMediaButton, TrackToggle, usePersistentUserChoices } from "@livekit/components-react";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { useWebSocket } from "@shared/lib/websocket";
+import { UserEventType } from "@shared/types";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";
@@ -19,6 +22,9 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
   const { onScreenShareChange, isScreenShareEnabled } = useControlBarState();
   const visibleControls = useVisibleControls();
   const isTooLittleSpace = useMediaQuery(`(max-width: 760px)`);
+  const { socket } = useWebSocket();
+  const user = useUserStore((state) => state.user);
+  const updateUser = useUserStore((state) => state.updateUser);
 
   const defaultVariation = isTooLittleSpace ? "minimal" : "verbose";
   variation ??= defaultVariation;
@@ -31,15 +37,26 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
   const { saveAudioInputEnabled, saveVideoInputEnabled, saveAudioInputDeviceId, saveVideoInputDeviceId } =
     usePersistentUserChoices({ preventSave: false });
 
-  const microphoneOnChange = useCallback(
-    (enabled: boolean, isUserInitiated: boolean) => (isUserInitiated ? saveAudioInputEnabled(enabled) : null),
-    [saveAudioInputEnabled],
+  const handleMediaToggle = useCallback(
+    (type: "mic" | "camera") => (enabled: boolean, isUserInitiated: boolean) => {
+      if (isUserInitiated) {
+        if (type === "mic") {
+          saveAudioInputEnabled(enabled);
+        } else {
+          saveVideoInputEnabled(enabled);
+        }
+        const updatePayload = type === "mic" ? { micOn: enabled } : { cameraOn: enabled };
+        if (user) {
+          updateUser({ id: user.id, ...updatePayload });
+        }
+        socket?.emit(UserEventType.USER_UPDATE, updatePayload);
+      }
+    },
+    [saveAudioInputEnabled, saveVideoInputEnabled, socket, user, updateUser],
   );
 
-  const cameraOnChange = useCallback(
-    (enabled: boolean, isUserInitiated: boolean) => (isUserInitiated ? saveVideoInputEnabled(enabled) : null),
-    [saveVideoInputEnabled],
-  );
+  const microphoneOnChange = useMemo(() => handleMediaToggle("mic"), [handleMediaToggle]);
+  const cameraOnChange = useMemo(() => handleMediaToggle("camera"), [handleMediaToggle]);
 
   return (
     <div className="lk-control-bar">

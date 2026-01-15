@@ -4,9 +4,17 @@ import { Video, VideoOff } from "lucide-react";
 
 import { useState } from "react";
 
+import { useUserStore } from "@entities/user";
+import { useWebSocket } from "@shared/lib/websocket";
+import { UserEventType } from "@shared/types";
+
 export const useCameraAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
-  const [isCameraOn, setIsCameraOn] = useState<boolean>(false);
+  const user = useUserStore((state) => state.user);
+  const updateUser = useUserStore((state) => state.updateUser);
+  const { socket } = useWebSocket();
+
+  const isCameraOn = user?.cameraOn ?? false;
 
   const toggleCamera = async () => {
     const newState = !isCameraOn;
@@ -15,7 +23,10 @@ export const useCameraAction: ActionHook = () => {
     } else {
       console.warn("Local participant is not available to toggle camera.");
     }
-    setIsCameraOn(newState);
+    if (user) {
+      updateUser({ id: user.id, cameraOn: newState });
+    }
+    socket?.emit(UserEventType.USER_UPDATE, { cameraOn: newState });
   };
 
   return {
