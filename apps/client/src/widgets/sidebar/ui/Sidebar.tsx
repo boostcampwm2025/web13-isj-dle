@@ -2,6 +2,7 @@ import { SIDEBAR_MAP } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
+import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 
 const Sidebar = () => {
@@ -65,7 +66,7 @@ const Sidebar = () => {
                 }`}
                 onClick={() => handleTabClick(key)}
               >
-                <IconComponent className="h-6 w-6" size={20} />
+                <IconComponent className="h-6 w-6" size={ICON_SIZE} />
               </button>
             );
           })}

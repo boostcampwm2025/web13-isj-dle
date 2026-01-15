@@ -39,9 +39,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   async handleConnection(client: Socket) {
     try {
-      this.logger.log(`✅ Client connected: ${client.id}`);
-      this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
-
       const user = this.userManager.createSession({
         id: client.id,
       });
@@ -56,7 +53,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.emit(UserEventType.USER_SYNC, { user, users: this.userManager.getAllSessions() });
       client.broadcast.emit(UserEventType.USER_JOIN, { user });
 
-      this.logger.log(`Game user created: ${user.nickname} (${user.avatar.assetKey})`);
+      this.logger.log(`✅ Client connected: ${client.id} ${user.nickname} (${user.avatar.assetKey})`);
     } catch (err) {
       this.logger.error(`Failed to handle connection: ${client.id}`, err instanceof Error ? err.stack : String(err));
       client.disconnect();
@@ -72,7 +69,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
 
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
-      this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
     } catch (err) {
       this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
     }
@@ -87,7 +83,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     try {
       const notices = await this.noticeService.findByRoomId(payload.roomId);
-      this.logger.log(`${payload.roomId} notice count: ${notices.length}`);
       client.emit(NoticeEventType.NOTICE_SYNC, notices);
     } catch (error) {
       const trace = error instanceof Error ? error.stack : String(error);
@@ -119,10 +114,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
-      // 방 이동 시 contactId 초기화
       this.userManager.updateSessionContactId(client.id, null);
 
-      // 이전 lobby 유저들의 boundary 재계산
       if (previousRoomId === "lobby") {
         const lobbyUsers = this.userManager.getRoomSessions("lobby");
         const groups = this.boundaryService.findBoundaryGroups(lobbyUsers);
@@ -140,9 +133,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
-      this.logger.log(`🚪 User ${user.nickname} (${client.id}) joined room: ${payload.roomId}`);
 
-      const roomUsers = this.userManager.getRoomSessions(payload.roomId);
       const updatedUser = this.userManager.getSession(client.id);
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
@@ -154,10 +145,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         user: updatedUser,
         users: this.userManager.getAllSessions(),
       });
-
-      this.logger.log(
-        `✅ Room join complete: ${user.nickname} → ${payload.roomId} (${roomUsers.length} users in room)`,
-      );
     } catch (error) {
       const trace = error instanceof Error ? error.stack : String(error);
       this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
@@ -175,8 +162,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       return;
     }
 
-    this.logger.debug(`🎥 USER_UPDATE: ${client.id} -> (camera: ${user.cameraOn}, mic: ${user.micOn})`);
-
     this.server.emit(UserEventType.USER_UPDATE, { userId: client.id, ...payload });
   }
 
@@ -192,27 +177,20 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const roomId = user.avatar.currentRoomId;
 
-    this.logger.debug(
-      `➡️ PLAYER_MOVE: ${client.id} moved to (${payload.x}, ${payload.y}, ${payload.direction}) in room ${roomId}`,
-    );
-
     this.server.to(roomId).emit(UserEventType.PLAYER_MOVED, {
       userId: client.id,
       ...payload,
     });
 
-    // Boundary 체크: lobby에서만 활성화
     if (roomId === "lobby") {
       const roomUsers = this.userManager.getRoomSessions(roomId);
       const groups = this.boundaryService.findBoundaryGroups(roomUsers);
       const contactIdUpdates = this.boundaryService.updateContactIds(roomUsers, groups);
 
-      // contactId가 변경된 유저들 업데이트
       for (const [userId, newContactId] of contactIdUpdates) {
         this.userManager.updateSessionContactId(userId, newContactId);
       }
 
-      // contactId 변경 사항 브로드캐스트
       if (contactIdUpdates.size > 0) {
         const updates = Object.fromEntries(contactIdUpdates);
         this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);

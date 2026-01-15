@@ -1,6 +1,7 @@
 import { Mic, MicOff } from "lucide-react";
 import { Video, VideoOff } from "lucide-react";
 
+import { ICON_SIZE } from "@shared/config";
 import { useToggle } from "@shared/model";
 import type { User } from "@shared/types";
 
@@ -9,8 +10,6 @@ interface UserGroupProps {
   title: string;
   userId: string;
 }
-
-const ICON_SIZE = 20;
 
 const UserGroup = ({ users, title, userId }: UserGroupProps) => {
   const { isOpen, toggle } = useToggle(true);

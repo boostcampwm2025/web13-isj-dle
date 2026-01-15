@@ -15,56 +15,16 @@ export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: Room
 
   return (
     <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 10000,
-        pointerEvents: "auto",
-      }}
+      className="pointer-events-auto fixed inset-0 z-10000 flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       <div
-        style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
-          maxWidth: "500px",
-          width: "90%",
-          maxHeight: "80vh",
-          overflow: "auto",
-          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
-          position: "relative",
-        }}
+        className="relative max-h-[80vh] w-[90%] max-w-125 overflow-auto rounded-lg bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 닫기 버튼 */}
         <button
           onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "16px",
-            right: "16px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            width: "32px",
-            height: "32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "4px",
-            transition: "background-color 0.2s",
-            fontSize: "24px",
-            color: "#666",
-            lineHeight: "1",
-          }}
+          className="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded border-0 bg-transparent text-2xl leading-none text-gray-600 transition-colors duration-200"
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = "#f3f4f6";
           }}
@@ -76,33 +36,17 @@ export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: Room
           ×
         </button>
 
-        <div style={{ marginBottom: "16px" }}>
-          <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "8px" }}>회의실 선택</h2>
-          <p style={{ fontSize: "14px", color: "#666" }}>입장할 회의실을 선택하세요</p>
+        <div className="mb-4">
+          <h2 className="mb-2 text-xl font-semibold">회의실 선택</h2>
+          <p className="text-sm text-gray-600">입장할 회의실을 선택하세요</p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-            gap: "12px",
-            marginBottom: "16px",
-          }}
-        >
+        <div className="mb-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3">
           {rooms.map((room) => (
             <button
               key={room}
               onClick={() => onSelect(room as RoomType)}
-              style={{
-                padding: "12px 16px",
-                backgroundColor: "#f3f4f6",
-                border: "2px solid transparent",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500",
-                transition: "all 0.2s",
-              }}
+              className="cursor-pointer rounded-md border-2 border-transparent bg-gray-100 px-4 py-3 text-sm font-medium transition-all duration-200"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#e5e7eb";
                 e.currentTarget.style.borderColor = "#3b82f6";

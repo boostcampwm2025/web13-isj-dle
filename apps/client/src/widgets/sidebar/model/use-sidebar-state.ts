@@ -1,8 +1,9 @@
 import { SIDEBAR_MAP } from "./sidebar.constants";
 import { useSidebarStore } from "./sidebar.store";
-import type { SidebarKey } from "./sidebar.types";
 
 import { useMemo } from "react";
+
+import type { SidebarKey } from "@shared/config";
 
 const useSidebarState = () => {
   const sidebarKeys = useSidebarStore((s) => s.sidebarKeys);

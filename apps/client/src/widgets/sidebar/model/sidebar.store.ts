@@ -1,5 +1,6 @@
-import type { SidebarKey } from "./sidebar.types";
 import { create } from "zustand";
+
+import type { SidebarKey } from "@shared/config";
 
 interface SidebarState {
   sidebarKeys: SidebarKey[];
@@ -7,7 +8,6 @@ interface SidebarState {
   currentKey: SidebarKey | null;
   lastOpenedKey: SidebarKey;
 
-  // Actions
   addKey: (key: SidebarKey) => void;
   removeKey: (key: SidebarKey) => void;
   setSidebarKeys: (keys: SidebarKey[]) => void;
