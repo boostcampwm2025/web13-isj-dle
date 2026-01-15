@@ -1,7 +1,7 @@
 import { type Participant, RoomEvent } from "livekit-client";
 import { Send } from "lucide-react";
 
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { type ChatEntryProps, type ReceivedChatMessage, useChat, useRoomContext } from "@livekit/components-react";
 
@@ -46,13 +46,16 @@ const ChatEntry = ({ entry, hideName, hideTimestamp }: ChatEntryProps) => {
 
 const ChatSidebar = () => {
   const ulRef = useRef<HTMLUListElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { chatMessages, send, isSending } = useChat();
   const [initialMessage, setInitialMessage] = useState<ReceivedChatMessage[]>([]);
   const room = useRoomContext();
   const [systemMessages, setSystemMessages] = useState<ReceivedChatMessage[]>([]);
   const [chatMessagesCombined, setChatMessagesCombined] = useState<ReceivedChatMessage[]>([]);
+
+  const MAX_ROWS = 3;
+  const LINE_HEIGHT = 20;
 
   useEffect(() => {
     const init = () => {
@@ -127,13 +130,31 @@ const ChatSidebar = () => {
     ulRef.current?.scrollTo({ top: ulRef.current.scrollHeight });
   }, [chatMessagesCombined]);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (inputRef.current && inputRef.current.value.trim() !== "") {
-      await send(inputRef.current.value);
-      inputRef.current.value = "";
-      inputRef.current.focus();
+  const sendMessage = async () => {
+    if (textareaRef.current && textareaRef.current.value.trim() !== "") {
+      await send(textareaRef.current.value);
+      textareaRef.current.value = "";
+      textareaRef.current.focus();
     }
+  };
+
+  const handleKeyDown = async (ev: KeyboardEvent<HTMLTextAreaElement>) => {
+    ev.stopPropagation();
+
+    if (ev.key === "Enter" && !ev.shiftKey) {
+      ev.preventDefault();
+      await sendMessage();
+    }
+  };
+
+  const handleInput = () => {
+    if (!textareaRef.current) return;
+
+    textareaRef.current.style.height = "auto";
+    const maxHeight = LINE_HEIGHT * MAX_ROWS;
+
+    textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`;
+    textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? "auto" : "hidden";
   };
 
   return (
@@ -153,21 +174,22 @@ const ChatSidebar = () => {
           );
         })}
       </ul>
-      <form className="flex gap-2 border-t border-gray-800 pt-2" onSubmit={handleSubmit}>
-        <input
-          className="w-full rounded-md border border-gray-300 px-2 py-1"
+      <form className="flex gap-2 border-t border-gray-800 pt-2" onSubmit={(e) => e.preventDefault()}>
+        <textarea
+          className="w-full resize-none rounded-md border border-gray-300 px-2 py-1"
           disabled={isSending}
-          ref={inputRef}
-          type="text"
+          ref={textareaRef}
+          rows={1}
           placeholder="메시지 입력..."
-          onInput={(ev) => ev.stopPropagation()}
-          onKeyDown={(ev) => ev.stopPropagation()}
+          onKeyDown={handleKeyDown}
+          onInput={handleInput}
           onKeyUp={(ev) => ev.stopPropagation()}
         />
         <button
           type="submit"
           className="relative inline-flex cursor-pointer items-center justify-center p-0"
           disabled={isSending}
+          onClick={sendMessage}
         >
           <Send size={16} />
         </button>
