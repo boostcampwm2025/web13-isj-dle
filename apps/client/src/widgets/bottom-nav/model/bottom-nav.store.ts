@@ -5,7 +5,6 @@ import type { ActionKey } from "@features/actions";
 interface BottomNavState {
   bottomNavigation: ActionKey[];
 
-  // Actions
   addKey: (key: ActionKey) => void;
   removeKey: (key: ActionKey) => void;
   setBottomNavigation: (keys: ActionKey[]) => void;

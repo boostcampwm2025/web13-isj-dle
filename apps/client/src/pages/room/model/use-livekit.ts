@@ -21,7 +21,6 @@ export const useLivekit = (): UseLivekitState => {
   const userId = user?.id;
   const nickname = user?.nickname;
 
-  // users 배열에서 현재 유저의 최신 contactId 가져오기
   const currentUserFromList = users.find((u) => u.id === userId);
   const contactId = currentUserFromList?.contactId ?? user?.contactId;
 
@@ -42,7 +41,6 @@ export const useLivekit = (): UseLivekitState => {
       nickname,
     });
 
-    // lobby는 contactId가 있을 때만 연결
     if (roomId === "lobby") {
       setLivekitState((prev) => ({ ...prev, isOpen: !!contactId }));
     } else if (roomId === "desk zone" || (roomId.startsWith("meeting (") && roomId.includes("-"))) {

@@ -6,7 +6,7 @@ import { isTrackReference } from "@livekit/components-react";
 interface UsePinScreenShareParams {
   tracks: TrackReferenceOrPlaceholder[];
   layoutContext: LayoutContextType;
-  screenShareTracks: TrackReference[]; // 보통 TrackReference만 들어오게 필터한 결과
+  screenShareTracks: TrackReference[];
   focusTrack?: TrackReferenceOrPlaceholder | null;
 }
 

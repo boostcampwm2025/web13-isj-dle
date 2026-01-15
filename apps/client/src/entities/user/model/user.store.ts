@@ -11,7 +11,6 @@ interface UserState {
   user: User | null;
   users: User[];
 
-  // Actions
   setUser: (user: User | null) => void;
   setUsers: (users: User[]) => void;
   addUser: (user: User) => void;

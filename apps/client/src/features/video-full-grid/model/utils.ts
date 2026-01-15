@@ -49,7 +49,6 @@ export const supportsScreenSharing = (): boolean => {
 };
 
 export const trackSourceToProtocol = (source: Track.Source) => {
-  // NOTE: this mapping avoids importing the protocol package as that leads to a significant bundle size increase
   switch (source) {
     case Track.Source.Camera:
       return 1;

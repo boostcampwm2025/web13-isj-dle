@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 
 import { MINIMUM_NUMBER_OF_MEMBERS, TILE_SIZE, type User } from "@shared/types";
 
@@ -12,9 +12,6 @@ export interface BoundaryGroup {
 
 @Injectable()
 export class BoundaryService {
-  private readonly logger = new Logger(BoundaryService.name);
-
-  // 두 아바타가 바운더리 범위 내에 있는지 확인 - 체비쇼프 거리(Chebyshev distance) 사용: 상하좌우 및 대각선 동일 취급
   isWithinBoundary(x1: number, y1: number, x2: number, y2: number): boolean {
     const tileX1 = Math.floor(x1 / TILE_SIZE);
     const tileY1 = Math.floor(y1 / TILE_SIZE);
@@ -27,7 +24,6 @@ export class BoundaryService {
     return Math.max(dx, dy) <= BOUNDARY_RANGE;
   }
 
-  // 인접 리스트 생성: idle 기준, 그래프 무방향
   private buildAdjacencyList(users: User[]): Map<string, string[]> {
     const adjacency = new Map<string, string[]>();
 
@@ -57,7 +53,6 @@ export class BoundaryService {
     return adjacency;
   }
 
-  // 바운더리 그룹 탐색 (BFS)
   findBoundaryGroups(users: User[]): BoundaryGroup[] {
     const idleUsers = users.filter((u) => u.avatar.state === "idle");
     if (idleUsers.length === 0) return [];
@@ -82,7 +77,6 @@ export class BoundaryService {
         visited.add(currentId);
         group.push(currentId);
 
-        // 그룹 내 기존 contactId 찾기
         const currentUser = userMap.get(currentId);
         if (currentUser?.contactId && !existingContactId) {
           existingContactId = currentUser.contactId;
@@ -100,13 +94,10 @@ export class BoundaryService {
         }
       }
 
-      // 2명 이상인 그룹만 유효한 바운더리 그룹
       if (group.length >= MINIMUM_NUMBER_OF_MEMBERS) {
         const sortedIds = [...group].sort((a, b) => a.localeCompare(b));
         const groupId = sortedIds.join("-");
 
-        // 기존 contactId가 있고, 그 contactId를 가진 모든 유저가 이 그룹에 포함되어 있으면 재사용
-        // 그렇지 않으면 새로운 contactId 생성 (그룹이 분리된 경우)
         let contactId: string;
         if (existingContactId) {
           const usersWithSameContactId = idleUsers.filter((u) => u.contactId === existingContactId);
@@ -127,16 +118,10 @@ export class BoundaryService {
     return groups;
   }
 
-  // 특정 유저가 속한 그룹 찾기
   findUserGroup(userId: string, groups: BoundaryGroup[]): BoundaryGroup | null {
     return groups.find((group) => group.userIds.includes(userId)) || null;
   }
 
-  /**
-   * 유저들의 contactId 업데이트
-   * walk 상태인 유저는 contactId를 null로 설정
-   * @returns contactId가 변경된 유저 ID 목록
-   */
   updateContactIds(users: User[], groups: BoundaryGroup[]): Map<string, string | null> {
     const updates = new Map<string, string | null>();
 
@@ -147,14 +132,12 @@ export class BoundaryService {
 
       if (user.contactId !== newContactId) {
         updates.set(user.id, newContactId);
-        this.logger.debug(`ContactId changed: ${user.id} (${user.contactId} -> ${newContactId})`);
       }
     }
 
     return updates;
   }
 
-  // 그룹에 새로운 contactId 할당 - 변경 가능
   private generateContactId(): string {
     return `contact-${Date.now()}-${Math.random().toString(36)}`;
   }

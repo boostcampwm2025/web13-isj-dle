@@ -49,7 +49,7 @@ export class GameScene extends Phaser.Scene {
     state: "idle",
     time: 0,
   };
-  private threshold: number = 16; // milliseconds
+  private threshold: number = 16;
   private currentRoomId: string = "lobby";
 
   constructor() {
@@ -106,7 +106,7 @@ export class GameScene extends Phaser.Scene {
 
         layer.setDepth(this.mapObj.depthCount++);
         if (name.includes("Collision")) {
-          // layer.setVisible(false);
+          layer.setVisible(false);
           layer.setCollisionByProperty({ collides: true });
         }
       });
@@ -124,7 +124,6 @@ export class GameScene extends Phaser.Scene {
 
       this.createAllAvatarAnimations();
 
-      // keyboard 처리
       const keyboard = this.input.keyboard;
       if (!keyboard) return;
 
@@ -164,15 +163,12 @@ export class GameScene extends Phaser.Scene {
 
     const inputDirection = this.getNextDirection();
 
-    // 방 진입 체크
     this.checkRoomEntrance();
 
-    // SIT 상태 처리
     if (this.avatar.state === "sit" && !inputDirection) {
       return;
     }
 
-    // SIT 진입 처리
     if (this.keys?.sit.isDown) {
       const seatDirection = this.getSeatDirectionAtCurrentTile();
       if (seatDirection) {
@@ -183,7 +179,6 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Walking / Idle 상태 처리
     if (inputDirection) {
       this.avatar.state = "walk";
       this.avatar.direction = inputDirection;
@@ -193,11 +188,9 @@ export class GameScene extends Phaser.Scene {
       this.toIdle(this.avatar.sprite, this.avatar.direction);
     }
 
-    // 이동 처리
     const { vx, vy } = this.dirToVel(inputDirection);
     this.avatar.sprite.setVelocity(vx, vy);
 
-    // Snap to grid 처리
     if (vx === 0 && vy === 0) {
       const x = this.avatar.sprite.x;
       const y = this.avatar.sprite.y;
@@ -212,7 +205,6 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // Input / Animation
   private getNextDirection(): AvatarDirection | null {
     if (!this.cursors || !this.keys) return null;
 
@@ -254,7 +246,6 @@ export class GameScene extends Phaser.Scene {
     sprite.setFrame(SIT_FRAME[dir]);
   }
 
-  // Tile helpers
   private getTilesAtWorld(x: number, y: number): Phaser.Tilemaps.Tile[] {
     const map = this.mapObj.map;
     if (!map) return [];
@@ -366,7 +357,6 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // Create / Setup helpers (used by create)
   loadAvatar(user: User) {
     const avatar = user.avatar;
     const spawn = this.getAvatarSpawnPoint();
@@ -420,7 +410,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private renderBoundary(users: User[], currentUser?: User | null): void {
-    // 기존 그래픽 제거
     if (this.boundaryGraphics) {
       this.boundaryGraphics.clear();
     } else {
@@ -453,7 +442,6 @@ export class GameScene extends Phaser.Scene {
       group.push({ x: this.avatar.sprite.x, y: this.avatar.sprite.y });
     }
 
-    // 각 그룹별로 바운더리 그리기
     for (const [, points] of contactGroups) {
       if (points.length < MINIMUM_NUMBER_OF_MEMBERS) continue;
 
@@ -462,11 +450,9 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // Convex Hull 계산 (Graham Scan)
   private computeConvexHull(points: Array<{ x: number; y: number }>): Array<{ x: number; y: number }> {
     if (points.length <= MINIMUM_NUMBER_OF_MEMBERS) return points;
 
-    // 가장 아래쪽(y가 큰) 점 찾기, 같으면 왼쪽(x가 작은) 점
     let start = 0;
     for (let i = 1; i < points.length; i++) {
       if (points[i].y > points[start].y || (points[i].y === points[start].y && points[i].x < points[start].x)) {
@@ -476,14 +462,13 @@ export class GameScene extends Phaser.Scene {
 
     const pivot = points[start];
 
-    // 각도 기준으로 정렬
     const sorted = points
       .filter((_, i) => i !== start)
       .sort((a, b) => {
         const angleA = Math.atan2(a.y - pivot.y, a.x - pivot.x);
         const angleB = Math.atan2(b.y - pivot.y, b.x - pivot.x);
         if (angleA !== angleB) return angleA - angleB;
-        // 같은 각도면 거리 순
+
         const distA = (a.x - pivot.x) ** 2 + (a.y - pivot.y) ** 2;
         const distB = (b.x - pivot.x) ** 2 + (b.y - pivot.y) ** 2;
         return distA - distB;
@@ -501,12 +486,10 @@ export class GameScene extends Phaser.Scene {
     return hull;
   }
 
-  // 외적 계산 (방향 판단용)
   private cross(o: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
     return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
   }
 
-  // Convex Hull을 패딩 적용하여 점선으로 그리기
   private drawDashedHull(hull: Array<{ x: number; y: number }>, padding: number): void {
     if (!this.boundaryGraphics || hull.length < MINIMUM_NUMBER_OF_MEMBERS) return;
 
@@ -517,7 +500,6 @@ export class GameScene extends Phaser.Scene {
   private drawDashedRoundedPolygon(hull: Array<{ x: number; y: number }>, padding: number): void {
     if (!this.boundaryGraphics || hull.length < MINIMUM_NUMBER_OF_MEMBERS) return;
 
-    // hull 방향 계산 (시계 / 반시계)
     let signedArea = 0;
     for (let i = 0; i < hull.length; i++) {
       const curr = hull[i];
@@ -534,13 +516,11 @@ export class GameScene extends Phaser.Scene {
       const next = hull[(i + 1) % hull.length];
       const prev = hull[(i - 1 + hull.length) % hull.length];
 
-      // 현재 edge 방향
       const dx = next.x - curr.x;
       const dy = next.y - curr.y;
       const len = Math.hypot(dx, dy);
       if (len === 0) continue;
 
-      // 외부 법선
       const sign = clockwise ? -1 : 1;
       const nx = (sign * dy) / len;
       const ny = (-sign * dx) / len;
@@ -550,7 +530,6 @@ export class GameScene extends Phaser.Scene {
       const endX = next.x + nx * padding;
       const endY = next.y + ny * padding;
 
-      // 코너용 이전 edge 법선
       const pdx = curr.x - prev.x;
       const pdy = curr.y - prev.y;
       const plen = Math.hypot(pdx, pdy);
@@ -576,7 +555,6 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // 점선 직선 그리기
   private drawDashedLine(
     x1: number,
     y1: number,
@@ -626,7 +604,6 @@ export class GameScene extends Phaser.Scene {
     return { dashRemaining, isDrawing };
   }
 
-  // 점선 호 그리기
   private drawDashedArc(
     cx: number,
     cy: number,
@@ -641,7 +618,6 @@ export class GameScene extends Phaser.Scene {
     const dashLength = BOUNDARY_DASH.LENGTH;
     const gapLength = BOUNDARY_DASH.GAP;
 
-    // 각도 정규화
     while (endAngle < startAngle) endAngle += 2 * Math.PI;
     const totalAngle = endAngle - startAngle;
     const arcLength = totalAngle * radius;
@@ -778,7 +754,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  // WebSocket 관련 메서드
   private emitPlayerPosition() {
     if (!this.socket || !this.avatar) return;
 

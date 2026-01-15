@@ -8,7 +8,6 @@ interface SidebarState {
   currentKey: SidebarKey | null;
   lastOpenedKey: SidebarKey;
 
-  // Actions
   addKey: (key: SidebarKey) => void;
   removeKey: (key: SidebarKey) => void;
   setSidebarKeys: (keys: SidebarKey[]) => void;
