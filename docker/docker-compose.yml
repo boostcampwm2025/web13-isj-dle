@@ -40,6 +40,9 @@ services:
     pull_policy: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       server:
         condition: service_healthy
