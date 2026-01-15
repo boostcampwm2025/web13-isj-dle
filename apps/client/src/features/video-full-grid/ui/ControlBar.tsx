@@ -37,31 +37,26 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
   const { saveAudioInputEnabled, saveVideoInputEnabled, saveAudioInputDeviceId, saveVideoInputDeviceId } =
     usePersistentUserChoices({ preventSave: false });
 
-  const microphoneOnChange = useCallback(
-    (enabled: boolean, isUserInitiated: boolean) => {
+  const handleMediaToggle = useCallback(
+    (type: "mic" | "camera") => (enabled: boolean, isUserInitiated: boolean) => {
       if (isUserInitiated) {
-        saveAudioInputEnabled(enabled);
-        if (user) {
-          updateUser({ id: user.id, micOn: enabled });
+        if (type === "mic") {
+          saveAudioInputEnabled(enabled);
+        } else {
+          saveVideoInputEnabled(enabled);
         }
-        socket?.emit(UserEventType.USER_UPDATE, { micOn: enabled });
+        const updatePayload = type === "mic" ? { micOn: enabled } : { cameraOn: enabled };
+        if (user) {
+          updateUser({ id: user.id, ...updatePayload });
+        }
+        socket?.emit(UserEventType.USER_UPDATE, updatePayload);
       }
     },
-    [saveAudioInputEnabled, socket, user, updateUser],
+    [saveAudioInputEnabled, saveVideoInputEnabled, socket, user, updateUser],
   );
 
-  const cameraOnChange = useCallback(
-    (enabled: boolean, isUserInitiated: boolean) => {
-      if (isUserInitiated) {
-        saveVideoInputEnabled(enabled);
-        if (user) {
-          updateUser({ id: user.id, cameraOn: enabled });
-        }
-        socket?.emit(UserEventType.USER_UPDATE, { cameraOn: enabled });
-      }
-    },
-    [saveVideoInputEnabled, socket, user, updateUser],
-  );
+  const microphoneOnChange = useMemo(() => handleMediaToggle("mic"), [handleMediaToggle]);
+  const cameraOnChange = useMemo(() => handleMediaToggle("camera"), [handleMediaToggle]);
 
   return (
     <div className="lk-control-bar">
