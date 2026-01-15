@@ -1,9 +1,11 @@
-import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 
-export type SidebarKey = "users" | "notices";
+import type { ComponentType } from "react";
+
+export type SidebarKey = "users" | "notices" | "whiteboard" | "code-editor";
 
 export type SidebarItem = {
   title: string;
-  icon: ReactNode;
-  Panel: ReactNode;
+  Icon: LucideIcon;
+  Panel: ComponentType;
 };
