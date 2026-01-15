@@ -177,11 +177,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.logger.debug(`🎥 USER_UPDATE: ${client.id} -> (camera: ${user.cameraOn}, mic: ${user.micOn})`);
 
-    this.server.emit(UserEventType.USER_UPDATE, {
-      userId: client.id,
-      cameraOn: user.cameraOn,
-      micOn: user.micOn,
-    });
+    this.server.emit(UserEventType.USER_UPDATE, { userId: client.id, ...payload });
   }
 
   @SubscribeMessage(UserEventType.PLAYER_MOVE)

@@ -81,8 +81,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       removeUser(data.userId);
     };
 
-    const handleUserUpdate = (data: { userId: string; micOn: boolean; cameraOn: boolean }) => {
-      updateUser({ id: data.userId, micOn: data.micOn, cameraOn: data.cameraOn });
+    const handleUserUpdate = (data: { userId: string; micOn?: boolean; cameraOn?: boolean }) => {
+      const { userId, ...rest } = data;
+      updateUser({ id: userId, ...rest });
     };
 
     const handlePlayerMoved = (data: {
