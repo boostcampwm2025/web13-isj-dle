@@ -17,7 +17,7 @@ WORKDIR /app/packages/shared
 RUN pnpm build
 
 WORKDIR /app/apps/client
-RUN echo "VITE_SERVER_URL=https://www.moyo.asia/" > .env
+RUN echo "VITE_SERVER_URL=https://www.moyo.asia" > .env
 RUN pnpm build
 
 FROM nginx:alpine

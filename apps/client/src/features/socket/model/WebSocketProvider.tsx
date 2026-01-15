@@ -4,6 +4,7 @@ import { Socket, io } from "socket.io-client";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useUserStore } from "@entities/user";
+import { SERVER_URL } from "@shared/config";
 import { type AvatarDirection, type AvatarState, type User, UserEventType } from "@shared/types";
 
 interface WebSocketProviderProps {
@@ -22,9 +23,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const updateUserPosition = useUserStore((s) => s.updateUserPosition);
 
   useEffect(() => {
-    const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
-
-    const socketInstance = io(serverUrl, {
+    const socketInstance = io(SERVER_URL, {
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 300,
