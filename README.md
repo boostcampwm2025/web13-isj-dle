@@ -66,4 +66,4 @@ pnpm dev:client
 pnpm dev:server
 ```
 
-### 배포된 사이트: http://175.45.193.193/
+### 배포된 사이트: https://www.moyo.asia
