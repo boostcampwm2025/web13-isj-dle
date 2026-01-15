@@ -1,9 +1,8 @@
-import { type Participant, RoomEvent } from "livekit-client";
+import { useChatMessage } from "../../model/use-chat-message";
+import { useChatTextarea } from "../../model/use-chat-textarea";
 import { Send } from "lucide-react";
 
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-
-import { type ChatEntryProps, type ReceivedChatMessage, useChat, useRoomContext } from "@livekit/components-react";
+import { type ChatEntryProps } from "@livekit/components-react";
 
 const ChatEntry = ({ entry, hideName, hideTimestamp }: ChatEntryProps) => {
   const time = new Date(entry.timestamp);
@@ -45,117 +44,8 @@ const ChatEntry = ({ entry, hideName, hideTimestamp }: ChatEntryProps) => {
 };
 
 const ChatSidebar = () => {
-  const ulRef = useRef<HTMLUListElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const { chatMessages, send, isSending } = useChat();
-  const [initialMessage, setInitialMessage] = useState<ReceivedChatMessage[]>([]);
-  const room = useRoomContext();
-  const [systemMessages, setSystemMessages] = useState<ReceivedChatMessage[]>([]);
-  const [chatMessagesCombined, setChatMessagesCombined] = useState<ReceivedChatMessage[]>([]);
-
-  const MAX_ROWS = 3;
-  const LINE_HEIGHT = 20;
-
-  useEffect(() => {
-    const init = () => {
-      const systemWelcome: ReceivedChatMessage = {
-        id: "system-welcome",
-        message: `환영합니다! 채팅에 참여해보세요.\n${room.name || "알 수 없는"} 방에 참가했습니다.`,
-        timestamp: Date.now(),
-        from: {
-          name: "System",
-          identity: "System",
-          isLocal: false,
-        } as Participant,
-      };
-
-      setInitialMessage([systemWelcome]);
-    };
-
-    init();
-  }, [room.name]);
-
-  useEffect(() => {
-    const onConnected = (p: Participant) => {
-      setSystemMessages((prev) => [
-        ...prev,
-        {
-          id: `system-join-${p.sid}`,
-          message: `${p.name ?? p.identity}가 방에 입장했습니다.`,
-          timestamp: Date.now(),
-          from: {
-            name: "System",
-            identity: "System",
-            isLocal: false,
-          } as Participant,
-        },
-      ]);
-    };
-    const onDisconnected = (p: Participant) => {
-      setSystemMessages((prev) => [
-        ...prev,
-        {
-          id: `system-leave-${p.sid}`,
-          message: `${p.name ?? p.identity}가 방을 나갔습니다.`,
-          timestamp: Date.now(),
-          from: {
-            name: "System",
-            identity: "System",
-            isLocal: false,
-          } as Participant,
-        },
-      ]);
-    };
-
-    room.on(RoomEvent.ParticipantConnected, onConnected);
-    room.on(RoomEvent.ParticipantDisconnected, onDisconnected);
-
-    return () => {
-      room.off(RoomEvent.ParticipantConnected, onConnected);
-      room.off(RoomEvent.ParticipantDisconnected, onDisconnected);
-    };
-  }, [room]);
-
-  useEffect(() => {
-    const updateCombinedMessages = () => {
-      setChatMessagesCombined(
-        [...initialMessage, ...chatMessages, ...systemMessages].sort((a, b) => a.timestamp - b.timestamp),
-      );
-    };
-    updateCombinedMessages();
-  }, [initialMessage, chatMessages, systemMessages]);
-
-  useEffect(() => {
-    ulRef.current?.scrollTo({ top: ulRef.current.scrollHeight });
-  }, [chatMessagesCombined]);
-
-  const sendMessage = async () => {
-    if (textareaRef.current && textareaRef.current.value.trim() !== "") {
-      await send(textareaRef.current.value);
-      textareaRef.current.value = "";
-      textareaRef.current.focus();
-    }
-  };
-
-  const handleKeyDown = async (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-    ev.stopPropagation();
-
-    if (ev.key === "Enter" && !ev.shiftKey) {
-      ev.preventDefault();
-      await sendMessage();
-    }
-  };
-
-  const handleInput = () => {
-    if (!textareaRef.current) return;
-
-    textareaRef.current.style.height = "auto";
-    const maxHeight = LINE_HEIGHT * MAX_ROWS;
-
-    textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`;
-    textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? "auto" : "hidden";
-  };
+  const { chatMessagesCombined, isSending, send, ulRef } = useChatMessage();
+  const { textareaRef, handleKeyDown, handleInput, sendMessage } = useChatTextarea(send);
 
   return (
     <div className="grid h-full w-full items-end">
