@@ -17,7 +17,7 @@ WORKDIR /app/packages/shared
 RUN pnpm build
 
 WORKDIR /app/apps/client
-RUN echo "VITE_SERVER_URL=http://175.45.193.193/" > .env
+RUN echo "VITE_SERVER_URL=https://www.moyo.asia/" > .env
 RUN pnpm build
 
 FROM nginx:alpine
@@ -27,5 +27,6 @@ COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+EXPOSE 443
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -8,10 +8,12 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { NoticeEventType, UserEventType } from "@shared/types";
+import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
+import type { RoomJoinPayload } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
+import { BoundaryService } from "../boundary/boundary.service";
 import { UserManager } from "../user/user-manager.service";
 
 @WebSocketGateway({
@@ -27,6 +29,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   constructor(
     private readonly userManager: UserManager,
     private readonly noticeService: NoticeService,
+    private readonly boundaryService: BoundaryService,
   ) {}
 
   afterInit() {
@@ -34,11 +37,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log(`📡 CORS origins: ${process.env.CLIENT_URL || "http://localhost:5173,http://localhost:3000"}`);
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     try {
-      this.logger.log(`✅ Client connected: ${client.id}`);
-      this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
-
       const user = this.userManager.createSession({
         id: client.id,
       });
@@ -49,10 +49,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
+      await client.join(user.avatar.currentRoomId);
       client.emit(UserEventType.USER_SYNC, { user, users: this.userManager.getAllSessions() });
       client.broadcast.emit(UserEventType.USER_JOIN, { user });
 
-      this.logger.log(`Game user created: ${user.nickname} (${user.avatar.assetKey})`);
+      this.logger.log(`✅ Client connected: ${client.id} ${user.nickname} (${user.avatar.assetKey})`);
     } catch (err) {
       this.logger.error(`Failed to handle connection: ${client.id}`, err instanceof Error ? err.stack : String(err));
       client.disconnect();
@@ -68,7 +69,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
 
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
-      this.logger.debug(`👥 Total clients: ${this.server.sockets.sockets.size}`);
     } catch (err) {
       this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
     }
@@ -83,12 +83,118 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     try {
       const notices = await this.noticeService.findByRoomId(payload.roomId);
-      this.logger.log(`${payload.roomId} notice count: ${notices.length}`);
       client.emit(NoticeEventType.NOTICE_SYNC, notices);
     } catch (error) {
       const trace = error instanceof Error ? error.stack : String(error);
       this.logger.error(`❗ Failed to sync notices for room ${payload.roomId} from client ${client.id}`, trace);
       client.emit("error", { message: "Failed to sync notices" });
+    }
+  }
+
+  @SubscribeMessage(RoomEventType.ROOM_JOIN)
+  async handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
+    if (!payload || !payload.roomId) {
+      this.logger.warn(`⚠️ ROOM_JOIN called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    try {
+      const user = this.userManager.getSession(client.id);
+      if (!user) {
+        this.logger.error(`❌ User session not found for client: ${client.id}`);
+        client.emit("error", { message: "User session not found" });
+        return;
+      }
+
+      const previousRoomId = user.avatar.currentRoomId;
+
+      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
+      if (!updated) {
+        this.logger.error(`❌ Failed to update room for user: ${client.id}`);
+        return;
+      }
+
+      this.userManager.updateSessionContactId(client.id, null);
+
+      if (previousRoomId === "lobby") {
+        const lobbyUsers = this.userManager.getRoomSessions("lobby");
+        const groups = this.boundaryService.findBoundaryGroups(lobbyUsers);
+        const contactIdUpdates = this.boundaryService.updateContactIds(lobbyUsers, groups);
+
+        for (const [userId, newContactId] of contactIdUpdates) {
+          this.userManager.updateSessionContactId(userId, newContactId);
+        }
+
+        if (contactIdUpdates.size > 0) {
+          const updates = Object.fromEntries(contactIdUpdates);
+          this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, updates);
+        }
+      }
+
+      await client.leave(previousRoomId);
+      await client.join(payload.roomId);
+
+      const updatedUser = this.userManager.getSession(client.id);
+
+      this.server.emit(RoomEventType.ROOM_JOINED, {
+        userId: client.id,
+        roomId: payload.roomId,
+      });
+
+      client.emit(UserEventType.USER_SYNC, {
+        user: updatedUser,
+        users: this.userManager.getAllSessions(),
+      });
+    } catch (error) {
+      const trace = error instanceof Error ? error.stack : String(error);
+      this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
+      client.emit("error", { message: "Failed to join room" });
+    }
+  }
+
+  @SubscribeMessage(UserEventType.USER_UPDATE)
+  handleUserUpdate(client: Socket, payload: { cameraOn?: boolean; micOn?: boolean }) {
+    const updated = this.userManager.updateSessionMedia(client.id, payload);
+    const user = this.userManager.getSession(client.id);
+
+    if (!updated || !user) {
+      this.logger.warn(`⚠️ USER_UPDATE: Session not found for client: ${client.id}`);
+      return;
+    }
+
+    this.server.emit(UserEventType.USER_UPDATE, { userId: client.id, ...payload });
+  }
+
+  @SubscribeMessage(UserEventType.PLAYER_MOVE)
+  handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
+    const updated = this.userManager.updateSessionPosition(client.id, payload);
+    const user = this.userManager.getSession(client.id);
+
+    if (!updated || !user) {
+      this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);
+      return;
+    }
+
+    const roomId = user.avatar.currentRoomId;
+
+    this.server.to(roomId).emit(UserEventType.PLAYER_MOVED, {
+      userId: client.id,
+      ...payload,
+    });
+
+    if (roomId === "lobby") {
+      const roomUsers = this.userManager.getRoomSessions(roomId);
+      const groups = this.boundaryService.findBoundaryGroups(roomUsers);
+      const contactIdUpdates = this.boundaryService.updateContactIds(roomUsers, groups);
+
+      for (const [userId, newContactId] of contactIdUpdates) {
+        this.userManager.updateSessionContactId(userId, newContactId);
+      }
+
+      if (contactIdUpdates.size > 0) {
+        const updates = Object.fromEntries(contactIdUpdates);
+        this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
+      }
     }
   }
 }

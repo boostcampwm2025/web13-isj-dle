@@ -1,18 +1,14 @@
-import { Sidebar } from "../widgets/sidebar";
 import Providers from "./providers";
 import "./styles/index.css";
 
-import PhaserLayout from "@src/shared/lib/phaser/ui/PhaserLayout";
+import { RoomPage } from "@pages/room";
 
-function App() {
+const App = () => {
   return (
     <Providers>
-      <PhaserLayout>
-        <Sidebar />
-        {/* UI 레이어 추가 (HUD, Menu 등) */}
-      </PhaserLayout>
+      <RoomPage />
     </Providers>
   );
-}
+};
 
 export default App;

@@ -1,13 +1,17 @@
 import { SIDEBAR_MAP } from "./sidebar.constants";
-import type { SidebarKey } from "./sidebar.types";
-import { useSidebar } from "./use-sidebar";
+import { useSidebarStore } from "./sidebar.store";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+
+import type { SidebarKey } from "@shared/config";
 
 const useSidebarState = () => {
-  const { sidebarKeys } = useSidebar();
-  const [currentKey, setCurrentKey] = useState<SidebarKey | null>(sidebarKeys[0] || null);
-  const [isOpen, setIsOpen] = useState(true);
+  const sidebarKeys = useSidebarStore((s) => s.sidebarKeys);
+  const isOpen = useSidebarStore((s) => s.isOpen);
+  const currentKey = useSidebarStore((s) => s.currentKey);
+  const setCurrentKey = useSidebarStore((s) => s.setCurrentKey);
+  const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
+  const openSidebarWithLastKey = useSidebarStore((s) => s.openSidebarWithLastKey);
 
   const validCurrentKey = useMemo(() => {
     if (currentKey && sidebarKeys.includes(currentKey)) {
@@ -16,11 +20,17 @@ const useSidebarState = () => {
     return sidebarKeys[0] || null;
   }, [currentKey, sidebarKeys]);
 
-  const handleTabClick = (key: SidebarKey) => setCurrentKey(key);
-  const toggleSidebar = () => setIsOpen((prev) => !prev);
+  const setIsOpen = useSidebarStore((s) => s.setIsOpen);
+
+  const handleTabClick = (key: SidebarKey) => {
+    setCurrentKey(key);
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+  };
   const currentPanel = validCurrentKey ? SIDEBAR_MAP[validCurrentKey] : null;
 
-  return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar };
+  return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar, openSidebarWithLastKey };
 };
 
 export default useSidebarState;
