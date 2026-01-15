@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
+import { COLLABORATION_SIDEBAR_KEYS } from "@features/collaboration-tool-sidebar";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
 import { useBottomNavStore } from "@widgets/bottom-nav";
 import { useSidebarStore } from "@widgets/sidebar";
-import { COLLABORATION_SIDEBAR_KEYS } from "@widgets/sidebar/model/collaboration-tool.constants";
 
 const COLLABORATION_ROOM_PREFIX = {
   SEMINAR: "seminar",

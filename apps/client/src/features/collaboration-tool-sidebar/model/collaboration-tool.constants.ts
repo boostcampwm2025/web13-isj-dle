@@ -1,4 +1,4 @@
-import type { SidebarKey } from "./sidebar.types";
+import type { SidebarKey } from "@shared/config";
 
 export const COLLABORATION_TOOL = {
   WHITEBOARD: "whiteboard",

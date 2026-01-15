@@ -1,5 +1,4 @@
-import { COLLABORATION_TOOL } from "../../model/collaboration-tool.constants";
-import CollaborationToolSidebar from "./CollaborationToolSidebar";
+import { COLLABORATION_TOOL, CollaborationToolSidebar } from "@features/collaboration-tool-sidebar";
 
 const WhiteboardSidebar = () => {
   return (

@@ -1,4 +1,4 @@
-import useNotice from "../../model/use-notice";
+import useNotice from "../model/use-notice";
 
 const NoticeSidebar = () => {
   const { notices } = useNotice();

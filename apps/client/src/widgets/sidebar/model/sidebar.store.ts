@@ -1,5 +1,6 @@
-import type { SidebarKey } from "./sidebar.types";
 import { create } from "zustand";
+
+import type { SidebarKey } from "@shared/config";
 
 interface SidebarState {
   sidebarKeys: SidebarKey[];

@@ -1,5 +1,5 @@
-import type { CollaborationToolType } from "../../model/collaboration-tool.constants";
-import { useCollaborationToolStore } from "../../model/collaboration-tool.store";
+import type { CollaborationToolType } from "../model/collaboration-tool.constants";
+import { useCollaborationToolStore } from "../model/collaboration-tool.store";
 
 type CollaborationToolSidebarProps = {
   toolType: NonNullable<CollaborationToolType>;

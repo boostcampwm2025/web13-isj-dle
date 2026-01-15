@@ -1,10 +1,11 @@
-import ChatSidebar from "../ui/panels/ChatSidebar";
-import CodeEditorSidebar from "../ui/panels/CodeEditorSidebar";
-import NoticeSidebar from "../ui/panels/NoticeSidebar";
-import UserListSidebar from "../ui/panels/UserListSidebar";
-import WhiteboardSidebar from "../ui/panels/WhiteboardSidebar";
-import type { SidebarItem, SidebarKey } from "./sidebar.types";
 import { Code, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+
+import { ChatSidebar } from "@features/chat-sidebar";
+import { CodeEditorSidebar } from "@features/code-editor-sidebar";
+import { NoticeSidebar } from "@features/notice-sidebar";
+import { UserListSidebar } from "@features/user-list-sidebar";
+import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
+import type { SidebarItem, SidebarKey } from "@shared/config";
 
 export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
   users: {
