@@ -2,9 +2,8 @@ import ParticipantTile from "./ParticipantTile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useParticipants } from "@livekit/components-react";
+import { ICON_SIZE } from "@shared/config";
 import { useResponsiveVisibility, useScrollableContainer } from "@shared/model";
-
-const ICON_SIZE = 20;
 
 const VideoThumbnailList = () => {
   const participants = useParticipants();

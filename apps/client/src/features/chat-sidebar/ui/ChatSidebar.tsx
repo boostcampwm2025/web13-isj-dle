@@ -3,6 +3,8 @@ import { useChatTextarea } from "../model/use-chat-textarea";
 import ChatEntry from "./ChatEntry";
 import { Send } from "lucide-react";
 
+const ICON_SIZE = 16;
+
 const ChatSidebar = () => {
   const { chatMessagesCombined, isSending, send, ulRef } = useChatMessage();
   const { textareaRef, handleKeyDown, handleInput, sendMessage } = useChatTextarea(send);
@@ -40,7 +42,7 @@ const ChatSidebar = () => {
           disabled={isSending}
           onClick={sendMessage}
         >
-          <Send size={16} />
+          <Send size={ICON_SIZE} />
         </button>
       </div>
     </div>
