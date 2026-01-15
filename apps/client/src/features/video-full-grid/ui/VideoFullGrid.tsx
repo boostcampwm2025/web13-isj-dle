@@ -1,8 +1,7 @@
+import { usePinScreenShare } from "../model/use-pin-screen-share";
 import { isEqualTrackRef } from "../model/utils";
 import ControlBar from "./ControlBar";
 import { RoomEvent, Track } from "livekit-client";
-
-import { useEffect, useRef } from "react";
 
 import {
   CarouselLayout,
@@ -13,7 +12,6 @@ import {
   LayoutContextProvider,
   ParticipantTile,
   RoomAudioRenderer,
-  type TrackReferenceOrPlaceholder,
   isTrackReference,
   useCreateLayoutContext,
   usePinnedTracks,
@@ -29,7 +27,6 @@ interface VideoFullGridProps {
 
 const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
   useBindLocalParticipant();
-  const lastAutoFocusedScreenShareTrack = useRef<TrackReferenceOrPlaceholder | null>(null);
 
   const tracks = useTracks(
     [
@@ -48,31 +45,12 @@ const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
   const focusTrack = usePinnedTracks(layoutContext)?.[0];
   const carouselTracks = tracks.filter((track) => !isEqualTrackRef(track, focusTrack));
 
-  useEffect(() => {
-    if (
-      screenShareTracks.some((track) => track.publication.isSubscribed) &&
-      lastAutoFocusedScreenShareTrack.current === null
-    ) {
-      layoutContext.pin.dispatch?.({ msg: "set_pin", trackReference: screenShareTracks[0] });
-      lastAutoFocusedScreenShareTrack.current = screenShareTracks[0];
-    } else if (
-      lastAutoFocusedScreenShareTrack.current &&
-      !screenShareTracks.some(
-        (track) => track.publication.trackSid === lastAutoFocusedScreenShareTrack.current?.publication?.trackSid,
-      )
-    ) {
-      layoutContext.pin.dispatch?.({ msg: "clear_pin" });
-      lastAutoFocusedScreenShareTrack.current = null;
-    }
-    if (focusTrack && !isTrackReference(focusTrack)) {
-      const updatedFocusTrack = tracks.find(
-        (tr) => tr.participant.identity === focusTrack.participant.identity && tr.source === focusTrack.source,
-      );
-      if (updatedFocusTrack !== focusTrack && isTrackReference(updatedFocusTrack)) {
-        layoutContext.pin.dispatch?.({ msg: "set_pin", trackReference: updatedFocusTrack });
-      }
-    }
-  }, [focusTrack, focusTrack?.publication?.trackSid, layoutContext.pin, screenShareTracks, tracks]);
+  usePinScreenShare({
+    tracks,
+    layoutContext,
+    screenShareTracks,
+    focusTrack,
+  });
 
   return (
     <div

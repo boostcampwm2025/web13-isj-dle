@@ -1,17 +1,15 @@
 import { useControlBarState } from "../model/use-control-bar-state";
 import { useMediaQuery } from "../model/use-media-query";
+import { useSyncMediaToggle } from "../model/use-sync-media-toggle";
 import { useVisibleControls } from "../model/use-visible-controls";
 import { supportsScreenSharing } from "../model/utils";
 import { Track } from "livekit-client";
 import { Minimize } from "lucide-react";
 
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
-import { useUserStore } from "@entities/user";
-import { MediaDeviceMenu, StartMediaButton, TrackToggle, usePersistentUserChoices } from "@livekit/components-react";
+import { MediaDeviceMenu, StartMediaButton, TrackToggle } from "@livekit/components-react";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
-import { useWebSocket } from "@shared/lib/websocket";
-import { UserEventType } from "@shared/types";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";
@@ -20,43 +18,16 @@ interface ControlBarProps {
 
 const ControlBar = ({ variation, setMode }: ControlBarProps) => {
   const { onScreenShareChange, isScreenShareEnabled } = useControlBarState();
+  const { microphoneOnChange, cameraOnChange, saveAudioInputDeviceId, saveVideoInputDeviceId } = useSyncMediaToggle();
+  const browserSupportsScreenSharing = supportsScreenSharing();
   const visibleControls = useVisibleControls();
   const isTooLittleSpace = useMediaQuery(`(max-width: 760px)`);
-  const { socket } = useWebSocket();
-  const user = useUserStore((state) => state.user);
-  const updateUser = useUserStore((state) => state.updateUser);
 
   const defaultVariation = isTooLittleSpace ? "minimal" : "verbose";
   variation ??= defaultVariation;
 
   const showIcon = useMemo(() => variation === "minimal" || variation === "verbose", [variation]);
   const showText = useMemo(() => variation === "textOnly" || variation === "verbose", [variation]);
-
-  const browserSupportsScreenSharing = supportsScreenSharing();
-
-  const { saveAudioInputEnabled, saveVideoInputEnabled, saveAudioInputDeviceId, saveVideoInputDeviceId } =
-    usePersistentUserChoices({ preventSave: false });
-
-  const handleMediaToggle = useCallback(
-    (type: "mic" | "camera") => (enabled: boolean, isUserInitiated: boolean) => {
-      if (isUserInitiated) {
-        if (type === "mic") {
-          saveAudioInputEnabled(enabled);
-        } else {
-          saveVideoInputEnabled(enabled);
-        }
-        const updatePayload = type === "mic" ? { micOn: enabled } : { cameraOn: enabled };
-        if (user) {
-          updateUser({ id: user.id, ...updatePayload });
-        }
-        socket?.emit(UserEventType.USER_UPDATE, updatePayload);
-      }
-    },
-    [saveAudioInputEnabled, saveVideoInputEnabled, socket, user, updateUser],
-  );
-
-  const microphoneOnChange = useMemo(() => handleMediaToggle("mic"), [handleMediaToggle]);
-  const cameraOnChange = useMemo(() => handleMediaToggle("camera"), [handleMediaToggle]);
 
   return (
     <div className="lk-control-bar">
