@@ -8,10 +8,10 @@ export interface GameRegistryFunctions {
   [GAME_REGISTRY_KEYS.JOIN_ROOM]: (roomId: string) => void;
 }
 
-export function getRegistryFunction<K extends keyof typeof GAME_REGISTRY_KEYS>(
+export const getRegistryFunction = <K extends keyof typeof GAME_REGISTRY_KEYS>(
   game: Phaser.Game,
   key: K,
-): GameRegistryFunctions[(typeof GAME_REGISTRY_KEYS)[K]] | null {
+): GameRegistryFunctions[(typeof GAME_REGISTRY_KEYS)[K]] | null => {
   const registryKey = GAME_REGISTRY_KEYS[key];
   const fn = game.registry.get(registryKey);
 
@@ -20,13 +20,13 @@ export function getRegistryFunction<K extends keyof typeof GAME_REGISTRY_KEYS>(
   }
 
   return null;
-}
+};
 
-export function setRegistryFunction<K extends keyof typeof GAME_REGISTRY_KEYS>(
+export const setRegistryFunction = <K extends keyof typeof GAME_REGISTRY_KEYS>(
   game: Phaser.Game,
   key: K,
   fn: GameRegistryFunctions[(typeof GAME_REGISTRY_KEYS)[K]],
-): void {
+): void => {
   const registryKey = GAME_REGISTRY_KEYS[key];
   game.registry.set(registryKey, fn);
-}
+};

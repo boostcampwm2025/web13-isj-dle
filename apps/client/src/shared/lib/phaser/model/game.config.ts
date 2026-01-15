@@ -1,7 +1,7 @@
 import { GameScene } from "./game.scene";
 import Phaser from "phaser";
 
-export function getGameConfig(containerRef: HTMLElement): Phaser.Types.Core.GameConfig {
+export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.GameConfig => {
   return {
     type: Phaser.AUTO,
     parent: containerRef,
@@ -27,4 +27,4 @@ export function getGameConfig(containerRef: HTMLElement): Phaser.Types.Core.Game
       },
     },
   };
-}
+};

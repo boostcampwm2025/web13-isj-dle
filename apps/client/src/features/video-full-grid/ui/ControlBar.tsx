@@ -18,7 +18,7 @@ interface ControlBarProps {
   setMode: (mode: VideoConferenceMode | null) => void;
 }
 
-export function ControlBar({ variation, setMode }: ControlBarProps) {
+const ControlBar = ({ variation, setMode }: ControlBarProps) => {
   const { onScreenShareChange, isScreenShareEnabled } = useControlBarState();
   const visibleControls = useVisibleControls();
   const isTooLittleSpace = useMediaQuery(`(max-width: 760px)`);
@@ -107,4 +107,6 @@ export function ControlBar({ variation, setMode }: ControlBarProps) {
       <StartMediaButton />
     </div>
   );
-}
+};
+
+export default ControlBar;

@@ -13,7 +13,7 @@ interface UseLivekitState {
   isOpen: boolean;
 }
 
-export function useLivekit(): UseLivekitState {
+export const useLivekit = (): UseLivekitState => {
   const user = useUserStore((state) => state.user);
   const users = useUserStore((state) => state.users);
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
@@ -84,7 +84,7 @@ export function useLivekit(): UseLivekitState {
   }, [config, livekitState.isOpen]);
 
   return livekitState;
-}
+};
 
 export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
   return roomId === "lobby" && contactId ? contactId : roomId;

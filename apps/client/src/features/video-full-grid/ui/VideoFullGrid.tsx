@@ -1,5 +1,5 @@
 import { isEqualTrackRef } from "../model/utils";
-import { ControlBar } from "./ControlBar";
+import ControlBar from "./ControlBar";
 import { RoomEvent, Track } from "livekit-client";
 
 import { useEffect, useRef } from "react";

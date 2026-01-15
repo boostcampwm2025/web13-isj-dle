@@ -8,9 +8,9 @@ export type TrackReferencePlaceholder = {
   source: Track.Source;
 };
 
-export function isTrackReferencePlaceholder(
+export const isTrackReferencePlaceholder = (
   trackReference?: TrackReferenceOrPlaceholder,
-): trackReference is TrackReferencePlaceholder {
+): trackReference is TrackReferencePlaceholder => {
   if (!trackReference) {
     return false;
   }
@@ -19,9 +19,9 @@ export function isTrackReferencePlaceholder(
     Object.prototype.hasOwnProperty.call(trackReference, "source") &&
     typeof trackReference.publication === "undefined"
   );
-}
+};
 
-export function getTrackReferenceId(trackReference: TrackReferenceOrPlaceholder | number) {
+export const getTrackReferenceId = (trackReference: TrackReferenceOrPlaceholder | number) => {
   if (typeof trackReference === "string" || typeof trackReference === "number") {
     return `${trackReference}`;
   } else if (isTrackReferencePlaceholder(trackReference)) {
@@ -31,9 +31,9 @@ export function getTrackReferenceId(trackReference: TrackReferenceOrPlaceholder 
   } else {
     throw new Error(`Can't generate a id for the given track reference: ${trackReference}`);
   }
-}
+};
 
-export function isEqualTrackRef(a?: TrackReferenceOrPlaceholder, b?: TrackReferenceOrPlaceholder): boolean {
+export const isEqualTrackRef = (a?: TrackReferenceOrPlaceholder, b?: TrackReferenceOrPlaceholder): boolean => {
   if (a === undefined || b === undefined) {
     return false;
   }
@@ -42,11 +42,11 @@ export function isEqualTrackRef(a?: TrackReferenceOrPlaceholder, b?: TrackRefere
   } else {
     return getTrackReferenceId(a) === getTrackReferenceId(b);
   }
-}
+};
 
-export function supportsScreenSharing(): boolean {
+export const supportsScreenSharing = (): boolean => {
   return typeof navigator !== "undefined" && navigator.mediaDevices && !!navigator.mediaDevices.getDisplayMedia;
-}
+};
 
 export const trackSourceToProtocol = (source: Track.Source) => {
   // NOTE: this mapping avoids importing the protocol package as that leads to a significant bundle size increase

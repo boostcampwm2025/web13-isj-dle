@@ -4,7 +4,7 @@ import "./styles/index.css";
 import { PhaserLayout } from "@shared/lib/phaser";
 import { VideoConference } from "@widgets/video-conference";
 
-function App() {
+const App = () => {
   return (
     <Providers>
       <PhaserLayout>
@@ -13,6 +13,6 @@ function App() {
       </PhaserLayout>
     </Providers>
   );
-}
+};
 
 export default App;

@@ -3,7 +3,7 @@ import { NestFactory } from "@nestjs/core";
 
 import { AppModule } from "./app.module";
 
-async function bootstrap() {
+const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix("api");
@@ -22,7 +22,7 @@ async function bootstrap() {
   });
 
   await app.listen(process.env.PORT ?? 3000);
-}
+};
 
 bootstrap().catch((err) => {
   console.log(err);
