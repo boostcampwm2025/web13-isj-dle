@@ -23,7 +23,7 @@ export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.Game
       default: "arcade",
       arcade: {
         gravity: { x: 0, y: 0 },
-        debug: true,
+        debug: false,
       },
     },
   };
