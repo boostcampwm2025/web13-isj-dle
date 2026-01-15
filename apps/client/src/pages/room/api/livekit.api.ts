@@ -1,12 +1,11 @@
+import { SERVER_URL } from "@shared/config";
 import type { LivekitRoomConfig, LivekitTokenResponse } from "@shared/types";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export const requestLivekitToken = async (
   config: LivekitRoomConfig,
   signal?: AbortSignal,
 ): Promise<LivekitTokenResponse> => {
-  const res = await fetch(`${API_URL}/livekit/token`, {
+  const res = await fetch(`${SERVER_URL}/api/livekit/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(config),
