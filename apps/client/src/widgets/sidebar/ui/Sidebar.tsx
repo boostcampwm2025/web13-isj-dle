@@ -53,7 +53,10 @@ const Sidebar = () => {
 
         <div className="scrollbar-hide flex flex-col gap-4 overflow-y-auto">
           {sidebarKeys.map((key) => {
-            const { Icon } = SIDEBAR_MAP[key];
+            const sidebarItem = SIDEBAR_MAP[key];
+            if (!sidebarItem) return null;
+
+            const IconComponent = sidebarItem.Icon;
             return (
               <button
                 key={key}
@@ -62,7 +65,7 @@ const Sidebar = () => {
                 }`}
                 onClick={() => handleTabClick(key)}
               >
-                <Icon className="h-6 w-6" />
+                <IconComponent className="h-6 w-6" size={20} />
               </button>
             );
           })}

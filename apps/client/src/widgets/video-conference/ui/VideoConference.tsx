@@ -8,8 +8,7 @@ import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { BottomNav } from "@widgets/bottom-nav";
-import { Sidebar } from "@widgets/sidebar";
-import { useSidebarStore } from "@widgets/sidebar";
+import { Sidebar, useSidebarStore } from "@widgets/sidebar";
 
 const VideoConference = () => {
   const { getHookByKey } = useAction();
