@@ -10,6 +10,7 @@ const useSidebarState = () => {
   const currentKey = useSidebarStore((s) => s.currentKey);
   const setCurrentKey = useSidebarStore((s) => s.setCurrentKey);
   const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
+  const openSidebarWithLastKey = useSidebarStore((s) => s.openSidebarWithLastKey);
 
   const validCurrentKey = useMemo(() => {
     if (currentKey && sidebarKeys.includes(currentKey)) {
@@ -18,10 +19,17 @@ const useSidebarState = () => {
     return sidebarKeys[0] || null;
   }, [currentKey, sidebarKeys]);
 
-  const handleTabClick = (key: SidebarKey) => setCurrentKey(key);
+  const setIsOpen = useSidebarStore((s) => s.setIsOpen);
+
+  const handleTabClick = (key: SidebarKey) => {
+    setCurrentKey(key);
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+  };
   const currentPanel = validCurrentKey ? SIDEBAR_MAP[validCurrentKey] : null;
 
-  return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar };
+  return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar, openSidebarWithLastKey };
 };
 
 export default useSidebarState;
