@@ -18,6 +18,7 @@ export const useChatTextarea = (send: (message: string) => Promise<ReceivedChatM
 
   const handleKeyDown = async (ev: KeyboardEvent<HTMLTextAreaElement>) => {
     ev.stopPropagation();
+    if (ev.nativeEvent.isComposing) return;
 
     if (ev.key === "Enter" && !ev.shiftKey) {
       ev.preventDefault();
