@@ -1,6 +1,6 @@
 import { useControlBarState } from "../model/use-control-bar-state";
+import { useMediaQuery } from "../model/use-media-query";
 import { useVisibleControls } from "../model/use-visible-controls";
-import { useMediaQuery } from "../model/useMediaQuery";
 import { supportsScreenSharing } from "../model/utils";
 import { Track } from "livekit-client";
 import { Minimize } from "lucide-react";
