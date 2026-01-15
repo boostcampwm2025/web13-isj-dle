@@ -6,11 +6,25 @@ import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
 import { useBottomNavStore } from "@widgets/bottom-nav";
+import { useSidebarStore } from "@widgets/sidebar";
+import { COLLABORATION_SIDEBAR_KEYS } from "@widgets/sidebar/model/collaboration-tool.constants";
+
+const COLLABORATION_ROOM_PREFIX = {
+  SEMINAR: "seminar",
+  MEETING: "meeting",
+} as const;
+
+const isCollaborationRoomType = (roomId: string | null): boolean => {
+  if (!roomId) return false;
+  return roomId.startsWith(COLLABORATION_ROOM_PREFIX.SEMINAR) || roomId.startsWith(COLLABORATION_ROOM_PREFIX.MEETING);
+};
 
 export const useVideoConference = () => {
   const { getHookByKey } = useAction();
-  const addKey = useBottomNavStore((state) => state.addKey);
-  const removeKey = useBottomNavStore((state) => state.removeKey);
+  const addBottomNavKey = useBottomNavStore((state) => state.addKey);
+  const removeBottomNavKey = useBottomNavStore((state) => state.removeKey);
+  const addSidebarKey = useSidebarStore((state) => state.addKey);
+  const removeSidebarKey = useSidebarStore((state) => state.removeKey);
   const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
 
@@ -28,13 +42,27 @@ export const useVideoConference = () => {
     const actionKey: ActionKey = "view_mode";
     const viewModeHook = getHookByKey(actionKey);
     if (mode === VIDEO_CONFERENCE_MODE.THUMBNAIL) {
-      addKey(actionKey);
+      addBottomNavKey(actionKey);
       viewModeHook.setTrigger?.(() => setMode(VIDEO_CONFERENCE_MODE.FULL_GRID));
     } else {
-      removeKey(actionKey);
+      removeBottomNavKey(actionKey);
       viewModeHook.setTrigger?.(null);
     }
-  }, [addKey, getHookByKey, mode, removeKey]);
+  }, [addBottomNavKey, getHookByKey, mode, removeBottomNavKey]);
+
+  useEffect(() => {
+    const isCollaborationRoom = isCollaborationRoomType(roomId);
+
+    if (mode !== null && isCollaborationRoom) {
+      COLLABORATION_SIDEBAR_KEYS.forEach((key) => addSidebarKey(key));
+    } else {
+      COLLABORATION_SIDEBAR_KEYS.forEach((key) => removeSidebarKey(key));
+    }
+
+    return () => {
+      COLLABORATION_SIDEBAR_KEYS.forEach((key) => removeSidebarKey(key));
+    };
+  }, [mode, roomId, addSidebarKey, removeSidebarKey]);
 
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
