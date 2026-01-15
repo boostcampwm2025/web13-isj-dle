@@ -1,4 +1,4 @@
-import { type KeyboardEvent, useRef } from "react";
+import { type KeyboardEvent, useEffect, useRef } from "react";
 
 import type { ReceivedChatMessage } from "@livekit/components-react";
 
@@ -35,6 +35,22 @@ export const useChatTextarea = (send: (message: string) => Promise<ReceivedChatM
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`;
     textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? "auto" : "hidden";
   };
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.target === el) return;
+      el.blur();
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      el.blur();
+    };
+  }, []);
 
   return { textareaRef, handleKeyDown, handleInput, sendMessage };
 };
