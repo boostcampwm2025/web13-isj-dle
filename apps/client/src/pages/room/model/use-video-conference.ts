@@ -6,6 +6,7 @@ import { COLLABORATION_SIDEBAR_KEYS } from "@entities/collaboration-tool";
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { isMeetingRoomRange } from "@shared/config";
 import { useBottomNavStore } from "@widgets/bottom-nav";
 import { useSidebarStore } from "@widgets/sidebar";
 
@@ -71,7 +72,11 @@ export const useVideoConference = () => {
       const effectiveRoomId = getEffectiveRoomId(currentRoomId, contactId);
       setRoomId(effectiveRoomId);
 
-      if ((currentRoomId === "lobby" && !contactId) || currentRoomId === "desk zone") {
+      if (
+        (currentRoomId === "lobby" && !contactId) ||
+        currentRoomId === "desk zone" ||
+        isMeetingRoomRange(currentRoomId)
+      ) {
         setMode(null);
         removeSidebarKey("chat");
       } else {
