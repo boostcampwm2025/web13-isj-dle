@@ -5,7 +5,7 @@ import { Mic, MicOff } from "lucide-react";
 import { useState } from "react";
 
 import { useUserStore } from "@entities/user";
-import { useWebSocket } from "@shared/lib/websocket";
+import { useWebSocket } from "@features/socket";
 import { UserEventType } from "@shared/types";
 
 export const useMicAction: ActionHook = () => {

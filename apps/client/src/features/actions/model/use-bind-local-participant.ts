@@ -1,6 +1,7 @@
+import { useAction } from "./use-action";
+
 import { useEffect } from "react";
 
-import { useAction } from "@features/actions";
 import { useLocalParticipant } from "@livekit/components-react";
 
 export const useBindLocalParticipant = () => {

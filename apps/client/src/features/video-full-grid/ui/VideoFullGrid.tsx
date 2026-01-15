@@ -3,6 +3,7 @@ import { isEqualTrackRef } from "../model/utils";
 import ControlBar from "./ControlBar";
 import { RoomEvent, Track } from "livekit-client";
 
+import { useBindLocalParticipant } from "@features/actions";
 import {
   CarouselLayout,
   ConnectionStateToast,
@@ -18,7 +19,6 @@ import {
   useTracks,
 } from "@livekit/components-react";
 import { SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH, type VideoConferenceMode } from "@shared/config";
-import { useBindLocalParticipant } from "@shared/model";
 
 interface VideoFullGridProps {
   setMode: (mode: VideoConferenceMode | null) => void;
@@ -27,7 +27,6 @@ interface VideoFullGridProps {
 
 const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
   useBindLocalParticipant();
-
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },

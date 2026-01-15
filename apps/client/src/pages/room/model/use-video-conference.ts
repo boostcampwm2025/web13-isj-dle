@@ -2,9 +2,9 @@ import { getEffectiveRoomId } from "./use-livekit";
 
 import { useEffect, useState } from "react";
 
+import { COLLABORATION_SIDEBAR_KEYS } from "@entities/collaboration-tool";
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
-import { COLLABORATION_SIDEBAR_KEYS } from "@features/collaboration-tool-sidebar";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
 import { useBottomNavStore } from "@widgets/bottom-nav";
 import { useSidebarStore } from "@widgets/sidebar";

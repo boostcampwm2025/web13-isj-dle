@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useUserStore } from "@entities/user";
-import { useWebSocket } from "@shared/lib/websocket";
+import { useWebSocket } from "@features/socket";
 import { type Notice, NoticeEventType } from "@shared/types";
 
 const useNotice = () => {

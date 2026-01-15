@@ -1,6 +1,6 @@
 import { ActionProvider } from "@features/actions";
-import { PhaserProvider } from "@shared/lib/phaser";
-import { WebSocketProvider } from "@shared/lib/websocket";
+import { PhaserProvider } from "@features/game";
+import { WebSocketProvider } from "@features/socket";
 
 interface ProviderProps {
   children?: React.ReactNode;

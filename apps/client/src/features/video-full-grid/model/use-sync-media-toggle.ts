@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 
 import { useUserStore } from "@entities/user";
+import { useWebSocket } from "@features/socket";
 import { usePersistentUserChoices } from "@livekit/components-react";
-import { useWebSocket } from "@shared/lib/websocket";
 import { UserEventType } from "@shared/types";
 
 export const useSyncMediaToggle = () => {

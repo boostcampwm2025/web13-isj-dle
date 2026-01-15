@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 
 import { useUserStore } from "@entities/user";
-import { useWebSocket } from "@shared/lib/websocket";
+import { useWebSocket } from "@features/socket";
 import { RoomEventType, type RoomJoinedPayload } from "@shared/types";
 
 export const useRoom = () => {

@@ -2,7 +2,7 @@ import { Users } from "lucide-react";
 
 import { useUserStore } from "@entities/user";
 import { useGroupedUsers } from "@entities/user";
-import { useInviteLink } from "@features/invite";
+import { useInviteLink } from "@shared/lib/invite";
 import { UserGroup } from "@shared/ui";
 
 const UserListSidebar = () => {

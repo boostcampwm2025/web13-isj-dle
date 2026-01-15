@@ -1,5 +1,5 @@
-import { COLLABORATION_TOOL } from "@features/collaboration-tool-sidebar";
-import { CollaborationToolSidebar } from "@features/collaboration-tool-sidebar";
+import { COLLABORATION_TOOL } from "@entities/collaboration-tool";
+import { CollaborationToolSidebar } from "@entities/collaboration-tool";
 
 const CodeEditorSidebar = () => {
   return (
