@@ -13,6 +13,7 @@ export enum UserEventType {
   USER_SYNC = "user:sync",
   USER_JOIN = "user:join",
   USER_LEFT = "user:left",
+  USER_UPDATE = "user:update",
   PLAYER_MOVE = "player:move",
   PLAYER_MOVED = "player:moved",
   BOUNDARY_UPDATE = "boundary:update",

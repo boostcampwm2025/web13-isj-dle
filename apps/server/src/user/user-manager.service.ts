@@ -98,7 +98,7 @@ export class UserManager {
     return true;
   }
 
-  updateSessionMedia(id: string, cameraOn: boolean, micOn: boolean): boolean {
+  updateSessionMedia(id: string, payload: { cameraOn?: boolean; micOn?: boolean }): boolean {
     const user = this.sessions.get(id);
 
     if (!user) {
@@ -106,9 +106,13 @@ export class UserManager {
       return false;
     }
 
-    user.cameraOn = cameraOn;
-    user.micOn = micOn;
-    this.logger.debug(`Media Updated: ${id} -> (camera: ${cameraOn}, mic: ${micOn})`);
+    if (payload.cameraOn !== undefined) {
+      user.cameraOn = payload.cameraOn;
+    }
+    if (payload.micOn !== undefined) {
+      user.micOn = payload.micOn;
+    }
+    this.logger.debug(`Media Updated: ${id} -> (camera: ${user.cameraOn}, mic: ${user.micOn})`);
 
     return true;
   }

@@ -5,6 +5,7 @@ interface SidebarState {
   sidebarKeys: SidebarKey[];
   isOpen: boolean;
   currentKey: SidebarKey | null;
+  lastOpenedKey: SidebarKey;
 
   // Actions
   addKey: (key: SidebarKey) => void;
@@ -13,12 +14,14 @@ interface SidebarState {
   setIsOpen: (isOpen: boolean) => void;
   toggleSidebar: () => void;
   setCurrentKey: (key: SidebarKey | null) => void;
+  openSidebarWithLastKey: () => void;
 }
 
-export const useSidebarStore = create<SidebarState>((set) => ({
+export const useSidebarStore = create<SidebarState>((set, get) => ({
   sidebarKeys: ["users", "notices"],
   isOpen: true,
   currentKey: "users",
+  lastOpenedKey: "users",
 
   addKey: (key) =>
     set((state) => ({
@@ -32,6 +35,17 @@ export const useSidebarStore = create<SidebarState>((set) => ({
 
   setSidebarKeys: (keys) => set({ sidebarKeys: keys }),
   setIsOpen: (isOpen) => set({ isOpen }),
-  toggleSidebar: () => set((state) => ({ isOpen: !state.isOpen })),
-  setCurrentKey: (key) => set({ currentKey: key }),
+  toggleSidebar: () =>
+    set((state) => {
+      if (state.isOpen && state.currentKey) {
+        return { isOpen: false, lastOpenedKey: state.currentKey };
+      }
+      return { isOpen: true, currentKey: state.lastOpenedKey };
+    }),
+  setCurrentKey: (key) => set({ currentKey: key, lastOpenedKey: key ?? get().lastOpenedKey }),
+  openSidebarWithLastKey: () =>
+    set((state) => ({
+      isOpen: true,
+      currentKey: state.lastOpenedKey,
+    })),
 }));

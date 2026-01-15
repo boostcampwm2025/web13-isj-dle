@@ -73,13 +73,15 @@ export const useVideoConference = () => {
 
       if ((currentRoomId === "lobby" && !contactId) || currentRoomId === "desk zone") {
         setMode(null);
+        removeSidebarKey("chat");
       } else {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+        addSidebarKey("chat");
       }
     };
 
     updateMode();
-  }, [currentRoomId, userId, nickname, contactId]);
+  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey]);
 
   return {
     mode,
