@@ -5,12 +5,18 @@ import { useEffect, useState } from "react";
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
 import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { useSidebarStore } from "@src/widgets/sidebar";
 import { useBottomNavStore } from "@widgets/bottom-nav";
 
 export const useVideoConference = () => {
   const { getHookByKey } = useAction();
-  const addKey = useBottomNavStore((state) => state.addKey);
-  const removeKey = useBottomNavStore((state) => state.removeKey);
+
+  const addBottomNavKey = useBottomNavStore((state) => state.addKey);
+  const removeBottomNavKey = useBottomNavStore((state) => state.removeKey);
+
+  const addSidebarKey = useSidebarStore((state) => state.addKey);
+  const removeSidebarKey = useSidebarStore((state) => state.removeKey);
+
   const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
 
@@ -28,13 +34,13 @@ export const useVideoConference = () => {
     const actionKey: ActionKey = "view_mode";
     const viewModeHook = getHookByKey(actionKey);
     if (mode === VIDEO_CONFERENCE_MODE.THUMBNAIL) {
-      addKey(actionKey);
+      addBottomNavKey(actionKey);
       viewModeHook.setTrigger?.(() => setMode(VIDEO_CONFERENCE_MODE.FULL_GRID));
     } else {
-      removeKey(actionKey);
+      removeBottomNavKey(actionKey);
       viewModeHook.setTrigger?.(null);
     }
-  }, [addKey, getHookByKey, mode, removeKey]);
+  }, [addBottomNavKey, getHookByKey, mode, removeBottomNavKey]);
 
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
@@ -45,13 +51,15 @@ export const useVideoConference = () => {
 
       if ((currentRoomId === "lobby" && !contactId) || currentRoomId === "desk zone") {
         setMode(null);
+        removeSidebarKey("chat");
       } else {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+        addSidebarKey("chat");
       }
     };
 
     updateMode();
-  }, [currentRoomId, userId, nickname, contactId]);
+  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey]);
 
   return {
     mode,
