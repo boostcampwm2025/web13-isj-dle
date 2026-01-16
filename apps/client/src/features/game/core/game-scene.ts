@@ -145,8 +145,28 @@ export class GameScene extends Phaser.Scene {
 
     this.roomEntranceManager.checkRoomEntrance(this.avatar.sprite.x, this.avatar.sprite.y);
 
-    if (this.avatar.state === "sit" && !inputDirection) {
-      return;
+    if (this.avatar.state === "sit") {
+      const x = this.avatar.sprite.x;
+      const y = this.avatar.sprite.y;
+      const tileX = Math.floor(Math.round(x) / TILE_SIZE);
+      const tileY = Math.floor(Math.round(y) / TILE_SIZE);
+      const targetX = tileX * TILE_SIZE + TILE_SIZE / 2;
+      const targetY = tileY * TILE_SIZE + TILE_SIZE / 2;
+
+      const dx = Math.abs(x - targetX);
+      const dy = Math.abs(y - targetY);
+
+      if (dx > 0.5 || dy > 0.5) {
+        this.avatar.sprite.setPosition(
+          Phaser.Math.Linear(x, targetX, AVATAR_SNAP_SPEED),
+          Phaser.Math.Linear(y, targetY, AVATAR_SNAP_SPEED),
+        );
+        return;
+      } else if (dx > 0 || dy > 0) {
+        this.avatar.sprite.setPosition(targetX, targetY);
+      }
+
+      if (!inputDirection) return;
     }
 
     if (this.inputManager.isSitKeyPressed()) {
@@ -154,6 +174,7 @@ export class GameScene extends Phaser.Scene {
       if (seatDirection) {
         this.avatar.state = "sit";
         this.avatar.direction = seatDirection;
+        this.avatar.sprite.setVelocity(0, 0);
         this.animationManager.toSit(this.avatar.sprite, seatDirection);
         return;
       }
