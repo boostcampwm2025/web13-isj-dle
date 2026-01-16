@@ -1,5 +1,5 @@
+import type { GameScene } from "../core/game-scene";
 import { GAME_SCENE_KEY } from "./game.constants";
-import type { GameScene } from "./game.scene";
 import type { Socket } from "socket.io-client";
 
 import { useEffect } from "react";
