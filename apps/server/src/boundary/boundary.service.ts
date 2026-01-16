@@ -57,7 +57,6 @@ export class BoundaryService {
     const idleUsers = users.filter((u) => u.avatar.state === "idle");
     if (idleUsers.length === 0) return [];
 
-    const userMap = new Map(idleUsers.map((u) => [u.id, u]));
     const adjacency = this.buildAdjacencyList(idleUsers);
     const visited = new Set<string>();
     const groups: BoundaryGroup[] = [];
@@ -68,7 +67,6 @@ export class BoundaryService {
       const group: string[] = [];
       const queue: string[] = [user.id];
       let head = 0;
-      let existingContactId: string | null = null;
 
       while (head < queue.length) {
         const currentId = queue[head++];
@@ -77,49 +75,35 @@ export class BoundaryService {
         visited.add(currentId);
         group.push(currentId);
 
-        const currentUser = userMap.get(currentId);
-        if (currentUser?.contactId && !existingContactId) {
-          existingContactId = currentUser.contactId;
-        }
-
         const neighbors = adjacency.get(currentId);
         if (!neighbors) {
           throw new Error(`Adjacency list missing for userId: ${currentId}`);
         }
 
-        for (const neighborId of neighbors) {
-          if (!visited.has(neighborId)) {
-            queue.push(neighborId);
+        for (const neighbor of neighbors) {
+          if (!visited.has(neighbor)) {
+            queue.push(neighbor);
           }
         }
       }
 
-      if (group.length >= MINIMUM_NUMBER_OF_MEMBERS) {
-        const sortedIds = [...group].sort((a, b) => a.localeCompare(b));
-        const groupId = sortedIds.join("-");
+      if (group.length < MINIMUM_NUMBER_OF_MEMBERS) continue;
 
-        let contactId: string;
-        if (existingContactId) {
-          const usersWithSameContactId = idleUsers.filter((u) => u.contactId === existingContactId);
-          const allIncluded = usersWithSameContactId.every((u) => sortedIds.includes(u.id));
-          contactId = allIncluded ? existingContactId : this.generateContactId();
-        } else {
-          contactId = this.generateContactId();
-        }
+      const sortedIds: string[] = [...group].sort((a, b) => a.localeCompare(b));
+      const groupId = sortedIds.join("-");
 
-        groups.push({
-          groupId,
-          userIds: sortedIds,
-          contactId,
-        });
-      }
+      groups.push({
+        groupId,
+        userIds: sortedIds,
+        contactId: this.generateContactId(),
+      });
     }
 
     return groups;
   }
 
   findUserGroup(userId: string, groups: BoundaryGroup[]): BoundaryGroup | null {
-    return groups.find((group) => group.userIds.includes(userId)) || null;
+    return groups.find((group) => group.userIds.includes(userId)) ?? null;
   }
 
   updateContactIds(users: User[], groups: BoundaryGroup[]): Map<string, string | null> {
@@ -139,6 +123,6 @@ export class BoundaryService {
   }
 
   private generateContactId(): string {
-    return `contact-${Date.now()}-${Math.random().toString(36)}`;
+    return `contact-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 }

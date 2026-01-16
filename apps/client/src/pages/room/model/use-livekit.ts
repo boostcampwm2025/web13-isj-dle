@@ -36,7 +36,7 @@ export const useLivekit = (): UseLivekitState => {
     if (!roomId || !userId || !nickname) return;
 
     setConfig({
-      roomId: getEffectiveRoomId(roomId, contactId),
+      roomId,
       userId,
       nickname,
     });

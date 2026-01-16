@@ -1,5 +1,3 @@
-import { getEffectiveRoomId } from "./use-livekit";
-
 import { useEffect, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS } from "@entities/collaboration-tool";
@@ -69,8 +67,7 @@ export const useVideoConference = () => {
     if (!currentRoomId || !userId || !nickname) return;
 
     const updateMode = () => {
-      const effectiveRoomId = getEffectiveRoomId(currentRoomId, contactId);
-      setRoomId(effectiveRoomId);
+      setRoomId(currentRoomId);
 
       if (
         (currentRoomId === "lobby" && !contactId) ||

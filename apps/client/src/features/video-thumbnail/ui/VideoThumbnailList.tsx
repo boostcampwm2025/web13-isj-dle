@@ -1,20 +1,37 @@
 import ParticipantTile from "./ParticipantTile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { useUserStore } from "@entities/user";
 import { useParticipants } from "@livekit/components-react";
 import { ICON_SIZE } from "@shared/config";
 import { useResponsiveVisibility, useScrollableContainer } from "@shared/model";
 
 const VideoThumbnailList = () => {
   const participants = useParticipants();
+
+  const users = useUserStore((state) => state.users);
+  const user = useUserStore((state) => state.user);
+
+  const currentRoomId = user?.avatar.currentRoomId ?? null;
+  const currentContactId = user?.contactId ?? null;
+
+  const visibleParticipants = (() => {
+    if (currentRoomId === "lobby" && currentContactId) {
+      const visibleUserIds = new Set(users.filter((u) => u.contactId === currentContactId).map((u) => u.id));
+      return participants.filter((p) => visibleUserIds.has(p.identity));
+    }
+    return participants;
+  })();
+
   const { scrollContainerRef, canScrollLeft, canScrollRight, checkScrollability, scroll } = useScrollableContainer(
-    participants.length,
+    visibleParticipants.length,
   );
+
   const { getResponsiveClass, MAXIMUM_NUMBER_OF_VISUAL_MEMBERS } = useResponsiveVisibility();
 
-  if (participants.length === 0) return null;
+  if (visibleParticipants.length === 0) return null;
 
-  const isScrollable = participants.length > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
+  const isScrollable = visibleParticipants.length > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
 
   return (
     <div className="flex items-center gap-1">
@@ -27,18 +44,22 @@ const VideoThumbnailList = () => {
           <ChevronLeft size={ICON_SIZE} />
         </button>
       )}
+
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        className={`flex gap-2 rounded-lg bg-black/30 p-2 ${isScrollable ? "scrollbar-hide max-w-140 overflow-x-auto" : ""}`}
+        className={`flex gap-2 rounded-lg bg-black/30 p-2 ${
+          isScrollable ? "scrollbar-hide max-w-140 overflow-x-auto" : ""
+        }`}
         style={isScrollable ? { scrollbarWidth: "none", msOverflowStyle: "none" } : undefined}
       >
-        {participants.map((participant, index) => (
+        {visibleParticipants.map((participant, index) => (
           <div key={participant.sid} className={getResponsiveClass(index)}>
             <ParticipantTile participant={participant} />
           </div>
         ))}
       </div>
+
       {isScrollable && (
         <button
           onClick={() => scroll("right")}
