@@ -23,13 +23,11 @@ export const useRoom = () => {
   useEffect(() => {
     if (!socket) return;
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
-      const { roomId, userId } = payload;
+      const { userId, avatar } = payload;
 
       updateUser({
         id: userId,
-        avatar: {
-          currentRoomId: roomId,
-        },
+        avatar: avatar,
       });
     };
 

@@ -138,7 +138,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
         userId: client.id,
-        roomId: payload.roomId,
+        avatar: updatedUser!.avatar,
       });
 
       client.emit(UserEventType.USER_SYNC, {
