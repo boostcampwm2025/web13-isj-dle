@@ -1,27 +1,17 @@
 import ParticipantTile from "./ParticipantTile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { useUserStore } from "@entities/user";
 import { useParticipants } from "@livekit/components-react";
 import { ICON_SIZE } from "@shared/config";
-import { useResponsiveVisibility, useScrollableContainer } from "@shared/model";
+import { useResponsiveVisibility, useScrollableContainer, useVisibleUsers } from "@shared/model";
 
 const VideoThumbnailList = () => {
   const participants = useParticipants();
+  const visibleUserIds = useVisibleUsers();
 
-  const users = useUserStore((state) => state.users);
-  const user = useUserStore((state) => state.user);
-
-  const currentRoomId = user?.avatar.currentRoomId ?? null;
-  const currentContactId = user?.contactId ?? null;
-
-  const visibleParticipants = (() => {
-    if (currentRoomId === "lobby" && currentContactId) {
-      const visibleUserIds = new Set(users.filter((u) => u.contactId === currentContactId).map((u) => u.id));
-      return participants.filter((p) => visibleUserIds.has(p.identity));
-    }
-    return participants;
-  })();
+  const visibleParticipants = visibleUserIds
+    ? participants.filter((p) => visibleUserIds.has(p.identity))
+    : participants;
 
   const { scrollContainerRef, canScrollLeft, canScrollRight, checkScrollability, scroll } = useScrollableContainer(
     visibleParticipants.length,
