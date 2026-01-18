@@ -18,9 +18,34 @@ import { CollaborationModal } from "@shared/ui";
 
 const CodeEditorModal = () => {
   const activeTool = useCollaborationToolStore((state) => state.activeTool);
-  const closeTool = useCollaborationToolStore((state) => state.closeTool);
-
   const isOpen = activeTool === COLLABORATION_TOOL.CODE_EDITOR;
+
+  const { game } = usePhaserGame();
+
+  useEffect(() => {
+    if (!game) return;
+
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (!gameScene) return;
+
+    if (isOpen) {
+      gameScene.setInputEnabled(false);
+    }
+
+    return () => {
+      gameScene.setInputEnabled(true);
+    };
+  }, [game, isOpen]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  return <CodeEditorModalContent />;
+};
+
+const CodeEditorModalContent = () => {
+  const closeTool = useCollaborationToolStore((state) => state.closeTool);
 
   const [language, setLanguage] = useState<EditorLanguage>(DEFAULT_EDITOR_OPTIONS.language);
   const [theme, setTheme] = useState<EditorTheme>(DEFAULT_EDITOR_OPTIONS.theme);
@@ -37,26 +62,9 @@ const CodeEditorModal = () => {
   const user = useUserStore((state) => state.user);
   const roomId = user?.avatar.currentRoomId || "default";
 
-  const { game } = usePhaserGame();
-
   const { handleEditorDidMount, isConnected } = useCollaborativeEditor({
     roomName: roomId,
   });
-
-  useEffect(() => {
-    if (!game) return;
-
-    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-    if (!gameScene) return;
-
-    if (isOpen) {
-      gameScene.setInputEnabled(false);
-    }
-
-    return () => {
-      gameScene.setInputEnabled(true);
-    };
-  }, [game, isOpen]);
 
   const headerControls = (
     <div className="flex items-center gap-4">
@@ -111,7 +119,7 @@ const CodeEditorModal = () => {
   );
 
   return (
-    <CollaborationModal isOpen={isOpen} onClose={closeTool} title="코드 에디터" headerControls={headerControls}>
+    <CollaborationModal isOpen onClose={closeTool} title="코드 에디터" headerControls={headerControls}>
       <Editor
         height="100%"
         language={language}

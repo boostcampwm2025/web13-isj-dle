@@ -2,8 +2,16 @@ import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 
 import type { IncomingMessage } from "http";
 import type { Server } from "http";
+import * as decoding from "lib0/decoding";
+import * as encoding from "lib0/encoding";
 import { type WebSocket, WebSocketServer } from "ws";
+import * as awarenessProtocol from "y-protocols/awareness";
+import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
+
+const MESSAGE_SYNC = 0;
+const MESSAGE_AWARENESS = 1;
+const MESSAGE_QUERY_AWARENESS = 3;
 
 @Injectable()
 export class YjsService implements OnModuleDestroy {
@@ -15,9 +23,10 @@ export class YjsService implements OnModuleDestroy {
 
   private rooms: Map<string, Set<WebSocket>> = new Map();
 
+  private awarenessStates: Map<string, awarenessProtocol.Awareness> = new Map();
+
   constructor() {
     this.wss = new WebSocketServer({ noServer: true });
-    this.logger.log("📝 Yjs WebSocket Server initialized (noServer mode)");
   }
 
   attachToServer(server: Server): void {
@@ -43,16 +52,19 @@ export class YjsService implements OnModuleDestroy {
     this.addClientToRoom(roomName, ws);
 
     const doc = this.getOrCreateDoc(roomName);
+    const awareness = this.getOrCreateAwareness(roomName, doc);
 
     this.sendSyncStep1(ws, doc);
 
+    this.sendAwarenessState(ws, awareness);
+
     ws.on("message", (data: Buffer) => {
-      this.handleMessage(roomName, ws, doc, data);
+      this.handleMessage(roomName, ws, doc, awareness, data);
     });
 
     ws.on("close", () => {
       this.logger.log(`❌ Client disconnected from Yjs room: ${roomName}`);
-      this.removeClientFromRoom(roomName, ws);
+      this.removeClientFromRoom(roomName, ws, awareness);
     });
 
     ws.on("error", (error) => {
@@ -66,14 +78,34 @@ export class YjsService implements OnModuleDestroy {
     if (!doc) {
       doc = new Y.Doc();
       this.docs.set(roomName, doc);
-      this.logger.log(`📄 Created new Y.Doc for room: ${roomName}`);
-
       doc.on("update", (update: Uint8Array, origin: unknown) => {
         this.broadcastUpdate(roomName, update, origin as WebSocket | undefined);
       });
     }
 
     return doc;
+  }
+
+  private getOrCreateAwareness(roomName: string, doc: Y.Doc): awarenessProtocol.Awareness {
+    let awareness = this.awarenessStates.get(roomName);
+
+    if (!awareness) {
+      awareness = new awarenessProtocol.Awareness(doc);
+      this.awarenessStates.set(roomName, awareness);
+
+      awareness.on(
+        "update",
+        ({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }, origin: unknown) => {
+          const changedClients = [...added, ...updated, ...removed];
+          if (changedClients.length > 0) {
+            const encodedAwareness = awarenessProtocol.encodeAwarenessUpdate(awareness!, changedClients);
+            this.broadcastAwareness(roomName, encodedAwareness, origin as WebSocket | undefined);
+          }
+        },
+      );
+    }
+
+    return awareness;
   }
 
   private addClientToRoom(roomName: string, ws: WebSocket): void {
@@ -83,71 +115,99 @@ export class YjsService implements OnModuleDestroy {
     this.rooms.get(roomName)!.add(ws);
   }
 
-  private removeClientFromRoom(roomName: string, ws: WebSocket): void {
+  private removeClientFromRoom(roomName: string, ws: WebSocket, awareness: awarenessProtocol.Awareness): void {
     const room = this.rooms.get(roomName);
     if (room) {
       room.delete(ws);
 
       if (room.size === 0) {
         this.rooms.delete(roomName);
+
         const doc = this.docs.get(roomName);
         if (doc) {
           doc.destroy();
           this.docs.delete(roomName);
-          this.logger.log(`🗑️ Cleaned up Y.Doc for empty room: ${roomName}`);
         }
+
+        awareness.destroy();
+        this.awarenessStates.delete(roomName);
       }
     }
   }
 
-  private readonly MESSAGE_SYNC_STEP1 = 0;
-  private readonly MESSAGE_SYNC_STEP2 = 1;
-  private readonly MESSAGE_UPDATE = 2;
-  private readonly MESSAGE_AWARENESS = 3;
+  private handleMessage(
+    roomName: string,
+    ws: WebSocket,
+    doc: Y.Doc,
+    awareness: awarenessProtocol.Awareness,
+    data: Buffer,
+  ): void {
+    try {
+      const message = new Uint8Array(data);
+      const decoder = decoding.createDecoder(message);
+      const encoder = encoding.createEncoder();
+      const messageType = decoding.readVarUint(decoder);
 
-  private handleMessage(roomName: string, ws: WebSocket, doc: Y.Doc, data: Buffer): void {
-    const message = new Uint8Array(data);
+      switch (messageType) {
+        case MESSAGE_SYNC: {
+          encoding.writeVarUint(encoder, MESSAGE_SYNC);
+          syncProtocol.readSyncMessage(decoder, encoder, doc, ws);
 
-    if (message.length === 0) return;
+          if (encoding.length(encoder) > 1) {
+            ws.send(encoding.toUint8Array(encoder));
+          }
+          break;
+        }
 
-    const messageType = message[0];
-    const payload = message.slice(1);
+        case MESSAGE_AWARENESS: {
+          awarenessProtocol.applyAwarenessUpdate(awareness, decoding.readVarUint8Array(decoder), ws);
+          break;
+        }
 
-    switch (messageType) {
-      case this.MESSAGE_SYNC_STEP1:
-        this.handleSyncStep1(ws, doc, payload);
-        break;
+        case MESSAGE_QUERY_AWARENESS: {
+          const clients = Array.from(awareness.getStates().keys());
+          if (clients.length > 0) {
+            const awarenessEncoder = encoding.createEncoder();
+            encoding.writeVarUint(awarenessEncoder, MESSAGE_AWARENESS);
+            encoding.writeVarUint8Array(awarenessEncoder, awarenessProtocol.encodeAwarenessUpdate(awareness, clients));
+            ws.send(encoding.toUint8Array(awarenessEncoder));
+          }
+          break;
+        }
 
-      case this.MESSAGE_UPDATE:
-        Y.applyUpdate(doc, payload, ws);
-        break;
-
-      case this.MESSAGE_AWARENESS:
-        this.broadcastAwareness(roomName, message, ws);
-        break;
-
-      case this.MESSAGE_SYNC_STEP2:
-        this.logger.warn(`Received unexpected message of type SYNC_STEP_2 from a client in room ${roomName}`);
-        break;
+        default:
+          this.logger.warn(`Unknown message type: ${messageType}`);
+      }
+    } catch (error) {
+      this.logger.error(`Error handling message in room ${roomName}:`, error);
     }
   }
 
   private sendSyncStep1(ws: WebSocket, doc: Y.Doc): void {
-    const stateVector = Y.encodeStateVector(doc);
-    const message = new Uint8Array([this.MESSAGE_SYNC_STEP1, ...stateVector]);
-    ws.send(message);
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_SYNC);
+    syncProtocol.writeSyncStep1(encoder, doc);
+    ws.send(encoding.toUint8Array(encoder));
   }
-  private handleSyncStep1(ws: WebSocket, doc: Y.Doc, stateVector: Uint8Array): void {
-    const diff = Y.encodeStateAsUpdate(doc, stateVector);
-    const message = new Uint8Array([this.MESSAGE_SYNC_STEP2, ...diff]);
-    ws.send(message);
+
+  private sendAwarenessState(ws: WebSocket, awareness: awarenessProtocol.Awareness): void {
+    const clients = Array.from(awareness.getStates().keys());
+    if (clients.length > 0) {
+      const encoder = encoding.createEncoder();
+      encoding.writeVarUint(encoder, MESSAGE_AWARENESS);
+      encoding.writeVarUint8Array(encoder, awarenessProtocol.encodeAwarenessUpdate(awareness, clients));
+      ws.send(encoding.toUint8Array(encoder));
+    }
   }
 
   private broadcastUpdate(roomName: string, update: Uint8Array, origin?: WebSocket): void {
     const room = this.rooms.get(roomName);
     if (!room) return;
 
-    const message = new Uint8Array([this.MESSAGE_UPDATE, ...update]);
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_SYNC);
+    syncProtocol.writeUpdate(encoder, update);
+    const message = encoding.toUint8Array(encoder);
 
     room.forEach((client) => {
       if (client !== origin && client.readyState === 1) {
@@ -156,9 +216,14 @@ export class YjsService implements OnModuleDestroy {
     });
   }
 
-  private broadcastAwareness(roomName: string, message: Uint8Array, origin: WebSocket): void {
+  private broadcastAwareness(roomName: string, awarenessUpdate: Uint8Array, origin?: WebSocket): void {
     const room = this.rooms.get(roomName);
     if (!room) return;
+
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_AWARENESS);
+    encoding.writeVarUint8Array(encoder, awarenessUpdate);
+    const message = encoding.toUint8Array(encoder);
 
     room.forEach((client) => {
       if (client !== origin && client.readyState === 1) {
@@ -171,6 +236,8 @@ export class YjsService implements OnModuleDestroy {
     this.wss.close();
     this.docs.forEach((doc) => doc.destroy());
     this.docs.clear();
+    this.awarenessStates.forEach((awareness) => awareness.destroy());
+    this.awarenessStates.clear();
     this.rooms.clear();
     this.logger.log("🛑 Yjs WebSocket Server closed");
   }
