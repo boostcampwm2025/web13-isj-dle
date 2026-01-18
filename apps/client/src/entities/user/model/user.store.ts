@@ -11,6 +11,8 @@ interface UserState {
   user: User | null;
   users: User[];
 
+  setUser: (user: User | null) => void;
+  setUsers: (users: User[]) => void;
   setSyncUsers: (user: User, users: User[]) => void;
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
@@ -22,6 +24,8 @@ export const useUserStore = create<UserState>((set) => ({
   user: null,
   users: [],
 
+  setUser: (user) => set({ user }),
+  setUsers: (users) => set({ users }),
   setSyncUsers: (user, users) => set({ user, users }),
 
   addUser: (user) =>
