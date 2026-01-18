@@ -15,8 +15,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const setUser = useUserStore((s) => s.setUser);
-  const setUsers = useUserStore((s) => s.setUsers);
+  const setSyncUsers = useUserStore((s) => s.setSyncUsers);
   const addUser = useUserStore((s) => s.addUser);
   const removeUser = useUserStore((s) => s.removeUser);
   const updateUser = useUserStore((s) => s.updateUser);
@@ -68,8 +67,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleUserSync = (data: { user: User; users: User[] }) => {
-      setUser(data.user);
-      setUsers(data.users);
+      setSyncUsers(data.user, data.users);
     };
 
     const handleUserJoin = (data: { user: User }) => {
@@ -125,7 +123,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, [addUser, removeUser, setUser, setUsers, updateUser, updateUserPosition]);
+  }, [addUser, removeUser, setSyncUsers, updateUser, updateUserPosition]);
 
   return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
 };
