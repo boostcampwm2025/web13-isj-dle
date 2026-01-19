@@ -207,6 +207,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   loadAvatar(user: User): void {
+    if (this.avatar) return;
     const avatar = user.avatar;
     const spawn = getAvatarSpawnPoint(this.mapObj.map);
 

@@ -13,7 +13,8 @@ export const useAvatarRenderer = (game: Phaser.Game | null, users: User[], curre
     if (!currentUser) return [];
     const roomId = currentUser.avatar.currentRoomId;
     const myId = currentUser.id;
-    return users.filter((u) => u.id !== myId && u.avatar.currentRoomId === roomId);
+    const myNickname = currentUser.nickname;
+    return users.filter((u) => u.id !== myId && u.nickname !== myNickname && u.avatar.currentRoomId === roomId);
   }, [users, currentUser]);
 
   const sameRoomSig = useMemo(() => {
