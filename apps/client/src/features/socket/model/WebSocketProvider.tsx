@@ -117,8 +117,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleMuteAllExecuted = (data: { hostId: string }) => {
-      // TODO: 다음 이슈에서 상세 기능 구현 예정
-      console.log(data);
+      const currentUser = useUserStore.getState().user;
+      if (currentUser && data.hostId !== currentUser.id) {
+        updateUser({ id: currentUser.id, micOn: false });
+      }
     };
 
     socketInstance.on("connect", handleConnect);
