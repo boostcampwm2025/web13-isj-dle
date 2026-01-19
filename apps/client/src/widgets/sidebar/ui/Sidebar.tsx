@@ -4,8 +4,10 @@ import { PanelLeft, PanelLeftClose } from "lucide-react";
 
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
+import { useBindChat } from "@src/entities/chat";
 
 const Sidebar = () => {
+  useBindChat();
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
 
   return (
