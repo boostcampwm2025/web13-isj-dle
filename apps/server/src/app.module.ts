@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
 import { GameModule } from "./game/game.module";
 import { LivekitModule } from "./livekit/livekit.module";
+import { TldrawModule } from "./tldraw/tldraw.module";
 import { UserModule } from "./user/user.module";
 import { YjsModule } from "./yjs/yjs.module";
 
@@ -32,6 +33,7 @@ import { YjsModule } from "./yjs/yjs.module";
     UserModule,
     LivekitModule,
     YjsModule,
+    TldrawModule,
   ],
   controllers: [AppController],
 })
