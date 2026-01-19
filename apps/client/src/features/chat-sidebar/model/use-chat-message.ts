@@ -15,7 +15,9 @@ export const useChatMessage = () => {
   }, [systemMessages, chatMessages]);
 
   useEffect(() => {
-    ulRef.current?.scrollTo({ top: ulRef.current.scrollHeight });
+    if (ulRef.current && ulRef.current.scrollHeight - ulRef.current.scrollTop - ulRef.current.clientHeight < 100) {
+      ulRef.current.scrollTo({ top: ulRef.current.scrollHeight });
+    }
   }, [messages]);
 
   return { messages, isSending, send, ulRef };
