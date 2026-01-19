@@ -238,8 +238,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       return;
     }
 
-    const roomUsers = this.userManager.getRoomSessions(payload.roomId);
-    for (const user of roomUsers) {
+    const targetUsers = this.userManager.getRoomSessions(payload.roomId).filter((user) => user.id !== client.id);
+    for (const user of targetUsers) {
       if (user.id !== client.id) {
         this.userManager.updateSessionMedia(user.id, { micOn: false });
       }
@@ -249,7 +249,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       hostId: client.id,
     });
 
-    for (const user of roomUsers) {
+    for (const user of targetUsers) {
       if (user.id !== client.id) {
         this.server.emit(UserEventType.USER_UPDATE, {
           userId: user.id,
