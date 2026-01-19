@@ -58,7 +58,7 @@ export class RoomEntranceManager {
     if (targetRoomId !== this.currentRoomId) {
       this.currentRoomId = targetRoomId;
 
-      const joinRoom = getRegistryFunction(this.scene.game, "JOIN_ROOM");
+      const joinRoom = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.JOIN_ROOM);
       if (joinRoom) {
         joinRoom(targetRoomId);
       } else {
@@ -66,7 +66,7 @@ export class RoomEntranceManager {
       }
 
       if (isMeetingRoomRange(targetRoomId)) {
-        const openRoomSelector = getRegistryFunction(this.scene.game, "OPEN_ROOM_SELECTOR");
+        const openRoomSelector = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR);
         if (openRoomSelector) {
           openRoomSelector(targetRoomId);
         } else {

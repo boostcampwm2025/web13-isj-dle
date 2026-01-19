@@ -9,11 +9,12 @@ import {
 } from "@nestjs/websockets";
 
 import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import type { RoomJoinPayload } from "@shared/types";
+import { LecternEventType, type RoomJoinPayload, type RoomType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
 import { BoundaryService } from "../boundary/boundary.service";
+import { LecternService } from "../lectern/lectern.service";
 import { UserManager } from "../user/user-manager.service";
 
 @WebSocketGateway({
@@ -30,6 +31,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly userManager: UserManager,
     private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
+    private readonly lecternService: LecternService,
   ) {}
 
   afterInit() {
@@ -69,6 +71,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
 
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
+
+      const affectedRooms = this.lecternService.removeUserFromAllLecterns(client.id);
+      for (const [roomId, state] of affectedRooms) {
+        this.server.to(roomId).emit(LecternEventType.LECTERN_UPDATE, {
+          roomId,
+          hostId: state.hostId,
+          usersOnLectern: state.usersOnLectern,
+        });
+      }
     } catch (err) {
       this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
     }
@@ -194,6 +205,56 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (contactIdUpdates.size > 0) {
         const updates = Object.fromEntries(contactIdUpdates);
         this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
+      }
+    }
+  }
+
+  @SubscribeMessage(LecternEventType.LECTERN_ENTER)
+  handleLecternEnter(client: Socket, payload: { roomId: RoomType }) {
+    const state = this.lecternService.enterLectern(payload.roomId, client.id);
+
+    this.server.to(payload.roomId).emit(LecternEventType.LECTERN_UPDATE, {
+      roomId: payload.roomId,
+      hostId: state.hostId,
+      usersOnLectern: state.usersOnLectern,
+    });
+  }
+
+  @SubscribeMessage(LecternEventType.LECTERN_LEAVE)
+  handleLecternLeave(client: Socket, payload: { roomId: RoomType }) {
+    const state = this.lecternService.leaveLectern(payload.roomId, client.id);
+
+    this.server.to(payload.roomId).emit(LecternEventType.LECTERN_UPDATE, {
+      roomId: payload.roomId,
+      hostId: state.hostId,
+      usersOnLectern: state.usersOnLectern,
+    });
+  }
+
+  @SubscribeMessage(LecternEventType.MUTE_ALL)
+  handleMuteAll(client: Socket, payload: { roomId: RoomType }) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You are not a host" });
+      return;
+    }
+
+    const targetUsers = this.userManager.getRoomSessions(payload.roomId).filter((user) => user.id !== client.id);
+    for (const user of targetUsers) {
+      if (user.id !== client.id) {
+        this.userManager.updateSessionMedia(user.id, { micOn: false });
+      }
+    }
+
+    this.server.to(payload.roomId).emit(LecternEventType.MUTE_ALL_EXECUTED, {
+      hostId: client.id,
+    });
+
+    for (const user of targetUsers) {
+      if (user.id !== client.id) {
+        this.server.emit(UserEventType.USER_UPDATE, {
+          userId: user.id,
+          micOn: false,
+        });
       }
     }
   }

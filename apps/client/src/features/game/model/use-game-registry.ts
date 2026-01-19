@@ -6,10 +6,12 @@ export const useGameRegistry = (
   game: Phaser.Game | null,
   joinRoom: ((roomId: string) => void) | null | undefined,
   openRoomSelector: (roomRange: string) => void,
+  lecternEnter: (roomId: string) => void,
+  lecternLeave: (roomId: string) => void,
 ) => {
   useEffect(() => {
     if (game && joinRoom) {
-      setRegistryFunction(game, "JOIN_ROOM", joinRoom);
+      setRegistryFunction(game, GAME_REGISTRY_KEYS.JOIN_ROOM, joinRoom);
     }
 
     return () => {
@@ -22,12 +24,32 @@ export const useGameRegistry = (
   useEffect(() => {
     if (!game) return;
 
-    setRegistryFunction(game, "OPEN_ROOM_SELECTOR", openRoomSelector);
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR, openRoomSelector);
 
     return () => {
       game.registry.remove(GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR);
     };
   }, [game, openRoomSelector]);
+
+  useEffect(() => {
+    if (!game) return;
+
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.LECTERN_ENTER, lecternEnter);
+
+    return () => {
+      game.registry.remove(GAME_REGISTRY_KEYS.LECTERN_ENTER);
+    };
+  }, [game, lecternEnter]);
+
+  useEffect(() => {
+    if (!game) return;
+
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.LECTERN_LEAVE, lecternLeave);
+
+    return () => {
+      game.registry.remove(GAME_REGISTRY_KEYS.LECTERN_LEAVE);
+    };
+  }, [game, lecternLeave]);
 
   return null;
 };
