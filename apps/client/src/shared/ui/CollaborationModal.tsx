@@ -63,7 +63,7 @@ const CollaborationModal = ({ isOpen, onClose, title, children, headerControls }
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden">{children}</div>
+        <div className="flex-1">{children}</div>
       </div>
     </div>,
     document.body,
