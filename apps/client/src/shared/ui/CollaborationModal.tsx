@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-import { ICON_SIZE, SIDEBAR_WIDTH } from "@shared/config";
+import { ICON_SIZE, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
+import { useSidebarStore } from "@widgets/sidebar";
 
 interface CollaborationModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ interface CollaborationModalProps {
 }
 
 const CollaborationModal = ({ isOpen, onClose, title, children, headerControls }: CollaborationModalProps) => {
+  const isSidebarOpen = useSidebarStore((s) => s.isOpen);
+
   useEffect(() => {
     const handleEscKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -36,12 +39,12 @@ const CollaborationModal = ({ isOpen, onClose, title, children, headerControls }
 
   return createPortal(
     <div
-      className="pointer-events-auto fixed top-0 bottom-0 left-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      style={{ right: `${SIDEBAR_WIDTH}px` }}
+      className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      style={{ right: isSidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH }}
       onClick={onClose}
     >
       <div
-        className="flex h-[80vh] w-[90%] max-w-[1200px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
+        className="flex h-[80vh] w-[90%] max-w-7xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
