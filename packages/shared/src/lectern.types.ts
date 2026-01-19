@@ -1,7 +1,9 @@
+import { RoomType } from "./room.types";
+
 export interface LecternState {
   hostId: string | null;
   usersOnLectern: string[];
-  roomId: string;
+  roomId: RoomType | null;
 }
 
 export enum LecternEventType {
