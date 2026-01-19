@@ -251,7 +251,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     for (const user of roomUsers) {
       if (user.id !== client.id) {
-        this.server.to(payload.roomId).emit(UserEventType.USER_UPDATE, {
+        this.server.emit(UserEventType.USER_UPDATE, {
           userId: user.id,
           micOn: false,
         });
