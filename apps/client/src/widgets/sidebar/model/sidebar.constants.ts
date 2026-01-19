@@ -1,8 +1,9 @@
-import { Code, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+import { Code, Megaphone, MessageCircleMore, PenTool, Timer, Users } from "lucide-react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
+import { TimerStopwatchSidebar } from "@features/timer-stopwatch-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
@@ -28,6 +29,11 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "코드 에디터",
     Icon: Code,
     Panel: CodeEditorSidebar,
+  },
+  "timer-stopwatch": {
+    title: "타이머/스톱워치",
+    Icon: Timer,
+    Panel: TimerStopwatchSidebar,
   },
   chat: {
     title: "채팅",
