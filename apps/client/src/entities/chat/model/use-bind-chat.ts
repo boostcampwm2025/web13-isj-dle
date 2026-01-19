@@ -1,3 +1,4 @@
+import { JOIN_SUFFIX, LEAVE_SUFFIX } from "./chat.constants";
 import { useChatStore } from "./chat.store";
 import { Participant, RoomEvent } from "livekit-client";
 
@@ -44,7 +45,7 @@ export const useBindChat = () => {
     const onConnected = (p: Participant) => {
       addSystemMessage({
         id: `system-join-${room.name}-${p.sid}`,
-        message: `${p.name ?? p.identity}가 방에 입장했습니다.`,
+        message: `${p.name ?? p.identity}${JOIN_SUFFIX}`,
         timestamp: Date.now(),
         from: systemFrom,
       });
@@ -53,7 +54,7 @@ export const useBindChat = () => {
     const onDisconnected = (p: Participant) => {
       addSystemMessage({
         id: `system-leave-${room.name}-${p.sid}`,
-        message: `${p.name ?? p.identity}가 방을 나갔습니다.`,
+        message: `${p.name ?? p.identity}${LEAVE_SUFFIX}`,
         timestamp: Date.now(),
         from: systemFrom,
       });
