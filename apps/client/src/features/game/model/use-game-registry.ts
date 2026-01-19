@@ -11,7 +11,7 @@ export const useGameRegistry = (
 ) => {
   useEffect(() => {
     if (game && joinRoom) {
-      setRegistryFunction(game, "JOIN_ROOM", joinRoom);
+      setRegistryFunction(game, GAME_REGISTRY_KEYS.JOIN_ROOM, joinRoom);
     }
 
     return () => {
@@ -24,7 +24,7 @@ export const useGameRegistry = (
   useEffect(() => {
     if (!game) return;
 
-    setRegistryFunction(game, "OPEN_ROOM_SELECTOR", openRoomSelector);
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR, openRoomSelector);
 
     return () => {
       game.registry.remove(GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR);
@@ -34,7 +34,7 @@ export const useGameRegistry = (
   useEffect(() => {
     if (!game) return;
 
-    setRegistryFunction(game, "LECTERN_ENTER", lecternEnter);
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.LECTERN_ENTER, lecternEnter);
 
     return () => {
       game.registry.remove(GAME_REGISTRY_KEYS.LECTERN_ENTER);
@@ -44,7 +44,7 @@ export const useGameRegistry = (
   useEffect(() => {
     if (!game) return;
 
-    setRegistryFunction(game, "LECTERN_LEAVE", lecternLeave);
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.LECTERN_LEAVE, lecternLeave);
 
     return () => {
       game.registry.remove(GAME_REGISTRY_KEYS.LECTERN_LEAVE);

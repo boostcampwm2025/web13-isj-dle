@@ -1,4 +1,4 @@
-import { getRegistryFunction } from "@features/game/model/game-registry.constants.ts";
+import { GAME_REGISTRY_KEYS, getRegistryFunction } from "@features/game/model/game-registry.constants.ts";
 import { isLecternAtPosition } from "@features/game/utils/tile-utils.ts";
 
 export class LecternManager {
@@ -20,7 +20,7 @@ export class LecternManager {
 
     if (onLectern && !this.isOnLectern) {
       this.isOnLectern = true;
-      const emitLecternEnter = getRegistryFunction(this.scene.game, "LECTERN_ENTER");
+      const emitLecternEnter = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.LECTERN_ENTER);
       if (emitLecternEnter) {
         emitLecternEnter(currentRoomId);
       }
@@ -28,7 +28,7 @@ export class LecternManager {
 
     if (!onLectern && this.isOnLectern) {
       this.isOnLectern = false;
-      const emitLecternLeave = getRegistryFunction(this.scene.game, "LECTERN_LEAVE");
+      const emitLecternLeave = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.LECTERN_LEAVE);
       if (emitLecternLeave) {
         emitLecternLeave(currentRoomId);
       }
