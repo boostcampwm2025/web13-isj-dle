@@ -232,9 +232,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(LecternEventType.MUTE_ALL)
-  handleMuteAll(client: Socket, payload: { roomId: RoomType }) {
+  handleMuteAll(client: Socket, payload: { roomId: RoomType }, callback?: (response: { success: boolean }) => void) {
     if (!this.lecternService.isHost(payload.roomId, client.id)) {
-      client.emit("error", { message: "You are not a host" });
+      callback?.({ success: false });
       return;
     }
 
@@ -257,5 +257,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
       }
     }
+
+    callback?.({ success: true });
   }
 }
