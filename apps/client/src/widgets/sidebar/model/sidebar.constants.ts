@@ -1,7 +1,8 @@
-import { Code, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+import { Code, Crown, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
+import { HostSidebar } from "@features/host-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
@@ -33,5 +34,10 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "채팅",
     Icon: MessageCircleMore,
     Panel: ChatSidebar,
+  },
+  host: {
+    title: "관리자",
+    Icon: Crown,
+    Panel: HostSidebar,
   },
 };
