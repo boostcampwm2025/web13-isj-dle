@@ -4,3 +4,4 @@ export {
   COLLABORATION_TOOL,
   type CollaborationToolType,
 } from "./model/collaboration-tool.constants";
+export { useCollaborationToolStore } from "./model/collaboration-tool.store";

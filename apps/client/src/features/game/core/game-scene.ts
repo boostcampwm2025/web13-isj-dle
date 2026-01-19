@@ -267,4 +267,8 @@ export class GameScene extends Phaser.Scene {
   setSocket(socket: Socket): void {
     this.networkSyncManager.setSocket(socket);
   }
+
+  setInputEnabled(enabled: boolean): void {
+    this.inputManager?.setEnabled(enabled);
+  }
 }

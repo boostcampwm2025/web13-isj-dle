@@ -7,6 +7,7 @@ import { GameModule } from "./game/game.module";
 import { LecternModule } from "./lectern/lectern.module";
 import { LivekitModule } from "./livekit/livekit.module";
 import { UserModule } from "./user/user.module";
+import { YjsModule } from "./yjs/yjs.module";
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { UserModule } from "./user/user.module";
     UserModule,
     LivekitModule,
     LecternModule,
+    YjsModule,
   ],
   controllers: [AppController],
 })
