@@ -246,7 +246,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     this.server.to(payload.roomId).emit(LecternEventType.MUTE_ALL_EXECUTED, {
-      executedBy: client.id,
+      hostId: client.id,
     });
 
     for (const user of roomUsers) {
