@@ -1,3 +1,4 @@
+import { Avatar } from "./avatar.types";
 import type { RoomType } from "./room.types";
 
 export enum RoomEventType {
@@ -11,5 +12,5 @@ export interface RoomJoinPayload {
 
 export interface RoomJoinedPayload {
   userId: string;
-  roomId: RoomType;
+  avatar: Avatar;
 }
