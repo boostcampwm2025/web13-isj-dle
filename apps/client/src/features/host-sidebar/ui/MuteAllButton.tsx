@@ -18,10 +18,14 @@ export const MuteAllButton = () => {
   return (
     <button
       onClick={handleMuteAll}
-      className="flex items-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-red-700 hover:bg-red-200"
+      className="group flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 transition-all hover:border-red-300 hover:bg-red-100 hover:shadow-sm active:scale-[0.98]"
     >
-      <VolumeX className="h-5 w-5" />
-      전체 음소거
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500 text-white transition-colors group-hover:bg-red-600">
+        <VolumeX className="h-5 w-5" />
+      </div>
+      <div className="flex flex-col items-start gap-0.5">
+        <span className="text-sm font-semibold text-red-900">전체 음소거</span>
+      </div>
     </button>
   );
 };
