@@ -83,6 +83,12 @@ export const useVideoConference = () => {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
         addSidebarKey("chat");
       }
+
+      if (currentRoomId === "desk zone") {
+        addSidebarKey("deskzone");
+      } else {
+        removeSidebarKey("deskzone");
+      }
     };
 
     updateMode();
