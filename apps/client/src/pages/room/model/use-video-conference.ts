@@ -73,8 +73,7 @@ export const useVideoConference = () => {
       setRoomId(effectiveRoomId);
 
       if (
-        (currentRoomId === "lobby" && !contactId) ||
-        currentRoomId === "desk zone" ||
+        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
         isMeetingRoomRange(currentRoomId)
       ) {
         setMode(null);
