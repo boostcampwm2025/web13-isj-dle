@@ -11,9 +11,16 @@ interface UseRemoteCursorOptions {
   editorRef: RefObject<Monaco.editor.IStandaloneCodeEditor | null>;
   awarenessRef: RefObject<Awareness | null>;
   ytextRef: RefObject<Y.Text | null>;
+  selectedFileId: string | null;
 }
 
-export const useRemoteCursor = ({ isInitialized, editorRef, awarenessRef, ytextRef }: UseRemoteCursorOptions) => {
+export const useRemoteCursor = ({
+  isInitialized,
+  editorRef,
+  awarenessRef,
+  ytextRef,
+  selectedFileId,
+}: UseRemoteCursorOptions) => {
   const [remoteCursorData, setRemoteCursorData] = useState<{
     editor: Monaco.editor.IStandaloneCodeEditor;
     awareness: Awareness;
@@ -30,7 +37,7 @@ export const useRemoteCursor = ({ isInitialized, editorRef, awarenessRef, ytextR
     } else {
       setRemoteCursorData(null);
     }
-  }, [isInitialized, editorRef, awarenessRef, ytextRef]);
+  }, [isInitialized, editorRef, awarenessRef, ytextRef, selectedFileId]);
 
   return { remoteCursorData };
 };

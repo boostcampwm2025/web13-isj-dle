@@ -31,7 +31,13 @@ const CodeEditorModalContent = () => {
     fileSystem,
     setLanguage,
   );
-  const { remoteCursorData } = useRemoteCursor({ isInitialized, editorRef, awarenessRef, ytextRef });
+  const { remoteCursorData } = useRemoteCursor({
+    isInitialized,
+    editorRef,
+    awarenessRef,
+    ytextRef,
+    selectedFileId,
+  });
 
   return (
     <CollaborationModal
