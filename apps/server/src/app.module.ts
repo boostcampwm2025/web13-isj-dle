@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { AppController } from "./app.controller";
+import { BreakoutModule } from "./breakout/breakout.module";
 import { GameModule } from "./game/game.module";
 import { LecternModule } from "./lectern/lectern.module";
 import { LivekitModule } from "./livekit/livekit.module";
@@ -34,6 +35,7 @@ import { YjsModule } from "./yjs/yjs.module";
     LivekitModule,
     LecternModule,
     YjsModule,
+    BreakoutModule,
   ],
   controllers: [AppController],
 })
