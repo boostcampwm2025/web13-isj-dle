@@ -8,10 +8,25 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import type { RoomJoinPayload } from "@shared/types";
+import {
+  AvatarDirection,
+  AvatarState,
+  NoticeEventType,
+  RoomEventType,
+  TimerEventType,
+  UserEventType,
+} from "@shared/types";
+import type {
+  RoomJoinPayload,
+  TimerAddTimePayload,
+  TimerPausePayload,
+  TimerResetPayload,
+  TimerStartPayload,
+  TimerSyncPayload,
+} from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
+import { TimerService } from "src/timer/timer.service";
 
 import { BoundaryService } from "../boundary/boundary.service";
 import { UserManager } from "../user/user-manager.service";
@@ -30,6 +45,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly userManager: UserManager,
     private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
+    private readonly timerService: TimerService,
   ) {}
 
   afterInit() {
@@ -196,5 +212,60 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
       }
     }
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_START)
+  handleTimerStart(client: Socket, payload: TimerStartPayload) {
+    if (!payload?.roomId) {
+      this.logger.warn(`⚠️ TIMER_START called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    const timerState = this.timerService.startTimer(payload.roomId, payload.initialTimeSec, payload.startedAt);
+    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_PAUSE)
+  handleTimerPause(client: Socket, payload: TimerPausePayload) {
+    if (!payload?.roomId) {
+      this.logger.warn(`⚠️ TIMER_PAUSE called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    const timerState = this.timerService.pauseTimer(payload.roomId, payload.pausedTimeSec);
+    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_RESET)
+  handleTimerReset(client: Socket, payload: TimerResetPayload) {
+    if (!payload?.roomId) {
+      this.logger.warn(`⚠️ TIMER_RESET called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    const timerState = this.timerService.resetTimer(payload.roomId);
+    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_ADD_TIME)
+  handleTimerAddTime(client: Socket, payload: TimerAddTimePayload) {
+    if (!payload?.roomId) {
+      this.logger.warn(`⚠️ TIMER_ADD_TIME called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    const timerState = this.timerService.addTime(payload.roomId, payload.additionalSec);
+    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_SYNC)
+  handleTimerSync(client: Socket, payload: TimerSyncPayload) {
+    if (!payload?.roomId) {
+      this.logger.warn(`⚠️ TIMER_SYNC called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    const timerState = this.timerService.getTimerState(payload.roomId);
+    client.emit(TimerEventType.TIMER_STATE, timerState);
   }
 }
