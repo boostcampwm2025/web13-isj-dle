@@ -1,13 +1,26 @@
 import { Users } from "lucide-react";
 
+import { useMemo } from "react";
+
 import { useUserStore } from "@entities/user";
 import { useGroupedUsers } from "@entities/user";
 import { useInviteLink } from "@shared/lib/invite";
 import { UserGroup } from "@shared/ui";
 
 const UserListSidebar = () => {
-  const user = useUserStore((state) => state.user);
+  const userId = useUserStore((state) => state.user?.id);
+  const userContactId = useUserStore((state) => state.user?.contactId);
+  const userCurrentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const users = useUserStore((state) => state.users);
+
+  const user = useMemo(() => {
+    if (!userId || !userCurrentRoomId) return null;
+    return {
+      id: userId,
+      contactId: userContactId,
+      avatar: { currentRoomId: userCurrentRoomId },
+    };
+  }, [userId, userContactId, userCurrentRoomId]);
 
   const { sameContactUsers, usersByRoom } = useGroupedUsers(user, users);
   const { handleInviteClick } = useInviteLink();

@@ -14,15 +14,11 @@ interface UseLivekitState {
 }
 
 export const useLivekit = (): UseLivekitState => {
-  const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
-  const roomId = user?.avatar.currentRoomId;
-  const userId = user?.id;
-  const nickname = user?.nickname;
-
-  const currentUserFromList = users.find((u) => u.id === userId);
-  const contactId = currentUserFromList?.contactId ?? user?.contactId;
+  const roomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const userId = useUserStore((state) => state.user?.id);
+  const nickname = useUserStore((state) => state.user?.nickname);
+  const contactId = useUserStore((state) => state.user?.contactId);
 
   const [livekitState, setLivekitState] = useState<UseLivekitState>({
     token: null,

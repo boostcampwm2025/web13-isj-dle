@@ -10,11 +10,10 @@ import { UserEventType } from "@shared/types";
 
 export const useMicAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
-  const user = useUserStore((state) => state.user);
+  const userId = useUserStore((state) => state.user?.id);
+  const isMicOn = useUserStore((state) => state.user?.micOn ?? false);
   const updateUser = useUserStore((state) => state.updateUser);
   const { socket } = useWebSocket();
-
-  const isMicOn = user?.micOn ?? false;
 
   const toggleMic = async () => {
     const newState = !isMicOn;
@@ -23,8 +22,8 @@ export const useMicAction: ActionHook = () => {
     } else {
       console.warn("Local participant is not available to toggle microphone.");
     }
-    if (user) {
-      updateUser({ id: user.id, micOn: newState });
+    if (userId) {
+      updateUser({ id: userId, micOn: newState });
     }
     socket?.emit(UserEventType.USER_UPDATE, { micOn: newState });
   };
