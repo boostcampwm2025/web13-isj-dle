@@ -9,7 +9,7 @@ interface FileExplorerProps {
   theme: EditorTheme;
   fileSystem: Record<string, FileSystemItem>;
   createItem: (name: string, type: "file" | "folder", parentId: string | null) => void;
-  deleteItem: (id: string, isFolder: boolean) => void;
+  deleteItem: (id: string) => void;
   renameItem: (id: string, newName: string) => void;
   selectFile: (id: string) => void;
   selectedFileId: string | null;

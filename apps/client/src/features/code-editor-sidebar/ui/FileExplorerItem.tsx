@@ -12,7 +12,7 @@ interface FileExplorerItemProps {
   toggleFolder: (id: string) => void;
   selectedFileId: string | null;
   onSelect: (id: string) => void;
-  onDelete: (id: string, isFolder: boolean) => void;
+  onDelete: (id: string) => void;
   onRename: (id: string, newName: string) => void;
   creatingState: { parentId: string; type: "file" | "folder" } | null;
   setCreatingState: (state: { parentId: string; type: "file" | "folder" } | null) => void;
@@ -146,7 +146,7 @@ export const FileExplorerItem = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(node.id, node.type === "folder");
+              onDelete(node.id);
             }}
             className={`cursor-pointer rounded p-0.5 ${theme === "vs" ? "text-red-700 hover:bg-gray-200" : "text-red-400 hover:bg-gray-700"}`}
             title="Delete"

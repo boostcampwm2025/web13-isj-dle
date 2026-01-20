@@ -72,21 +72,28 @@ export const useFileSystem = (
     (id: string) => {
       if (!ydocRef.current) return;
       const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
+      const items = fsMap.toJSON();
 
-      const deleteRecursive = (targetId: string) => {
-        const items = fsMap.toJSON();
-        Object.values(items).forEach((item) => {
-          if (item.parentId === targetId) {
-            deleteRecursive(item.id);
+      const deleteFiles = (targetId: string) => {
+        const toDelete: string[] = [targetId];
+
+        for (let i = 0; i < toDelete.length; i++) {
+          Object.values(items).forEach((item) => {
+            if (item.parentId === toDelete[i]) {
+              toDelete.push(item.id);
+            }
+          });
+        }
+
+        toDelete.forEach((id) => {
+          fsMap.delete(id);
+          if (selectedFileId === id) {
+            selectFile(null);
           }
         });
-        fsMap.delete(targetId);
-        if (selectedFileId === targetId) {
-          selectFile(null);
-        }
       };
 
-      deleteRecursive(id);
+      deleteFiles(id);
     },
     [ydocRef, selectedFileId, selectFile],
   );
