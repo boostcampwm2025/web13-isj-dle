@@ -37,3 +37,10 @@ export const DESK_STATUS_COLORS: Record<
     activeBorder: "border-amber-500",
   },
 } as const;
+
+export const KNOCK_BUTTON_MESSAGE = {
+  FOCUSING: "집중 중이라 노크할 수 없습니다",
+  TALKING: "대화 중이라 노크할 수 없습니다",
+  NOT_AVAILABLE: "노크 가능 상태로 변경해주세요",
+  KNOCK_TO: (nickname: string) => `${nickname}님께 노크하기`,
+} as const;

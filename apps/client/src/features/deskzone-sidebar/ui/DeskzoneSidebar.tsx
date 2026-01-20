@@ -1,4 +1,6 @@
 import { ICON_SIZE } from "../model/desk-status.constants";
+import { EndTalkConfirmModal } from "./EndTalkConfirmModal";
+import { KnockButton } from "./KnockButton";
 import { KnockRequestCard } from "./KnockRequestCard";
 import { MyStatusSelector } from "./MyStatusSelector";
 import { UserListItem } from "./UserListItem";
@@ -19,7 +21,6 @@ const DeskzoneSidebar = () => {
 
   const [showEndTalkConfirm, setShowEndTalkConfirm] = useState(false);
   const [pendingAcceptUserId, setPendingAcceptUserId] = useState<string | null>(null);
-
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const deskzoneUsers = users.filter((u) => u.avatar.currentRoomId === "desk zone");
@@ -66,10 +67,6 @@ const DeskzoneSidebar = () => {
     setPendingAcceptUserId(null);
   };
 
-  const handleEndTalk = () => {
-    endTalk();
-  };
-
   return (
     <div className="flex h-full w-full flex-col gap-4">
       <section className="flex flex-1 flex-col gap-2 overflow-hidden">
@@ -83,7 +80,6 @@ const DeskzoneSidebar = () => {
           {sortedUsers.map((u) => {
             const isMe = u.id === user?.id;
             const isSelected = selectedUserId === u.id;
-            const targetUser = u;
 
             return (
               <div key={u.id}>
@@ -97,23 +93,13 @@ const DeskzoneSidebar = () => {
                         <MyStatusSelector currentStatus={user?.deskStatus ?? null} onStatusChange={updateDeskStatus} />
                       </div>
                     ) : (
-                      <button
+                      <KnockButton
+                        targetNickname={u.nickname}
+                        targetDeskStatus={u.deskStatus}
+                        myDeskStatus={user?.deskStatus ?? null}
+                        canKnock={canKnockTo(u.id)}
                         onClick={handleKnockClick}
-                        disabled={!canKnockTo(u.id)}
-                        className={`w-full rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${
-                          canKnockTo(u.id)
-                            ? "bg-indigo-500 text-white hover:bg-indigo-600"
-                            : "cursor-not-allowed bg-gray-100 text-gray-400"
-                        }`}
-                      >
-                        {targetUser.deskStatus === "focusing"
-                          ? "집중 중이라 노크할 수 없습니다"
-                          : targetUser.deskStatus === "talking"
-                            ? "대화 중이라 노크할 수 없습니다"
-                            : user?.deskStatus !== "available"
-                              ? "노크 가능 상태로 변경해주세요"
-                              : `${targetUser.nickname}님께 노크하기`}
-                      </button>
+                      />
                     )}
                   </div>
                 )}
@@ -149,7 +135,7 @@ const DeskzoneSidebar = () => {
       {isTalking && (
         <section className="border-t border-gray-200 pt-4">
           <button
-            onClick={handleEndTalk}
+            onClick={endTalk}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-600"
           >
             <PhoneOff size={ICON_SIZE} />
@@ -158,28 +144,11 @@ const DeskzoneSidebar = () => {
         </section>
       )}
 
-      {showEndTalkConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">현재 대화를 종료하시겠습니까?</h3>
-            <p className="mb-6 text-sm text-gray-500">새로운 노크를 수락하려면 현재 대화를 먼저 종료해야 합니다.</p>
-            <div className="flex gap-3">
-              <button
-                onClick={handleCancelEndTalk}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleConfirmEndAndAccept}
-                className="flex-1 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-600"
-              >
-                종료 후 수락
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EndTalkConfirmModal
+        isOpen={showEndTalkConfirm}
+        onConfirm={handleConfirmEndAndAccept}
+        onCancel={handleCancelEndTalk}
+      />
     </div>
   );
 };
