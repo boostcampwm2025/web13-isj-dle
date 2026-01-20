@@ -5,5 +5,6 @@ export * from "./user.types";
 export * from "./game-user.types";
 export * from "./room.types";
 export * from "./room-event.types";
+export * from "./timer-event.types";
 export * from "./game-scene.constants";
 export * from "./livekit.types";
