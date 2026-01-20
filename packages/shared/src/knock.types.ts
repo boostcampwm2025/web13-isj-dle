@@ -9,6 +9,7 @@ export enum KnockEventType {
   KNOCK_REJECTED = "knock:rejected",
   DESK_STATUS_UPDATE = "desk:status:update",
   DESK_STATUS_UPDATED = "desk:status:updated",
+  TALK_ENDED = "talk:ended",
 }
 
 export interface KnockSendPayload {

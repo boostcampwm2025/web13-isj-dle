@@ -1,10 +1,11 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 
 import type { DeskStatus, Knock } from "@shared/types";
 
 @Injectable()
 export class KnockService {
   private pendingKnocks = new Map<string, Knock>();
+  private talkingPairs = new Map<string, string>();
 
   private getKnockKey(fromUserId: string, toUserId: string): string {
     return `${fromUserId}-${toUserId}`;
@@ -60,5 +61,23 @@ export class KnockService {
   getPendingKnock(fromUserId: string, toUserId: string): Knock | undefined {
     const key = this.getKnockKey(fromUserId, toUserId);
     return this.pendingKnocks.get(key);
+  }
+
+  addTalkingPair(userId1: string, userId2: string): void {
+    this.talkingPairs.set(userId1, userId2);
+    this.talkingPairs.set(userId2, userId1);
+  }
+
+  removeTalkingPair(userId: string): string | undefined {
+    const partnerId = this.talkingPairs.get(userId);
+    if (partnerId) {
+      this.talkingPairs.delete(userId);
+      this.talkingPairs.delete(partnerId);
+    }
+    return partnerId;
+  }
+
+  getTalkingPartner(userId: string): string | undefined {
+    return this.talkingPairs.get(userId);
   }
 }

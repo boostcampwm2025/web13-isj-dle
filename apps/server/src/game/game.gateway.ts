@@ -80,6 +80,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     try {
       this.logger.log(`❌ Client disconnected: ${client.id}`);
 
+      const user = this.userManager.getSession(client.id);
+      this.endTalkIfNeeded(client.id, user?.nickname ?? "알 수 없음", "disconnected");
+
       this.knockService.removeAllKnocksForUser(client.id);
 
       const deleted = this.userManager.deleteSession(client.id);
@@ -135,6 +138,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
 
       const previousRoomId = user.avatar.currentRoomId;
+
+      if (previousRoomId === "desk zone" && payload.roomId !== "desk zone") {
+        this.endTalkIfNeeded(client.id, user.nickname, "left_deskzone");
+        this.userManager.updateSessionDeskStatus(client.id, null);
+      }
 
       const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
       if (!updated) {
@@ -340,6 +348,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.userManager.updateSessionDeskStatus(client.id, "talking");
     this.userManager.updateSessionDeskStatus(payload.fromUserId, "talking");
 
+    this.knockService.addTalkingPair(client.id, payload.fromUserId);
+
+    const contactId = [client.id, payload.fromUserId].sort().join("-");
+    this.userManager.updateSessionContactId(client.id, contactId);
+    this.userManager.updateSessionContactId(payload.fromUserId, contactId);
+
     this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_ACCEPTED, {
       targetUserId: client.id,
       targetUserNickname: toUser.nickname,
@@ -354,6 +368,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userId: payload.fromUserId,
       status: "talking",
     });
+
+    const contactIdUpdates = {
+      [client.id]: contactId,
+      [payload.fromUserId]: contactId,
+    };
+    this.server.to("desk zone").emit(UserEventType.BOUNDARY_UPDATE, contactIdUpdates);
   }
 
   @SubscribeMessage(KnockEventType.KNOCK_REJECT)
@@ -399,5 +419,33 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userId: client.id,
       status: payload.status,
     });
+  }
+  private endTalkIfNeeded(userId: string, userNickname: string, reason: "disconnected" | "left_deskzone"): void {
+    const partnerId = this.knockService.removeTalkingPair(userId);
+
+    if (!partnerId) return;
+
+    const partner = this.userManager.getSession(partnerId);
+    if (!partner) return;
+
+    this.userManager.updateSessionDeskStatus(partnerId, "available");
+    this.userManager.updateSessionContactId(partnerId, null);
+
+    this.server.to(partnerId).emit(KnockEventType.TALK_ENDED, {
+      partnerUserId: userId,
+      partnerNickname: userNickname,
+      reason,
+    });
+
+    this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+      userId: partnerId,
+      status: "available",
+    });
+
+    this.server.to("desk zone").emit(UserEventType.BOUNDARY_UPDATE, {
+      [partnerId]: null,
+    });
+
+    this.logger.log(`📞 대화 종료: ${userNickname} (${reason}) - 상대: ${partner.nickname}`);
   }
 }
