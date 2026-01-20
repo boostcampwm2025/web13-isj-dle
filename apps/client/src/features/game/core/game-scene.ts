@@ -11,7 +11,7 @@ import {
 } from "../model/game.constants";
 import type { AvatarEntity, MapObj } from "../model/game.types";
 import { AvatarRenderer, BoundaryRenderer } from "../renderers";
-import { getAvatarSpawnPoint, getSeatDirectionAtPosition, loadTilesets } from "../utils";
+import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTilesets } from "../utils";
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
@@ -57,6 +57,10 @@ export class GameScene extends Phaser.Scene {
 
   get isInitializedSocket(): boolean {
     return this.networkSyncManager?.isInitialized() ?? false;
+  }
+
+  get deskSeatPoints() {
+    return getSeatPoints(this.mapObj.map, "DeskZone");
   }
 
   preload() {
