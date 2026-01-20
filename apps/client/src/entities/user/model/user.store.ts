@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { Avatar, AvatarDirection, AvatarState, User } from "@shared/types";
+import type { Avatar, AvatarDirection, AvatarState, DeskStatus, User } from "@shared/types";
 
 type UserUpdate = Partial<Omit<User, "avatar">> & {
   id: string;
@@ -16,6 +16,7 @@ interface UserState {
   removeUser: (userId: string) => void;
   updateUser: (updated: UserUpdate) => void;
   updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
+  updateUserDeskStatus: (userId: string, status: DeskStatus | null) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -63,5 +64,11 @@ export const useUserStore = create<UserState>((set) => ({
         store.user?.id === userId
           ? { ...store.user, avatar: { ...store.user.avatar, x, y, direction, state } }
           : store.user,
+    })),
+
+  updateUserDeskStatus: (userId, status) =>
+    set((state) => ({
+      users: state.users.map((u) => (u.id === userId ? { ...u, deskStatus: status } : u)),
+      user: state.user?.id === userId ? { ...state.user, deskStatus: status } : state.user,
     })),
 }));
