@@ -1,6 +1,6 @@
 import { CURSOR_COLORS } from "./whiteboard.constants";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
 import { useUserStore } from "@entities/user";
@@ -17,6 +17,7 @@ export const useWhiteboard = () => {
   const userId = useUserStore((state) => state.user?.id) || "guest";
   const nickname = useUserStore((state) => state.user?.nickname) || "Guest";
   const roomId = useUserStore((state) => state.user?.avatar.currentRoomId) || "default";
+  const objectUrlsRef = useRef<Set<string>>(new Set());
 
   const uri = useMemo(() => getTldrawWebSocketUri(roomId), [roomId]);
 
@@ -31,6 +32,7 @@ export const useWhiteboard = () => {
 
   const handleUpload = useCallback(async (_asset: TLAsset, file: File) => {
     const src = URL.createObjectURL(file);
+    objectUrlsRef.current.add(src);
     return { src };
   }, []);
 
@@ -39,6 +41,15 @@ export const useWhiteboard = () => {
   const store = useSync({ uri, userInfo, assets });
 
   const closeTool = useCollaborationToolStore((state) => state.closeTool);
+
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+
+    return () => {
+      for (const url of urls) URL.revokeObjectURL(url);
+      urls.clear();
+    };
+  }, []);
 
   return {
     store: store.store,
