@@ -6,13 +6,20 @@ import { BreakoutConfig, BreakoutRoom, BreakoutState, RoomType } from "@shared/t
 export class BreakoutService {
   private states: Map<RoomType, BreakoutState> = new Map();
 
-  createBreakout(
-    hostRoomId: RoomType,
-    hostId: string,
-    config: BreakoutConfig,
-    userIds: string[],
-    availableRooms: RoomType[],
-  ): BreakoutState {
+  private generateBreakoutRoomId(hostRoomId: string, index: number): string {
+    const sanitized = hostRoomId.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+    return `breakout-${sanitized}-${index + 1}`;
+  }
+
+  private shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  createBreakout(hostRoomId: RoomType, hostId: string, config: BreakoutConfig, userIds: string[]): BreakoutState {
     const { roomCount, isRandom } = config;
 
     const rooms: BreakoutRoom[] = [];
@@ -27,14 +34,14 @@ export class BreakoutService {
         const roomUserIds = shuffledUsers.slice(start, end);
 
         rooms.push({
-          roomId: availableRooms[i],
+          roomId: this.generateBreakoutRoomId(hostRoomId, i),
           userIds: roomUserIds,
         });
       }
     } else {
       for (let i = 0; i < roomCount; i++) {
         rooms.push({
-          roomId: availableRooms[i],
+          roomId: this.generateBreakoutRoomId(hostRoomId, i),
           userIds: [],
         });
       }
@@ -42,6 +49,7 @@ export class BreakoutService {
 
     const state: BreakoutState = {
       isActive: true,
+      hostRoomId,
       rooms,
       hostId,
     };
@@ -56,13 +64,5 @@ export class BreakoutService {
 
   endBreakout(roomId: RoomType): void {
     this.states.delete(roomId);
-  }
-
-  private shuffleArray<T>(array: T[]): T[] {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
   }
 }

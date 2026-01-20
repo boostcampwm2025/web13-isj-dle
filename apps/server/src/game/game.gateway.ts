@@ -9,11 +9,18 @@ import {
 } from "@nestjs/websockets";
 
 import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import { LecternEventType, type RoomJoinPayload, type RoomType } from "@shared/types";
+import {
+  type BreakoutConfig,
+  BreakoutEventType,
+  LecternEventType,
+  type RoomJoinPayload,
+  type RoomType,
+} from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
 import { BoundaryService } from "../boundary/boundary.service";
+import { BreakoutService } from "../breakout/breakout.service";
 import { LecternService } from "../lectern/lectern.service";
 import { UserManager } from "../user/user-manager.service";
 
@@ -32,6 +39,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
     private readonly lecternService: LecternService,
+    private readonly breakoutService: BreakoutService,
   ) {}
 
   afterInit() {
@@ -259,5 +267,42 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     callback?.({ success: true });
+  }
+
+  @SubscribeMessage(BreakoutEventType.BREAKOUT_CREATE)
+  handleBreakoutCreate(
+    client: Socket,
+    payload: {
+      roomId: RoomType;
+      config: BreakoutConfig;
+      userIds: string[];
+    },
+  ) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You're not a host" });
+      return;
+    }
+
+    const state = this.breakoutService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
+
+    this.server.to(payload.roomId).emit(BreakoutEventType.BREAKOUT_UPDATE, {
+      roomId: payload.roomId,
+      state,
+    });
+  }
+
+  @SubscribeMessage(BreakoutEventType.BREAKOUT_END)
+  handleBreakoutEnd(client: Socket, payload: { roomId: RoomType }) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You're not a host" });
+      return;
+    }
+
+    this.breakoutService.endBreakout(payload.roomId);
+
+    this.server.to(payload.roomId).emit(BreakoutEventType.BREAKOUT_UPDATE, {
+      roomId: payload.roomId,
+      state: null,
+    });
   }
 }
