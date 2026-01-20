@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
-import { TimerStatePayload } from "@shared/types";
+import type { RoomType, TimerStatePayload } from "@shared/types";
 
 interface RoomTimerState {
   isRunning: boolean;
@@ -11,9 +11,9 @@ interface RoomTimerState {
 
 @Injectable()
 export class TimerService {
-  private readonly roomTimers: Map<string, RoomTimerState> = new Map();
+  private readonly roomTimers: Map<RoomType, RoomTimerState> = new Map();
 
-  private getOrCreateTimer(roomId: string): RoomTimerState {
+  private getOrCreateTimer(roomId: RoomType): RoomTimerState {
     if (!this.roomTimers.has(roomId)) {
       this.roomTimers.set(roomId, {
         isRunning: false,
@@ -25,7 +25,7 @@ export class TimerService {
     return this.roomTimers.get(roomId)!;
   }
 
-  startTimer(roomId: string, initialTimeSec: number, startedAt: number): TimerStatePayload {
+  startTimer(roomId: RoomType, initialTimeSec: number, startedAt: number): TimerStatePayload {
     const timer = this.getOrCreateTimer(roomId);
     timer.isRunning = true;
     timer.initialTimeSec = initialTimeSec;
@@ -34,7 +34,7 @@ export class TimerService {
     return this.getTimerState(roomId);
   }
 
-  pauseTimer(roomId: string, pausedTimeSec: number): TimerStatePayload {
+  pauseTimer(roomId: RoomType, pausedTimeSec: number): TimerStatePayload {
     const timer = this.getOrCreateTimer(roomId);
     timer.isRunning = false;
     timer.startedAt = null;
@@ -42,7 +42,7 @@ export class TimerService {
     return this.getTimerState(roomId);
   }
 
-  resetTimer(roomId: string): TimerStatePayload {
+  resetTimer(roomId: RoomType): TimerStatePayload {
     this.roomTimers.set(roomId, {
       isRunning: false,
       initialTimeSec: 0,
@@ -52,13 +52,13 @@ export class TimerService {
     return this.getTimerState(roomId);
   }
 
-  addTime(roomId: string, additionalSec: number): TimerStatePayload {
+  addTime(roomId: RoomType, additionalSec: number): TimerStatePayload {
     const timer = this.getOrCreateTimer(roomId);
     timer.initialTimeSec += additionalSec;
     return this.getTimerState(roomId);
   }
 
-  getTimerState(roomId: string): TimerStatePayload {
+  getTimerState(roomId: RoomType): TimerStatePayload {
     const timer = this.getOrCreateTimer(roomId);
     return {
       isRunning: timer.isRunning,
@@ -68,7 +68,7 @@ export class TimerService {
     };
   }
 
-  deleteTimer(roomId: string): void {
+  deleteTimer(roomId: RoomType): void {
     this.roomTimers.delete(roomId);
   }
 }

@@ -18,6 +18,7 @@ import {
 } from "@shared/types";
 import type {
   RoomJoinPayload,
+  RoomType,
   TimerAddTimePayload,
   TimerPausePayload,
   TimerResetPayload,
@@ -30,6 +31,9 @@ import { TimerService } from "src/timer/timer.service";
 
 import { BoundaryService } from "../boundary/boundary.service";
 import { UserManager } from "../user/user-manager.service";
+
+const isMeetingRoomId = (roomId: string): boolean => roomId.startsWith("meeting");
+const isTimerRoomId = (roomId: string): boolean => isMeetingRoomId(roomId);
 
 @WebSocketGateway({
   cors: {
@@ -47,6 +51,22 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly boundaryService: BoundaryService,
     private readonly timerService: TimerService,
   ) {}
+
+  private cleanupTimerAfterLeave(roomId: RoomType) {
+    if (!isTimerRoomId(roomId)) return;
+
+    const remaining = this.userManager.getRoomSessions(roomId).length;
+    if (remaining !== 0) return;
+
+    this.timerService.deleteTimer(roomId);
+  }
+
+  private validateTimerRequest(client: Socket, roomId: RoomType): boolean {
+    const user = this.userManager.getSession(client.id);
+    if (!user) return false;
+
+    return user.avatar.currentRoomId === roomId;
+  }
 
   afterInit() {
     this.logger.log("🚀 WebSocket Gateway initialized");
@@ -79,12 +99,20 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleDisconnect(client: Socket) {
     try {
       this.logger.log(`❌ Client disconnected: ${client.id}`);
+
+      const session = this.userManager.getSession(client.id);
+      const previousRoomId = session?.avatar.currentRoomId;
+
       const deleted = this.userManager.deleteSession(client.id);
       if (!deleted) {
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
       }
 
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
+
+      if (previousRoomId) {
+        this.cleanupTimerAfterLeave(previousRoomId);
+      }
     } catch (err) {
       this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
     }
@@ -149,6 +177,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
+
+      this.cleanupTimerAfterLeave(previousRoomId);
 
       const updatedUser = this.userManager.getSession(client.id);
 
@@ -216,56 +246,46 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage(TimerEventType.TIMER_START)
   handleTimerStart(client: Socket, payload: TimerStartPayload) {
-    if (!payload?.roomId) {
-      this.logger.warn(`⚠️ TIMER_START called without roomId from client: ${client.id}`);
-      return;
-    }
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
-    const timerState = this.timerService.startTimer(payload.roomId, payload.initialTimeSec, payload.startedAt);
-    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+    const timerState = this.timerService.startTimer(roomId, payload.initialTimeSec, payload.startedAt);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
   }
 
   @SubscribeMessage(TimerEventType.TIMER_PAUSE)
   handleTimerPause(client: Socket, payload: TimerPausePayload) {
-    if (!payload?.roomId) {
-      this.logger.warn(`⚠️ TIMER_PAUSE called without roomId from client: ${client.id}`);
-      return;
-    }
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
-    const timerState = this.timerService.pauseTimer(payload.roomId, payload.pausedTimeSec);
-    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+    const timerState = this.timerService.pauseTimer(roomId, payload.pausedTimeSec);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
   }
 
   @SubscribeMessage(TimerEventType.TIMER_RESET)
   handleTimerReset(client: Socket, payload: TimerResetPayload) {
-    if (!payload?.roomId) {
-      this.logger.warn(`⚠️ TIMER_RESET called without roomId from client: ${client.id}`);
-      return;
-    }
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
-    const timerState = this.timerService.resetTimer(payload.roomId);
-    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+    const timerState = this.timerService.resetTimer(roomId);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
   }
 
   @SubscribeMessage(TimerEventType.TIMER_ADD_TIME)
   handleTimerAddTime(client: Socket, payload: TimerAddTimePayload) {
-    if (!payload?.roomId) {
-      this.logger.warn(`⚠️ TIMER_ADD_TIME called without roomId from client: ${client.id}`);
-      return;
-    }
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
-    const timerState = this.timerService.addTime(payload.roomId, payload.additionalSec);
-    this.server.to(payload.roomId).emit(TimerEventType.TIMER_STATE, timerState);
+    const timerState = this.timerService.addTime(roomId, payload.additionalSec);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
   }
 
   @SubscribeMessage(TimerEventType.TIMER_SYNC)
   handleTimerSync(client: Socket, payload: TimerSyncPayload) {
-    if (!payload?.roomId) {
-      this.logger.warn(`⚠️ TIMER_SYNC called without roomId from client: ${client.id}`);
-      return;
-    }
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
-    const timerState = this.timerService.getTimerState(payload.roomId);
+    const timerState = this.timerService.getTimerState(roomId);
     client.emit(TimerEventType.TIMER_STATE, timerState);
   }
 }

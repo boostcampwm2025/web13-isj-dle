@@ -3,10 +3,10 @@ import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 import { useCallback, useEffect } from "react";
 
 import { useWebSocket } from "@features/socket";
-import { TimerEventType, type TimerStatePayload } from "@shared/types";
+import { type RoomType, TimerEventType, type TimerStatePayload } from "@shared/types";
 
 interface UseSyncTimerProps {
-  roomId: string | null;
+  roomId: RoomType | null;
   isMeetingRoom: boolean;
 }
 

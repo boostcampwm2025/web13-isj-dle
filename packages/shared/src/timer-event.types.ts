@@ -1,3 +1,5 @@
+import type { RoomType } from "./room.types";
+
 export enum TimerEventType {
   TIMER_START = "timer:start",
   TIMER_PAUSE = "timer:pause",
@@ -8,27 +10,27 @@ export enum TimerEventType {
 }
 
 export interface TimerStartPayload {
-  roomId: string;
+  roomId: RoomType;
   initialTimeSec: number;
   startedAt: number;
 }
 
 export interface TimerPausePayload {
-  roomId: string;
+  roomId: RoomType;
   pausedTimeSec: number;
 }
 
 export interface TimerResetPayload {
-  roomId: string;
+  roomId: RoomType;
 }
 
 export interface TimerAddTimePayload {
-  roomId: string;
+  roomId: RoomType;
   additionalSec: number;
 }
 
 export interface TimerSyncPayload {
-  roomId: string;
+  roomId: RoomType;
 }
 
 export interface TimerStatePayload {
