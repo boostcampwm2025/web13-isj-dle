@@ -74,10 +74,7 @@ export const BreakoutPanel = () => {
                 <DoorOpen className="h-4 w-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-blue-900">진행 중인 책상 나누기</span>
-                <span className="text-xs text-blue-600">
-                  {breakoutState.rooms.length}개 조 · {currentRoomUsers.length}명
-                </span>
+                <span className="text-sm font-semibold text-blue-900">책상 나누기 진행 중</span>
               </div>
             </div>
           </div>
@@ -87,35 +84,17 @@ export const BreakoutPanel = () => {
           {breakoutState.rooms.map((room, index) => {
             const roomUserCount = room.userIds.length;
             return (
-              <div key={room.roomId} className="rounded-lg border border-gray-300 bg-white px-4 py-3 shadow-sm">
-                <div className="mb-2 flex items-center justify-between">
+              <div key={room.roomId} className="rounded-lg border border-gray-300 bg-white px-3.5 py-3 shadow-sm">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-700">
+                    <div className="flex h-7 w-9 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-700">
                       {index + 1}
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">{index + 1}조</span>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-gray-500">
                     <Users className="h-3.5 w-3.5" />
                     <span className="font-medium text-gray-700">{roomUserCount}명</span>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {room.userIds.length > 0 ? (
-                    room.userIds.map((userId) => {
-                      const roomUser = users.find((u) => u.id === userId);
-                      return (
-                        <span
-                          key={userId}
-                          className="inline-flex items-center rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700"
-                        >
-                          {roomUser?.nickname ?? userId.slice(0, 6)}
-                        </span>
-                      );
-                    })
-                  ) : (
-                    <span className="text-xs text-gray-400">배정된 인원 없음</span>
-                  )}
                 </div>
               </div>
             );
