@@ -8,12 +8,25 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import { LecternEventType, type RoomJoinPayload, type RoomType } from "@shared/types";
+import {
+  AvatarDirection,
+  AvatarState,
+  type DeskStatusUpdatePayload,
+  KnockEventType,
+  type KnockResponsePayload,
+  type KnockSendPayload,
+  LecternEventType,
+  NoticeEventType,
+  RoomEventType,
+  type RoomJoinPayload,
+  type RoomType,
+  UserEventType,
+} from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
 import { BoundaryService } from "../boundary/boundary.service";
+import { KnockService } from "../knock/knock.service";
 import { LecternService } from "../lectern/lectern.service";
 import { UserManager } from "../user/user-manager.service";
 
@@ -32,6 +45,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
     private readonly lecternService: LecternService,
+    private readonly knockService: KnockService,
   ) {}
 
   afterInit() {
@@ -65,6 +79,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleDisconnect(client: Socket) {
     try {
       this.logger.log(`❌ Client disconnected: ${client.id}`);
+
+      this.knockService.removeAllKnocksForUser(client.id);
+
       const deleted = this.userManager.deleteSession(client.id);
       if (!deleted) {
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
@@ -257,5 +274,130 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
       }
     }
+  }
+
+  @SubscribeMessage(KnockEventType.KNOCK_SEND)
+  handleKnockSend(client: Socket, payload: KnockSendPayload) {
+    const fromUser = this.userManager.getSession(client.id);
+    const toUser = this.userManager.getSession(payload.targetUserId);
+
+    if (!fromUser || !toUser) {
+      client.emit("error", { message: "사용자를 찾을 수 없습니다." });
+      return;
+    }
+
+    const { canKnock, reason } = this.knockService.canKnock(fromUser.deskStatus, toUser.deskStatus);
+
+    if (!canKnock) {
+      client.emit("error", { message: reason });
+      return;
+    }
+
+    if (this.knockService.hasPendingKnock(client.id, payload.targetUserId)) {
+      client.emit("error", { message: "이미 노크 요청을 보냈습니다." });
+      return;
+    }
+
+    const knock = {
+      fromUserId: client.id,
+      fromUserNickname: fromUser.nickname,
+      timestamp: Date.now(),
+    };
+
+    this.knockService.addPendingKnock(knock, payload.targetUserId);
+
+    this.server.to(payload.targetUserId).emit(KnockEventType.KNOCK_RECEIVED, {
+      fromUserId: client.id,
+      fromUserNickname: fromUser.nickname,
+      timestamp: knock.timestamp,
+    });
+  }
+
+  @SubscribeMessage(KnockEventType.KNOCK_ACCEPT)
+  handleKnockAccept(client: Socket, payload: KnockResponsePayload) {
+    const toUser = this.userManager.getSession(client.id);
+    const fromUser = this.userManager.getSession(payload.fromUserId);
+
+    if (!toUser || !fromUser) {
+      client.emit("error", { message: "사용자를 찾을 수 없습니다." });
+      return;
+    }
+
+    const knock = this.knockService.getPendingKnock(payload.fromUserId, client.id);
+    if (!knock) {
+      client.emit("error", { message: "노크 요청을 찾을 수 없습니다." });
+      return;
+    }
+
+    if (fromUser.deskStatus === "talking") {
+      client.emit("error", { message: "상대방이 이미 다른 대화를 시작했습니다." });
+      this.knockService.removePendingKnock(payload.fromUserId, client.id);
+      return;
+    }
+
+    this.knockService.removePendingKnock(payload.fromUserId, client.id);
+
+    this.userManager.updateSessionDeskStatus(client.id, "talking");
+    this.userManager.updateSessionDeskStatus(payload.fromUserId, "talking");
+
+    this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_ACCEPTED, {
+      targetUserId: client.id,
+      targetUserNickname: toUser.nickname,
+      status: "accepted",
+    });
+
+    this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+      userId: client.id,
+      status: "talking",
+    });
+    this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+      userId: payload.fromUserId,
+      status: "talking",
+    });
+  }
+
+  @SubscribeMessage(KnockEventType.KNOCK_REJECT)
+  handleKnockReject(client: Socket, payload: KnockResponsePayload) {
+    const toUser = this.userManager.getSession(client.id);
+    const fromUser = this.userManager.getSession(payload.fromUserId);
+
+    if (!fromUser) {
+      this.knockService.removePendingKnock(payload.fromUserId, client.id);
+      return;
+    }
+
+    this.knockService.removePendingKnock(payload.fromUserId, client.id);
+
+    this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_REJECTED, {
+      targetUserId: client.id,
+      targetUserNickname: toUser?.nickname ?? "알 수 없음",
+      status: "rejected",
+    });
+  }
+
+  @SubscribeMessage(KnockEventType.DESK_STATUS_UPDATE)
+  handleDeskStatusUpdate(client: Socket, payload: DeskStatusUpdatePayload) {
+    const user = this.userManager.getSession(client.id);
+
+    if (!user) {
+      client.emit("error", { message: "사용자를 찾을 수 없습니다." });
+      return;
+    }
+    if (user.avatar.currentRoomId !== "desk zone") {
+      client.emit("error", { message: "데스크존에서만 상태를 변경할 수 있습니다." });
+      return;
+    }
+
+    if (user.deskStatus === "talking" && payload.status !== "talking") {
+      client.emit("error", { message: "대화 중에는 상태를 변경할 수 없습니다. 대화를 종료해주세요." });
+      return;
+    }
+
+    this.userManager.updateSessionDeskStatus(client.id, payload.status);
+
+    this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+      userId: client.id,
+      status: payload.status,
+    });
   }
 }

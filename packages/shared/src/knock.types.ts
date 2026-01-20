@@ -7,8 +7,6 @@ export enum KnockEventType {
   KNOCK_ACCEPTED = "knock:accepted",
   KNOCK_REJECT = "knock:reject",
   KNOCK_REJECTED = "knock:rejected",
-  KNOCK_CANCEL = "knock:cancel",
-  KNOCK_CANCELLED = "knock:cancelled",
   DESK_STATUS_UPDATE = "desk:status:update",
   DESK_STATUS_UPDATED = "desk:status:updated",
 }
