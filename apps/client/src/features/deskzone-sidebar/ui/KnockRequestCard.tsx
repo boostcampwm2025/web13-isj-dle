@@ -1,3 +1,4 @@
+import { ICON_SIZE } from "../model/desk-status.constants";
 import { Check, X } from "lucide-react";
 
 import type { Knock } from "@shared/types";
@@ -22,14 +23,14 @@ export const KnockRequestCard = ({ knock, onAccept, onReject }: KnockRequestCard
           onClick={() => onAccept(knock.fromUserId)}
           className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600"
         >
-          <Check size={16} />
+          <Check size={ICON_SIZE} />
           수락
         </button>
         <button
           onClick={() => onReject(knock.fromUserId)}
           className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-rose-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600"
         >
-          <X size={16} />
+          <X size={ICON_SIZE} />
           거절
         </button>
       </div>

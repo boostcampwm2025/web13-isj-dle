@@ -1,3 +1,4 @@
+import { ICON_SIZE } from "../model/desk-status.constants";
 import { KnockRequestCard } from "./KnockRequestCard";
 import { MyStatusSelector } from "./MyStatusSelector";
 import { UserListItem } from "./UserListItem";
@@ -73,7 +74,7 @@ const DeskzoneSidebar = () => {
     <div className="flex h-full w-full flex-col gap-4">
       <section className="flex flex-1 flex-col gap-2 overflow-hidden">
         <div className="mb-2 flex items-center gap-2 py-2 text-sm font-semibold text-gray-600">
-          <Users size={16} />
+          <Users size={ICON_SIZE} />
           <span>데스크존 사용자</span>
           <span className="text-gray-400">({deskzoneUsers.length})</span>
         </div>
@@ -125,7 +126,7 @@ const DeskzoneSidebar = () => {
       {receivedKnocks.length > 0 && (
         <section className="flex flex-col border-t border-gray-200 pt-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-600">
-            <Bell size={16} />
+            <Bell size={ICON_SIZE} />
             <span>노크 요청</span>
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
               {receivedKnocks.length}
@@ -151,7 +152,7 @@ const DeskzoneSidebar = () => {
             onClick={handleEndTalk}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-600"
           >
-            <PhoneOff size={16} />
+            <PhoneOff size={ICON_SIZE} />
             대화 종료하기
           </button>
         </section>
