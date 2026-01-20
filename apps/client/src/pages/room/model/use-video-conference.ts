@@ -27,15 +27,10 @@ export const useVideoConference = () => {
   const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
 
-  const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
-
-  const currentRoomId = user?.avatar.currentRoomId;
-  const userId = user?.id;
-  const nickname = user?.nickname;
-
-  const currentUserFromList = users.find((u) => u.id === userId);
-  const contactId = currentUserFromList?.contactId ?? user?.contactId;
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const userId = useUserStore((state) => state.user?.id);
+  const nickname = useUserStore((state) => state.user?.nickname);
+  const contactId = useUserStore((state) => state.user?.contactId);
 
   useEffect(() => {
     const actionKey: ActionKey = "view_mode";
