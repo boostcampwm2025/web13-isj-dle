@@ -1,3 +1,5 @@
+import WhiteboardModal from "./WhiteboardModal";
+
 import { COLLABORATION_TOOL, CollaborationToolSidebar } from "@entities/collaboration-tool";
 
 const WhiteboardSidebar = () => {
@@ -13,7 +15,9 @@ const WhiteboardSidebar = () => {
         "작업 내역 저장 및 불러오기",
       ]}
       buttonColor="blue"
-    />
+    >
+      <WhiteboardModal />
+    </CollaborationToolSidebar>
   );
 };
 

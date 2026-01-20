@@ -6,6 +6,7 @@ import { AppController } from "./app.controller";
 import { GameModule } from "./game/game.module";
 import { LecternModule } from "./lectern/lectern.module";
 import { LivekitModule } from "./livekit/livekit.module";
+import { TldrawModule } from "./tldraw/tldraw.module";
 import { UserModule } from "./user/user.module";
 import { YjsModule } from "./yjs/yjs.module";
 
@@ -34,6 +35,7 @@ import { YjsModule } from "./yjs/yjs.module";
     LivekitModule,
     LecternModule,
     YjsModule,
+    TldrawModule,
   ],
   controllers: [AppController],
 })
