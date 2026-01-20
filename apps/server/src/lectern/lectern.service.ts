@@ -58,8 +58,6 @@ export class LecternService {
     return affectedRooms;
   }
 
-  // ========== Breakout 관련 메서드 ==========
-
   private generateBreakoutRoomId(hostRoomId: string, index: number): string {
     const sanitized = hostRoomId.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
     return `breakout-${sanitized}-${index + 1}`;
@@ -73,7 +71,16 @@ export class LecternService {
     return array;
   }
 
-  createBreakout(hostRoomId: RoomType, hostId: string, config: BreakoutConfig, userIds: string[]): BreakoutState {
+  createBreakout(
+    hostRoomId: RoomType,
+    hostId: string,
+    config: BreakoutConfig,
+    userIds: string[],
+  ): BreakoutState | null {
+    if (this.breakoutStates.has(hostRoomId)) {
+      return null;
+    }
+
     const { roomCount, isRandom } = config;
 
     const rooms: BreakoutRoom[] = [];

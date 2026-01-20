@@ -1,7 +1,8 @@
-import { DoorOpen, Minus, Plus, Shuffle, Users } from "lucide-react";
+import { DoorOpen, Minus, Plus, Shuffle, Users, X } from "lucide-react";
 
 import { useState } from "react";
 
+import { useBreakoutStore } from "@entities/lectern/breakout.store";
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
 import { LecternEventType } from "@shared/types";
@@ -10,11 +11,16 @@ export const BreakoutPanel = () => {
   const { socket } = useWebSocket();
   const user = useUserStore((state) => state.user);
   const users = useUserStore((state) => state.users);
+  const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
   const [roomCount, setRoomCount] = useState(2);
   const [isRandom, setIsRandom] = useState(true);
 
-  const currentRoomUsers = users.filter((u) => u.avatar.currentRoomId === user?.avatar.currentRoomId);
+  const isBreakoutActive = breakoutState?.isActive ?? false;
+
+  const currentRoomUsers = users
+    .filter((u) => u.avatar.currentRoomId === user?.avatar.currentRoomId)
+    .filter((u) => u.id !== user?.id);
 
   const handleCreateBreakout = () => {
     if (!socket || !user) return;
@@ -29,7 +35,59 @@ export const BreakoutPanel = () => {
     });
   };
 
+  const handleEndBreakout = () => {
+    if (!socket || !user) return;
+
+    socket.emit(LecternEventType.BREAKOUT_END, {
+      roomId: user.avatar.currentRoomId,
+    });
+  };
+
   const canCreate = currentRoomUsers.length >= 2 && roomCount >= 2;
+
+  if (isBreakoutActive && breakoutState) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <DoorOpen className="h-4 w-4" />
+          <span>진행 중인 책상 나누기</span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {breakoutState.rooms.map((room) => (
+            <div key={room.roomId} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                <DoorOpen className="h-3.5 w-3.5" />
+                <span>{room.roomId}</span>
+              </div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {room.userIds.length > 0 ? (
+                  room.userIds.map((userId) => {
+                    const roomUser = users.find((u) => u.id === userId);
+                    return (
+                      <span key={userId} className="rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-700">
+                        {roomUser?.nickname ?? userId.slice(0, 6)}
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="text-xs text-gray-400">배정된 인원 없음</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleEndBreakout}
+          className="group flex items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-500 px-4 py-3 text-white shadow-sm transition-all hover:border-red-300 hover:bg-red-600 hover:shadow-md active:scale-[0.98]"
+        >
+          <X className="h-5 w-5" />
+          <span className="font-semibold">책상 나누기 종료</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

@@ -17,7 +17,6 @@ export enum LecternEventType {
   BREAKOUT_END = "lectern:breakout-end",
 }
 
-// Breakout 관련 타입
 export interface BreakoutRoom {
   roomId: string;
   userIds: string[];

@@ -3,12 +3,14 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
 import { useLecternStore } from "@entities/lectern/lectern.store.ts";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import {
   type AvatarDirection,
   type AvatarState,
+  type BreakoutState,
   LecternEventType,
   type RoomType,
   type User,
@@ -123,18 +125,17 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       }
     };
 
-    // TODO: 테스트용 로그 - 나중에 실제 로직으로 대체
-    const handleBreakoutUpdate = (data: { roomId: RoomType; state: unknown }) => {
+    const handleBreakoutUpdate = (data: { roomId: RoomType; state: BreakoutState | null }) => {
       console.log("📥 [Breakout] BREAKOUT_UPDATE received");
       console.log("📋 [Breakout] Data:", JSON.stringify(data, null, 2));
+
+      useBreakoutStore.getState().setBreakoutState(data.state);
 
       const currentUser = useUserStore.getState().user;
       if (!currentUser) return;
 
       if (data.state) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const state = data.state as any;
-        const myRoom = state.rooms?.find((room: { userIds: string[] }) => room.userIds.includes(currentUser.id));
+        const myRoom = data.state.rooms?.find((room) => room.userIds.includes(currentUser.id));
 
         if (myRoom) {
           console.log(`🎯 [Breakout] 내가 배정된 방: ${myRoom.roomId}`);
@@ -142,7 +143,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
           console.log("🚪 [Breakout] 수동 입장 모드 - 방 선택 필요");
           console.log(
             "📋 [Breakout] 사용 가능한 방:",
-            state.rooms?.map((r: { roomId: string }) => r.roomId),
+            data.state.rooms?.map((r) => r.roomId),
           );
         }
       } else {

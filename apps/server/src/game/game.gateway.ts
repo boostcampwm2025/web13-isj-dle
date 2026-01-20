@@ -280,6 +280,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     const state = this.lecternService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
+
+    if (!state) {
+      this.logger.warn(`⚠️ Breakout already exists for ${payload.roomId}`);
+      client.emit("error", { message: "Breakout already exists" });
+      return;
+    }
+
     this.logger.log(`📦 Created breakout state: ${JSON.stringify(state, null, 2)}`);
 
     this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
