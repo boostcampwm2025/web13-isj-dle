@@ -38,6 +38,12 @@ export const useFileSystem = (
     (name: string, type: "file" | "folder", parentId: string | null) => {
       if (!ydocRef.current) return;
       const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
+      if (!/^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)?$/.test(name)) {
+        alert(
+          "이름은 다음과 같은 조건이 충족되어야 합니다.\n- 영문자, 숫자, 밑줄(_), 대시(-), 점(.)만 포함할 수 있습니다.\n- 공백은 허용되지 않습니다.\n- 점(.)으로 시작하거나 끝날 수 없습니다.\n- 점(.)은 이름에 하나만 포함될 수 있습니다.",
+        );
+        return;
+      }
 
       let finalName = name;
       if (type === "file" && monaco) {
