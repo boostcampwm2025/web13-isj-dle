@@ -18,12 +18,7 @@ export class BoundaryRenderer {
     this.graphics.setDepth(depth);
   }
 
-  render(
-    users: User[],
-    currentUser: User | null | undefined,
-    currentAvatarPosition?: { x: number; y: number },
-    currentAvatarState?: string,
-  ): void {
+  render(users: User[], currentUser: User | null | undefined, currentAvatarPosition?: { x: number; y: number }): void {
     if (this.graphics) {
       this.graphics.clear();
     }
@@ -33,7 +28,7 @@ export class BoundaryRenderer {
     const contactGroups = new Map<string, Array<{ x: number; y: number }>>();
 
     for (const user of users) {
-      if (!user.contactId || user.avatar.currentRoomId !== "lobby" || user.avatar.state !== "idle") continue;
+      if (!user.contactId || user.avatar.currentRoomId !== "lobby") continue;
 
       let group = contactGroups.get(user.contactId);
       if (!group) {
@@ -44,7 +39,7 @@ export class BoundaryRenderer {
       group.push({ x: user.avatar.x, y: user.avatar.y });
     }
 
-    if (currentUser?.contactId && currentAvatarState === "idle" && currentAvatarPosition) {
+    if (currentUser?.contactId && currentAvatarPosition) {
       let group = contactGroups.get(currentUser.contactId);
       if (!group) {
         group = [];
