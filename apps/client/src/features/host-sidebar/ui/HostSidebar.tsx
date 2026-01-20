@@ -1,6 +1,6 @@
 import { BreakoutPanel } from "./BreakoutPanel";
 import { MuteAllButton } from "./MuteAllButton";
-import { DoorOpen, Users } from "lucide-react";
+import { Blocks, Users } from "lucide-react";
 
 const HostSidebar = () => {
   return (
@@ -17,7 +17,7 @@ const HostSidebar = () => {
 
       <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
-          <DoorOpen className="h-4 w-4 text-gray-600" />
+          <Blocks className="h-4 w-4 text-gray-600" />
           <h3 className="text-sm font-semibold text-gray-700">책상 나누기</h3>
         </div>
         <BreakoutPanel />

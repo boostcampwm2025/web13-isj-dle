@@ -1,4 +1,4 @@
-import { DoorOpen, Minus, Plus, Shuffle, Users, X } from "lucide-react";
+import { Blocks, Minus, Plus, Shuffle, Users, X } from "lucide-react";
 
 import { useState } from "react";
 
@@ -71,7 +71,7 @@ export const BreakoutPanel = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white">
-                <DoorOpen className="h-4 w-4" />
+                <Blocks className="h-4 w-4" />
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-blue-900">책상 나누기 진행 중</span>
@@ -124,7 +124,7 @@ export const BreakoutPanel = () => {
 
       <div className="flex flex-col gap-2">
         <label className="flex items-center gap-1.5 text-xs text-gray-700">
-          <DoorOpen className="h-3.5 w-3.5" />
+          <Blocks className="h-3.5 w-3.5" />
           책상 개수
         </label>
         <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export const BreakoutPanel = () => {
         disabled={!canCreate}
         className="group flex items-center justify-center gap-3 rounded-lg border border-blue-200 bg-blue-500 px-4 py-3 text-white shadow-sm transition-all hover:border-blue-300 hover:bg-blue-600 hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-300 disabled:shadow-none"
       >
-        <DoorOpen className="h-5 w-5" />
+        <Blocks className="h-5 w-5" />
         <span className="font-semibold">책상 나누기</span>
       </button>
     </div>
