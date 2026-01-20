@@ -181,6 +181,25 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         user: updatedUser,
         users: this.userManager.getAllSessions(),
       });
+
+      if (payload.roomId === "desk zone") {
+        this.userManager.updateSessionDeskStatus(client.id, "available");
+
+        this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+          userId: client.id,
+          status: "available",
+        });
+
+        const deskzoneUsers = this.userManager.getRoomSessions("desk zone");
+        for (const deskUser of deskzoneUsers) {
+          if (deskUser.id !== client.id && deskUser.deskStatus) {
+            client.emit(KnockEventType.DESK_STATUS_UPDATED, {
+              userId: deskUser.id,
+              status: deskUser.deskStatus,
+            });
+          }
+        }
+      }
     } catch (error) {
       const trace = error instanceof Error ? error.stack : String(error);
       this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
