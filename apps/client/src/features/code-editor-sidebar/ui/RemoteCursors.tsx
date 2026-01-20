@@ -1,4 +1,4 @@
-import { getColorForClient, injectCursorStyles, removeCursorStyles } from "../model/cursor-colors";
+import { getColorForClient, injectCursorStyles, removeCursorStyles } from "../model/cursor-colors.utils";
 import "./remote-cursors.css";
 import type * as Monaco from "monaco-editor";
 import { WebsocketProvider } from "y-websocket";

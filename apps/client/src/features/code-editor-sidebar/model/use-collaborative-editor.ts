@@ -1,4 +1,4 @@
-import { getColorForClient } from "./cursor-colors";
+import { getColorForClient } from "./cursor-colors.utils";
 import type * as Monaco from "monaco-editor";
 import { MonacoBinding } from "y-monaco";
 import { WebsocketProvider } from "y-websocket";
