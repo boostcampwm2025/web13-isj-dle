@@ -25,8 +25,10 @@ interface CursorWidget extends Monaco.editor.IContentWidget {
 
 const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
   const widgetsRef = useRef<Map<number, CursorWidget>>(new Map());
-
   const fadeTimeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+
+  const throttleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingUpdateRef = useRef(false);
 
   useEffect(() => {
     const doc = ytext.doc;
@@ -37,7 +39,6 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
 
     const createWidget = (clientID: number, name: string, position: Monaco.IPosition): CursorWidget => {
       const { color } = getColorForClient(clientID);
-
       injectCursorStyles(clientID);
 
       const domNode = document.createElement("div");
@@ -48,15 +49,16 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
         "remote-cursor-label px-1.5 py-0.5 rounded-r rounded-b text-xs font-medium text-white max-w-36 truncate";
       label.style.backgroundColor = color;
       label.textContent = name;
+
       domNode.appendChild(label);
 
       const timeout = setTimeout(() => {
         label.classList.add("fade-out");
       }, 3000);
       fadeTimeoutsRef.current.set(clientID, timeout);
+
       const widget: CursorWidget = {
         clientID,
-
         getId: () => `remote-cursor-${clientID}`,
         getDomNode: () => domNode,
         getPosition: () => ({
@@ -68,10 +70,9 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
       return widget;
     };
 
-    const updateCursors = () => {
+    const performUpdate = () => {
       const states = awareness.getStates();
       const currentWidgets = widgetsRef.current;
-
       const seenClients = new Set<number>();
 
       states.forEach((state, clientID) => {
@@ -80,7 +81,6 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
         seenClients.add(clientID);
 
         const userName = state.user?.name || "Anonymous";
-
         const selection = state.selection;
 
         if (!selection?.head) {
@@ -94,7 +94,6 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
         }
 
         const headAbs = Y.createAbsolutePositionFromRelativePosition(selection.head, doc);
-
         if (!headAbs || headAbs.type !== ytext) return;
 
         const position = model.getPositionAt(headAbs.index);
@@ -104,7 +103,6 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
         if (existingWidget) {
           const domNode = existingWidget.getDomNode();
           const label = domNode.querySelector(".remote-cursor-label");
-
           if (label && label.textContent !== userName) {
             label.textContent = userName;
           }
@@ -113,7 +111,6 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
             position,
             preference: [ContentWidgetPositionPreference.BELOW, ContentWidgetPositionPreference.ABOVE],
           });
-
           editor.layoutContentWidget(existingWidget);
 
           const oldTimeout = fadeTimeoutsRef.current.get(clientID);
@@ -121,7 +118,6 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
 
           if (label) {
             label.classList.remove("fade-out");
-
             const newTimeout = setTimeout(() => {
               label.classList.add("fade-out");
             }, 3000);
@@ -133,12 +129,11 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
           editor.addContentWidget(widget);
         }
       });
+
       currentWidgets.forEach((widget, clientID) => {
         if (!seenClients.has(clientID)) {
           editor.removeContentWidget(widget);
-
           currentWidgets.delete(clientID);
-
           removeCursorStyles(clientID);
 
           const timeout = fadeTimeoutsRef.current.get(clientID);
@@ -150,12 +145,34 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
       });
     };
 
-    updateCursors();
+    const updateCursors = () => {
+      if (throttleTimerRef.current) {
+        pendingUpdateRef.current = true;
+        return;
+      }
 
+      performUpdate();
+      pendingUpdateRef.current = false;
+
+      throttleTimerRef.current = setTimeout(() => {
+        throttleTimerRef.current = null;
+
+        if (pendingUpdateRef.current) {
+          updateCursors();
+        }
+      }, 16);
+    };
+
+    updateCursors();
     awareness.on("change", updateCursors);
 
     return () => {
       awareness.off("change", updateCursors);
+
+      if (throttleTimerRef.current) {
+        clearTimeout(throttleTimerRef.current);
+        throttleTimerRef.current = null;
+      }
 
       widgetsRef.current.forEach((widget, clientID) => {
         editor.removeContentWidget(widget);
