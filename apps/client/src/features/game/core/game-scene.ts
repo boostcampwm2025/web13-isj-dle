@@ -16,7 +16,15 @@ import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
 import { LecternManager } from "@features/game/managers/lectern.manager.ts";
-import { AVATAR_ASSETS, type AvatarAssetKey, TILE_SIZE, type User, UserEventType } from "@shared/types";
+import {
+  AVATAR_ASSETS,
+  type AvatarAssetKey,
+  type AvatarDirection,
+  type AvatarState,
+  TILE_SIZE,
+  type User,
+  UserEventType,
+} from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
@@ -61,6 +69,14 @@ export class GameScene extends Phaser.Scene {
 
   get deskSeatPoints() {
     return getSeatPoints(this.mapObj.map, "DeskZone");
+  }
+
+  movePlayer(x: number, y: number, direction: AvatarDirection, state: AvatarState): void {
+    if (!this.avatar) return;
+    this.avatar.direction = direction;
+    this.avatar.state = state;
+    this.avatar.sprite.setPosition(x, y);
+    this.animationManager.toSit(this.avatar.sprite, direction);
   }
 
   preload() {
