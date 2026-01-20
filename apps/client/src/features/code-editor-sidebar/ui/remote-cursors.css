@@ -27,7 +27,3 @@
     opacity: 0.6;
   }
 }
-
-.monaco-editor .suggest-widget {
-  z-index: 60;
-}
