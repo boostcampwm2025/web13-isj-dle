@@ -30,6 +30,7 @@ const CodeEditorModalContent = () => {
     selectedFileId,
     fileSystem,
     setLanguage,
+    () => selectFile(null),
   );
   const { remoteCursorData } = useRemoteCursor({
     isInitialized,

@@ -13,6 +13,7 @@ export const useEditorBinding = (
   selectedFileId: string | null,
   fileSystem: Record<string, FileSystemItem>,
   setLanguage: (language: string) => void,
+  onSelectedFileDeleted: () => void,
 ) => {
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
@@ -38,6 +39,20 @@ export const useEditorBinding = (
       return;
     }
 
+    const item = fileSystem[selectedFileId];
+    if (!item) {
+      console.warn(`File with id ${selectedFileId} not found in file system`);
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+        bindingRef.current = null;
+      }
+      if (editorRef.current) {
+        editorRef.current.setModel(null);
+      }
+      onSelectedFileDeleted();
+      return;
+    }
+
     if (bindingRef.current) {
       bindingRef.current.destroy();
       bindingRef.current = null;
@@ -48,7 +63,6 @@ export const useEditorBinding = (
     const uri = monaco.Uri.parse(`file:///${selectedFileId}`);
 
     let model = monaco.editor.getModel(uri);
-    const item = fileSystem[selectedFileId];
     const language = getLanguageFromFileName(item.name, monaco) || "plaintext";
     setLanguage(language);
 
@@ -59,7 +73,7 @@ export const useEditorBinding = (
     editorRef.current.setModel(model);
     const binding = new MonacoBinding(ytext, model, new Set([editorRef.current]), providerRef.current.awareness);
     bindingRef.current = binding;
-  }, [selectedFileId, monaco, fileSystem, ydocRef, providerRef, setLanguage]);
+  }, [selectedFileId, monaco, fileSystem, ydocRef, providerRef, setLanguage, onSelectedFileDeleted]);
 
   useEffect(() => {
     return () => {
