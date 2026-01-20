@@ -448,4 +448,63 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.logger.log(`📞 대화 종료: ${userNickname} (${reason}) - 상대: ${partner.nickname}`);
   }
+
+  @SubscribeMessage(KnockEventType.TALK_END)
+  handleTalkEnd(client: Socket) {
+    const user = this.userManager.getSession(client.id);
+
+    if (!user) {
+      client.emit("error", { message: "사용자를 찾을 수 없습니다." });
+      return;
+    }
+
+    if (user.deskStatus !== "talking") {
+      client.emit("error", { message: "현재 대화 중이 아닙니다." });
+      return;
+    }
+
+    const partnerId = this.knockService.getTalkingPartner(client.id);
+    if (!partnerId) {
+      client.emit("error", { message: "대화 상대를 찾을 수 없습니다." });
+      return;
+    }
+
+    const partner = this.userManager.getSession(partnerId);
+
+    this.knockService.removeTalkingPair(client.id);
+
+    this.userManager.updateSessionDeskStatus(client.id, "available");
+    this.userManager.updateSessionDeskStatus(partnerId, "available");
+
+    this.userManager.updateSessionContactId(client.id, null);
+    this.userManager.updateSessionContactId(partnerId, null);
+
+    this.server.to(partnerId).emit(KnockEventType.TALK_ENDED, {
+      partnerUserId: client.id,
+      partnerNickname: user.nickname,
+      reason: "ended_by_user",
+    });
+
+    client.emit(KnockEventType.TALK_ENDED, {
+      partnerUserId: partnerId,
+      partnerNickname: partner?.nickname ?? "알 수 없음",
+      reason: "ended_by_user",
+    });
+
+    this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+      userId: client.id,
+      status: "available",
+    });
+    this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
+      userId: partnerId,
+      status: "available",
+    });
+
+    this.server.to("desk zone").emit(UserEventType.BOUNDARY_UPDATE, {
+      [client.id]: null,
+      [partnerId]: null,
+    });
+
+    this.logger.log(`📞 대화 종료 (사용자 요청): ${user.nickname} ↔ ${partner?.nickname}`);
+  }
 }

@@ -89,11 +89,22 @@ export const useKnock = () => {
     [user, users, sentKnockTargets],
   );
 
+  const endTalk = useCallback(() => {
+    if (!socket || !isConnected) return;
+    if (user?.deskStatus !== "talking") return;
+
+    socket.emit(KnockEventType.TALK_END);
+  }, [socket, isConnected, user?.deskStatus]);
+
+  const isTalking = user?.deskStatus === "talking";
+
   return {
     sendKnock,
     acceptKnock,
     rejectKnock,
     updateDeskStatus,
     canKnockTo,
+    endTalk,
+    isTalking,
   };
 };
