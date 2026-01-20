@@ -4,7 +4,12 @@ import { usePhaserGame } from "./use-phaser-game";
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 
+import { useAction } from "@features/actions";
+import { useWebSocket } from "@features/socket";
+
 export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | null>) => {
+  const { getHookByKey } = useAction();
+  const { socket } = useWebSocket();
   const { game, setGame } = usePhaserGame();
   const isInitializedRef = useRef<boolean>(false);
 
@@ -26,6 +31,14 @@ export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | n
       }
     };
   }, [game, setGame, containerRef]);
+
+  useEffect(() => {
+    const deskZoneAction = getHookByKey("desk_zone");
+    if (deskZoneAction && deskZoneAction.setGame && deskZoneAction.setSocket) {
+      deskZoneAction.setGame(game);
+      deskZoneAction.setSocket(socket);
+    }
+  }, [getHookByKey, game, socket]);
 
   return {
     game,
