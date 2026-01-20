@@ -11,10 +11,13 @@ import {
 import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
 import type { RoomJoinPayload } from "@shared/types";
 import { Server, Socket } from "socket.io";
+import { BoundaryService } from "src/boundary/boundary.service";
+import { BoundaryTracker } from "src/boundary/boundaryTracker.service";
 import { NoticeService } from "src/notice/notice.service";
 
-import { BoundaryService } from "../boundary/boundary.service";
 import { UserManager } from "../user/user-manager.service";
+
+const BOUNDARY_TICK_MS = 300;
 
 @WebSocketGateway({
   cors: {
@@ -26,22 +29,27 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(GameGateway.name);
 
+  private boundaryTick: NodeJS.Timeout | null = null;
+
   constructor(
     private readonly userManager: UserManager,
     private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
+    private readonly boundaryTracker: BoundaryTracker,
   ) {}
 
   afterInit() {
     this.logger.log("🚀 WebSocket Gateway initialized");
     this.logger.log(`📡 CORS origins: ${process.env.CLIENT_URL || "http://localhost:5173,http://localhost:3000"}`);
+
+    this.boundaryTick = setInterval(() => {
+      this.runBoundaryTick();
+    }, BOUNDARY_TICK_MS);
   }
 
   async handleConnection(client: Socket) {
     try {
-      const user = this.userManager.createSession({
-        id: client.id,
-      });
+      const user = this.userManager.createSession({ id: client.id });
 
       if (!user) {
         this.logger.error(`Failed to create session for client: ${client.id}`);
@@ -63,6 +71,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleDisconnect(client: Socket) {
     try {
       this.logger.log(`❌ Client disconnected: ${client.id}`);
+
+      this.boundaryTracker.clear(client.id);
+
       const deleted = this.userManager.deleteSession(client.id);
       if (!deleted) {
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
@@ -108,37 +119,22 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       const previousRoomId = user.avatar.currentRoomId;
 
-      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
-      if (!updated) {
-        this.logger.error(`❌ Failed to update room for user: ${client.id}`);
-        return;
-      }
-
-      this.userManager.updateSessionContactId(client.id, null);
+      this.userManager.updateSessionRoom(client.id, payload.roomId);
 
       if (previousRoomId === "lobby") {
-        const lobbyUsers = this.userManager.getRoomSessions("lobby");
-        const groups = this.boundaryService.findBoundaryGroups(lobbyUsers);
-        const contactIdUpdates = this.boundaryService.updateContactIds(lobbyUsers, groups);
-
-        for (const [userId, newContactId] of contactIdUpdates) {
-          this.userManager.updateSessionContactId(userId, newContactId);
-        }
-
-        if (contactIdUpdates.size > 0) {
-          const updates = Object.fromEntries(contactIdUpdates);
-          this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, updates);
-        }
+        this.boundaryTracker.clear(client.id);
+        this.userManager.updateSessionContactId(client.id, null);
       }
 
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
 
       const updatedUser = this.userManager.getSession(client.id);
+      if (!updatedUser) return;
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
         userId: client.id,
-        avatar: updatedUser!.avatar,
+        avatar: updatedUser.avatar,
       });
 
       client.emit(UserEventType.USER_SYNC, {
@@ -181,20 +177,44 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userId: client.id,
       ...payload,
     });
+  }
 
-    if (roomId === "lobby") {
-      const roomUsers = this.userManager.getRoomSessions(roomId);
-      const groups = this.boundaryService.findBoundaryGroups(roomUsers);
-      const contactIdUpdates = this.boundaryService.updateContactIds(roomUsers, groups);
+  private runBoundaryTick() {
+    const lobbyUsers = this.userManager.getRoomSessions("lobby");
+    if (lobbyUsers.length === 0) return;
 
-      for (const [userId, newContactId] of contactIdUpdates) {
-        this.userManager.updateSessionContactId(userId, newContactId);
-      }
+    const updates = new Map<string, string | null>();
 
-      if (contactIdUpdates.size > 0) {
-        const updates = Object.fromEntries(contactIdUpdates);
-        this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
+    const connectedGroups = this.boundaryService.findConnectedGroups(lobbyUsers);
+    this.boundaryTracker.pruneInactiveGroups(new Set(connectedGroups.keys()));
+
+    const usersInGroups = new Set<string>();
+    for (const members of connectedGroups.values()) {
+      for (const memberId of members) {
+        usersInGroups.add(memberId);
       }
     }
+
+    for (const [groupId, members] of connectedGroups) {
+      for (const memberId of members) {
+        const update = this.boundaryTracker.joinGroup(memberId, groupId);
+        if (update !== undefined) updates.set(memberId, update);
+      }
+    }
+
+    for (const user of lobbyUsers) {
+      if (usersInGroups.has(user.id)) continue;
+
+      const update = this.boundaryTracker.leaveGroup(user.id);
+      if (update !== undefined) updates.set(user.id, update);
+    }
+
+    if (updates.size === 0) return;
+
+    for (const [userId, contactId] of updates) {
+      this.userManager.updateSessionContactId(userId, contactId);
+    }
+
+    this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, Object.fromEntries(updates));
   }
 }
