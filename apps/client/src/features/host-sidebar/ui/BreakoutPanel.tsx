@@ -4,14 +4,14 @@ import { useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
-import { BreakoutEventType } from "@shared/types";
+import { LecternEventType } from "@shared/types";
 
 export const BreakoutPanel = () => {
   const { socket } = useWebSocket();
   const user = useUserStore((state) => state.user);
   const users = useUserStore((state) => state.users);
 
-  const [roomCount, setRoomCount] = useState(1);
+  const [roomCount, setRoomCount] = useState(2);
   const [isRandom, setIsRandom] = useState(true);
 
   const currentRoomUsers = users.filter((u) => u.avatar.currentRoomId === user?.avatar.currentRoomId);
@@ -19,7 +19,7 @@ export const BreakoutPanel = () => {
   const handleCreateBreakout = () => {
     if (!socket || !user) return;
 
-    socket.emit(BreakoutEventType.BREAKOUT_CREATE, {
+    socket.emit(LecternEventType.BREAKOUT_CREATE, {
       roomId: user.avatar.currentRoomId,
       config: {
         roomCount,
@@ -102,7 +102,7 @@ export const BreakoutPanel = () => {
         className="group flex items-center justify-center gap-3 rounded-lg border border-blue-200 bg-blue-500 px-4 py-3 text-white shadow-sm transition-all hover:border-blue-300 hover:bg-blue-600 hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-300 disabled:shadow-none"
       >
         <DoorOpen className="h-5 w-5" />
-        <span className="font-semibold">소회의실 생성</span>
+        <span className="font-semibold">책상 나누기</span>
       </button>
     </div>
   );

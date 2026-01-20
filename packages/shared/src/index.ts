@@ -8,4 +8,3 @@ export * from "./room-event.types";
 export * from "./game-scene.constants";
 export * from "./livekit.types";
 export * from "./lectern.types";
-export * from "./breakout.types";

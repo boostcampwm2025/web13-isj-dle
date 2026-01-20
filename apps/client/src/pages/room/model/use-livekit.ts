@@ -84,6 +84,13 @@ export const useLivekit = (): UseLivekitState => {
   return livekitState;
 };
 
-export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
+export const getEffectiveRoomId = (
+  roomId: string,
+  contactId: string | null | undefined,
+  breakoutRoomId?: string | null | undefined,
+): string => {
+  if (breakoutRoomId) {
+    return breakoutRoomId;
+  }
   return roomId === "lobby" && contactId ? contactId : roomId;
 };

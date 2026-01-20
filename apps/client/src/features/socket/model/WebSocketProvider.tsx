@@ -123,6 +123,33 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       }
     };
 
+    // TODO: 테스트용 로그 - 나중에 실제 로직으로 대체
+    const handleBreakoutUpdate = (data: { roomId: RoomType; state: unknown }) => {
+      console.log("📥 [Breakout] BREAKOUT_UPDATE received");
+      console.log("📋 [Breakout] Data:", JSON.stringify(data, null, 2));
+
+      const currentUser = useUserStore.getState().user;
+      if (!currentUser) return;
+
+      if (data.state) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const state = data.state as any;
+        const myRoom = state.rooms?.find((room: { userIds: string[] }) => room.userIds.includes(currentUser.id));
+
+        if (myRoom) {
+          console.log(`🎯 [Breakout] 내가 배정된 방: ${myRoom.roomId}`);
+        } else {
+          console.log("🚪 [Breakout] 수동 입장 모드 - 방 선택 필요");
+          console.log(
+            "📋 [Breakout] 사용 가능한 방:",
+            state.rooms?.map((r: { roomId: string }) => r.roomId),
+          );
+        }
+      } else {
+        console.log("🔚 [Breakout] Breakout 종료됨");
+      }
+    };
+
     socketInstance.on("connect", handleConnect);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("connect_error", handleConnectError);
@@ -139,6 +166,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     socketInstance.on(LecternEventType.LECTERN_UPDATE, handleLecternUpdate);
     socketInstance.on(LecternEventType.MUTE_ALL_EXECUTED, handleMuteAllExecuted);
+    socketInstance.on(LecternEventType.BREAKOUT_UPDATE, handleBreakoutUpdate);
 
     return () => {
       if (socketRef.current) {

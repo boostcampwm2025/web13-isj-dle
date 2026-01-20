@@ -18,7 +18,7 @@ const HostSidebar = () => {
       <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
           <DoorOpen className="h-4 w-4 text-gray-600" />
-          <h3 className="text-sm font-semibold text-gray-700">소회의실 생성</h3>
+          <h3 className="text-sm font-semibold text-gray-700">책상 나누기</h3>
         </div>
         <BreakoutPanel />
       </section>
