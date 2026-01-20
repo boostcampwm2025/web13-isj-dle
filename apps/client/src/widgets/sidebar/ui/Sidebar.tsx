@@ -3,6 +3,8 @@ import useSidebarState from "../model/use-sidebar-state";
 import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
+import { Suspense } from "react";
+
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 import { useBindChat } from "@src/entities/chat";
@@ -28,7 +30,9 @@ const Sidebar = () => {
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2 text-gray-500" />
               <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
-                <currentPanel.Panel />
+                <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                  <currentPanel.Panel />
+                </Suspense>
               </div>
             </div>
           ) : (

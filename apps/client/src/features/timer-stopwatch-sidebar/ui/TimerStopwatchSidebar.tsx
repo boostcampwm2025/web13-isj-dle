@@ -13,10 +13,13 @@ import {
   WARNING_SECONDS,
 } from "../model/timer.constants";
 import { useStopwatch } from "../model/use-stopwatch";
+import { useSyncTimer } from "../model/use-sync-timer";
 import { useTimer } from "../model/use-timer";
 import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
 import { Pause, Play, RotateCcw } from "lucide-react";
+
+import { useUserStore } from "@entities/user";
 
 const getDisplayValues = (timeSec: number) => ({
   hours: Math.floor(timeSec / 3600),
@@ -26,15 +29,76 @@ const getDisplayValues = (timeSec: number) => ({
 
 export const TimerStopwatchSidebar = () => {
   const { mode, setMode } = useTimerStopwatchStore();
+  const user = useUserStore((state) => state.user);
+  const roomId = user?.avatar.currentRoomId ?? null;
+  const isMeetingRoom = roomId?.startsWith("meeting") ?? false;
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
+  const { syncStart, syncPause, syncReset, syncAddTime } = useSyncTimer({ roomId, isMeetingRoom });
 
   const isTimerMode = mode === "timer";
   const activeControl = isTimerMode ? timer : stopwatch;
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
+  };
+
+  const handleStart = () => {
+    if (isTimerMode) {
+      const { startedAt, pausedTimeSec } = useTimerStopwatchStore.getState().timer;
+      const { hours, minutes, seconds } = timer;
+
+      if (startedAt === null && pausedTimeSec === 0) {
+        const total = hours * 3600 + minutes * 60 + seconds;
+        if (total <= 0) return;
+        const now = Date.now();
+        timer.start();
+        if (isMeetingRoom) {
+          syncStart(total, now);
+        }
+      } else {
+        const now = Date.now();
+        timer.start();
+        if (isMeetingRoom) {
+          syncStart(pausedTimeSec, now);
+        }
+      }
+    } else {
+      stopwatch.start();
+    }
+  };
+
+  const handlePause = () => {
+    if (isTimerMode) {
+      const { startedAt, initialTimeSec } = useTimerStopwatchStore.getState().timer;
+      const elapsed = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
+      const remaining = Math.max(0, initialTimeSec - elapsed);
+      timer.pause();
+      if (isMeetingRoom) {
+        syncPause(remaining);
+      }
+    } else {
+      stopwatch.pause();
+    }
+  };
+
+  const handleReset = () => {
+    if (isTimerMode) {
+      timer.reset();
+      if (isMeetingRoom) {
+        syncReset();
+      }
+    } else {
+      stopwatch.reset();
+    }
+  };
+
+  const handleAddTime = (sec: number) => {
+    timer.addTime(sec);
+    if (isMeetingRoom && timer.isRunning) {
+      syncAddTime(sec);
+    }
   };
 
   const isEditable = isTimerMode && !timer.isRunning;
@@ -92,7 +156,7 @@ export const TimerStopwatchSidebar = () => {
                 <TimerQuickButton
                   key={quickTime.label}
                   label={quickTime.label}
-                  onClick={() => timer.addTime(quickTime.seconds)}
+                  onClick={() => handleAddTime(quickTime.seconds)}
                 />
               ))}
             </div>
@@ -100,7 +164,7 @@ export const TimerStopwatchSidebar = () => {
 
           <div className="flex gap-2">
             <button
-              onClick={activeControl.isRunning ? activeControl.pause : activeControl.start}
+              onClick={activeControl.isRunning ? handlePause : handleStart}
               className={`flex h-10 flex-1 items-center justify-center gap-1 rounded-lg text-sm font-medium text-white ${startStopButtonStyle}`}
             >
               {activeControl.isRunning ? <Pause size={TIMER_ICON_SIZE} /> : <Play size={TIMER_ICON_SIZE} />}
@@ -108,7 +172,7 @@ export const TimerStopwatchSidebar = () => {
             </button>
 
             <button
-              onClick={activeControl.reset}
+              onClick={handleReset}
               className="flex h-10 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100"
             >
               <RotateCcw size={TIMER_ICON_SIZE} />

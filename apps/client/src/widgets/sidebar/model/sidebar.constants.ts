@@ -1,12 +1,17 @@
 import { Code, Megaphone, MessageCircleMore, PenTool, Timer, Users } from "lucide-react";
 
+import { lazy } from "react";
+
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
-import { TimerStopwatchSidebar } from "@features/timer-stopwatch-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
+
+const TimerStopwatchSidebar = lazy(() =>
+  import("@features/timer-stopwatch-sidebar").then((m) => ({ default: m.TimerStopwatchSidebar })),
+);
 
 export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
   users: {
