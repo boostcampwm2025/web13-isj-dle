@@ -270,11 +270,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userIds: string[];
     },
   ) {
-    this.logger.log(`🚀 BREAKOUT_CREATE received from ${client.id}`);
-    this.logger.log(`📋 Payload: ${JSON.stringify(payload, null, 2)}`);
-
     if (!this.lecternService.isHost(payload.roomId, client.id)) {
-      this.logger.warn(`❌ ${client.id} is not a host of ${payload.roomId}`);
       client.emit("error", { message: "You're not a host" });
       return;
     }
@@ -282,18 +278,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const state = this.lecternService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
 
     if (!state) {
-      this.logger.warn(`⚠️ Breakout already exists for ${payload.roomId}`);
       client.emit("error", { message: "Breakout already exists" });
       return;
     }
-
-    this.logger.log(`📦 Created breakout state: ${JSON.stringify(state, null, 2)}`);
 
     this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
       roomId: payload.roomId,
       state,
     });
-    this.logger.log(`📤 BREAKOUT_UPDATE emitted to ${payload.roomId}`);
   }
 
   @SubscribeMessage(LecternEventType.BREAKOUT_END)

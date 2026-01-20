@@ -126,29 +126,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleBreakoutUpdate = (data: { roomId: RoomType; state: BreakoutState | null }) => {
-      console.log("📥 [Breakout] BREAKOUT_UPDATE received");
-      console.log("📋 [Breakout] Data:", JSON.stringify(data, null, 2));
-
       useBreakoutStore.getState().setBreakoutState(data.state);
-
-      const currentUser = useUserStore.getState().user;
-      if (!currentUser) return;
-
-      if (data.state) {
-        const myRoom = data.state.rooms?.find((room) => room.userIds.includes(currentUser.id));
-
-        if (myRoom) {
-          console.log(`🎯 [Breakout] 내가 배정된 방: ${myRoom.roomId}`);
-        } else {
-          console.log("🚪 [Breakout] 수동 입장 모드 - 방 선택 필요");
-          console.log(
-            "📋 [Breakout] 사용 가능한 방:",
-            data.state.rooms?.map((r) => r.roomId),
-          );
-        }
-      } else {
-        console.log("🔚 [Breakout] Breakout 종료됨");
-      }
     };
 
     socketInstance.on("connect", handleConnect);
