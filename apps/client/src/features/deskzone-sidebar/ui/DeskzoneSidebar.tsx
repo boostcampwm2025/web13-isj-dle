@@ -7,11 +7,9 @@ import { useState } from "react";
 
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
-import { useKnock, useKnockSocket } from "@features/knock";
+import { useKnock } from "@features/knock";
 
 const DeskzoneSidebar = () => {
-  useKnockSocket();
-
   const user = useUserStore((s) => s.user);
   const users = useUserStore((s) => s.users);
   const receivedKnocks = useKnockStore((s) => s.receivedKnocks);
