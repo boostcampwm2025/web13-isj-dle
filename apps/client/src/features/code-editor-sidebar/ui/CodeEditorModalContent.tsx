@@ -1,67 +1,37 @@
-import {
-  DEFAULT_EDITOR_OPTIONS,
-  type EditorLanguage,
-  type EditorTheme,
-  MONACO_EDITOR_OPTIONS,
-  getAvailableLanguages,
-} from "../model/code-editor.constants";
-import { useCollaborativeEditor } from "../model/use-collaborative-editor";
+import { MONACO_EDITOR_OPTIONS } from "../model/code-editor.constants";
+import { useCodeEditor } from "../model/use-code-editor";
+import { useEditorBinding } from "../model/use-editor-binding";
+import { useFileSystem } from "../model/use-file-system";
+import { useRemoteCursor } from "../model/use-remote-cursor";
+import { useYjs } from "../model/use-yjs";
 import CodeEditorControls from "./CodeEditorControls";
+import FileExplorer from "./FileExplorer";
 import RemoteCursors from "./RemoteCursors";
-import type * as Monaco from "monaco-editor";
-import { type WebsocketProvider } from "y-websocket";
-import type * as Y from "yjs";
-
-import { useEffect, useMemo, useState } from "react";
+import { Files } from "lucide-react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
 import { useUserStore } from "@entities/user";
-import Editor, { useMonaco } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import { CollaborationModal } from "@shared/ui";
-
-type Awareness = WebsocketProvider["awareness"];
 
 const CodeEditorModalContent = () => {
   const closeTool = useCollaborationToolStore((state) => state.closeTool);
-  const [language, setLanguage] = useState<EditorLanguage>(DEFAULT_EDITOR_OPTIONS.language);
-
-  const [theme, setTheme] = useState<EditorTheme>(DEFAULT_EDITOR_OPTIONS.theme);
-
-  const monaco = useMonaco();
-
-  const availableLanguages = useMemo(() => {
-    if (monaco) {
-      return getAvailableLanguages(monaco);
-    }
-    return [];
-  }, [monaco]);
-
   const user = useUserStore((state) => state.user);
-
   const roomId = user?.avatar.currentRoomId || "default";
 
-  const { handleEditorDidMount, isConnected, isInitialized, editorRef, awarenessRef, ytextRef } =
-    useCollaborativeEditor({
-      roomName: roomId,
-    });
-
-  const [remoteCursorData, setRemoteCursorData] = useState<{
-    editor: Monaco.editor.IStandaloneCodeEditor;
-    awareness: Awareness;
-    ytext: Y.Text;
-  } | null>(null);
-
-  useEffect(() => {
-    if (isInitialized && editorRef.current && awarenessRef.current && ytextRef.current) {
-      setRemoteCursorData({
-        editor: editorRef.current,
-        awareness: awarenessRef.current,
-        ytext: ytextRef.current,
-      });
-    } else {
-      setRemoteCursorData(null);
-    }
-  }, [isInitialized, editorRef, awarenessRef, ytextRef]);
+  const { monaco, theme, setTheme, availableLanguages, showExplorer, setShowExplorer } = useCodeEditor();
+  const { ydocRef, providerRef, awarenessRef, isConnected, isInitialized } = useYjs(roomId);
+  const { fileSystem, createItem, deleteItem, renameItem, selectedFileId, selectFile, language, setLanguage } =
+    useFileSystem(ydocRef, isInitialized, monaco);
+  const { handleEditorDidMount, editorRef, ytextRef } = useEditorBinding(
+    ydocRef,
+    providerRef,
+    monaco,
+    selectedFileId,
+    fileSystem,
+    setLanguage,
+  );
+  const { remoteCursorData } = useRemoteCursor({ isInitialized, editorRef, awarenessRef, ytextRef });
 
   return (
     <CollaborationModal
@@ -79,18 +49,66 @@ const CodeEditorModalContent = () => {
         />
       }
     >
-      <Editor
-        height="100%"
-        language={language}
-        theme={theme}
-        options={MONACO_EDITOR_OPTIONS}
-        onMount={handleEditorDidMount}
-        loading={
-          <div className="flex h-full items-center justify-center">
-            <div className="text-gray-500">에디터 로딩 중...</div>
+      <div className="flex h-full w-full overflow-hidden">
+        <div
+          className={`flex w-12 flex-col items-center border-r py-4 ${
+            theme === "vs" ? "border-gray-200 bg-gray-50" : "border-zinc-800 bg-zinc-900"
+          }`}
+        >
+          <button
+            onClick={() => setShowExplorer(!showExplorer)}
+            className={`flex h-10 w-10 items-center justify-center rounded-md ${
+              theme === "vs" ? "hover:bg-gray-200" : "hover:bg-zinc-800"
+            } ${showExplorer ? "text-blue-500" : "text-gray-500"}`}
+            title="Toggle Explorer"
+          >
+            <Files size={20} />
+          </button>
+        </div>
+
+        {showExplorer && (
+          <div
+            className={`h-full w-64 shrink-0 border-r text-gray-400 ${
+              theme === "vs" ? "border-gray-200 bg-gray-50" : "border-zinc-800 bg-zinc-900"
+            }`}
+          >
+            <FileExplorer
+              theme={theme}
+              fileSystem={fileSystem}
+              createItem={createItem}
+              deleteItem={deleteItem}
+              renameItem={renameItem}
+              selectFile={selectFile}
+              selectedFileId={selectedFileId}
+            />
           </div>
-        }
-      />
+        )}
+
+        <div className="relative h-full min-w-0 flex-1">
+          {!selectedFileId && (
+            <div
+              className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 ${
+                theme === "vs" ? "bg-gray-50" : "bg-zinc-900"
+              }`}
+            >
+              <div>Select a file to start editing</div>
+            </div>
+          )}
+
+          <Editor
+            height="100%"
+            language={language}
+            theme={theme}
+            options={MONACO_EDITOR_OPTIONS}
+            onMount={handleEditorDidMount}
+            loading={
+              <div className="flex h-full items-center justify-center">
+                <div className="text-gray-500">에디터 로딩 중...</div>
+              </div>
+            }
+          />
+        </div>
+      </div>
       {remoteCursorData && (
         <RemoteCursors
           editor={remoteCursorData.editor}
