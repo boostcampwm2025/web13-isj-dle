@@ -608,4 +608,28 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.logger.log(`📞 대화 종료 (사용자 요청): ${user.nickname} ↔ ${partner?.nickname}`);
   }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_JOIN)
+  handleBreakoutJoin(_client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+    const state = this.lecternService.joinBreakoutRoom(payload.hostRoomId, payload.userId, payload.targetRoomId);
+
+    if (state) {
+      this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+        roomId: payload.hostRoomId,
+        state,
+      });
+    }
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_LEAVE)
+  handleBreakoutLeave(_client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+    const state = this.lecternService.leaveBreakoutRoom(payload.hostRoomId, payload.userId);
+
+    if (state) {
+      this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+        roomId: payload.hostRoomId,
+        state,
+      });
+    }
+  }
 }

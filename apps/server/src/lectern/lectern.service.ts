@@ -130,4 +130,31 @@ export class LecternService {
   endBreakout(roomId: RoomType): void {
     this.breakoutStates.delete(roomId);
   }
+
+  joinBreakoutRoom(hostRoomId: RoomType, userId: string, targetRoomId: string): BreakoutState | null {
+    const state = this.breakoutStates.get(hostRoomId);
+    if (!state?.isActive) return null;
+
+    state.rooms.forEach((room) => {
+      room.userIds.filter((id) => id !== userId);
+    });
+
+    const targetRoom = state.rooms.find((room) => room.roomId === targetRoomId);
+    if (targetRoom) {
+      targetRoom.userIds.push(userId);
+    }
+
+    return state;
+  }
+
+  leaveBreakoutRoom(hostRoomId: RoomType, userId: string): BreakoutState | null {
+    const state = this.breakoutStates.get(hostRoomId);
+    if (!state?.isActive) return null;
+
+    state.rooms.forEach((room) => {
+      room.userIds = room.userIds.filter((id) => id !== userId);
+    });
+
+    return state;
+  }
 }
