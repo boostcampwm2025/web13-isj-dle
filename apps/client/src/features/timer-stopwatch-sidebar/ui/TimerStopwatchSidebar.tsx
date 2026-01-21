@@ -16,6 +16,7 @@ import {
 import { useStopwatch } from "../model/use-stopwatch";
 import { useSyncTimer } from "../model/use-sync-timer";
 import { useTimer } from "../model/use-timer";
+import { useTimerComplete } from "../model/use-timer-complete";
 import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
 import { Pause, Play, RotateCcw } from "lucide-react";
@@ -27,6 +28,8 @@ export const TimerStopwatchSidebar = () => {
   const user = useUserStore((state) => state.user);
   const roomId = user?.avatar.currentRoomId ?? null;
   const isMeetingRoom = roomId?.startsWith("meeting") ?? false;
+
+  useTimerComplete();
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();

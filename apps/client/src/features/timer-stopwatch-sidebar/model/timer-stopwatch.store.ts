@@ -1,9 +1,6 @@
 import { calculateTimerRemainingSeconds } from "../lib/timer.utils";
-import { playChime } from "../lib/use-chime-sound";
 import { type Mode, ONE_SECOND } from "./timer.constants";
 import { create } from "zustand";
-
-import { toast } from "@shared/ui";
 
 interface TimerState {
   hours: number;
@@ -13,6 +10,7 @@ interface TimerState {
   initialTimeSec: number;
   startedAt: number | null;
   pausedTimeSec: number;
+  completedAt: number | null;
 }
 
 interface StopwatchState {
@@ -41,6 +39,7 @@ const initialTimerState: TimerState = {
   initialTimeSec: 0,
   startedAt: null,
   pausedTimeSec: 0,
+  completedAt: null,
 };
 
 const initialStopwatchState: StopwatchState = {
@@ -83,10 +82,8 @@ const startGlobalTimerWatch = () => {
 
     if (remaining <= 0) {
       useTimerStopwatchStore.setState({
-        timer: { ...timer, isRunning: false, startedAt: null, pausedTimeSec: 0 },
+        timer: { ...timer, isRunning: false, startedAt: null, pausedTimeSec: 0, completedAt: now },
       });
-      playChime();
-      toast("타이머 시간이 종료되었습니다");
     }
   }, ONE_SECOND);
 };

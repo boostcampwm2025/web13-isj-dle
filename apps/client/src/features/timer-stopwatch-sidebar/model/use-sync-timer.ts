@@ -37,12 +37,14 @@ export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseS
 
       const isStopped = !payload.isRunning && payload.startedAt === null;
       const stoppedTime = payload.pausedTimeSec;
+      const isCompleted = isStopped && payload.initialTimeSec > 0 && payload.pausedTimeSec === 0;
 
       setTimer({
         isRunning: payload.isRunning,
         initialTimeSec: payload.initialTimeSec,
         startedAt: payload.startedAt,
         pausedTimeSec: payload.pausedTimeSec,
+        completedAt: isCompleted ? Date.now() : null,
         ...(isStopped ? secondsToHms(stoppedTime) : {}),
       });
     };
