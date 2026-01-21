@@ -3,7 +3,12 @@ import { useEffect } from "react";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
-import type { DeskStatusUpdatedPayload, KnockReceivedPayload, KnockResultPayload } from "@shared/types";
+import type {
+  DeskStatusUpdatedPayload,
+  KnockCancelledPayload,
+  KnockReceivedPayload,
+  KnockResultPayload,
+} from "@shared/types";
 import { KnockEventType } from "@shared/types";
 import { useSidebarStore } from "@widgets/sidebar";
 
@@ -45,7 +50,12 @@ export const useKnockSocket = () => {
       removeSidebarKey("chat");
     };
 
+    const handleKnockCancelled = (payload: KnockCancelledPayload) => {
+      removeReceivedKnock(payload.fromUserId);
+    };
+
     socket.on(KnockEventType.KNOCK_RECEIVED, handleKnockReceived);
+    socket.on(KnockEventType.KNOCK_CANCELLED, handleKnockCancelled);
     socket.on(KnockEventType.KNOCK_ACCEPTED, handleKnockAccepted);
     socket.on(KnockEventType.KNOCK_REJECTED, handleKnockRejected);
     socket.on(KnockEventType.DESK_STATUS_UPDATED, handleDeskStatusUpdated);
@@ -53,6 +63,7 @@ export const useKnockSocket = () => {
 
     return () => {
       socket.off(KnockEventType.KNOCK_RECEIVED, handleKnockReceived);
+      socket.off(KnockEventType.KNOCK_CANCELLED, handleKnockCancelled);
       socket.off(KnockEventType.KNOCK_ACCEPTED, handleKnockAccepted);
       socket.off(KnockEventType.KNOCK_REJECTED, handleKnockRejected);
       socket.off(KnockEventType.DESK_STATUS_UPDATED, handleDeskStatusUpdated);

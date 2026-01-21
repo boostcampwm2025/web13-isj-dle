@@ -84,9 +84,9 @@ export const useVideoConference = () => {
       }
 
       if (currentRoomId === "desk zone") {
-        addSidebarKey("deskzone");
+        addSidebarKey("deskZone");
       } else {
-        removeSidebarKey("deskzone");
+        removeSidebarKey("deskZone");
       }
     };
 

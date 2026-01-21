@@ -7,6 +7,7 @@ export enum KnockEventType {
   KNOCK_ACCEPTED = "knock:accepted",
   KNOCK_REJECT = "knock:reject",
   KNOCK_REJECTED = "knock:rejected",
+  KNOCK_CANCELLED = "knock:cancelled",
   DESK_STATUS_UPDATE = "desk:status:update",
   DESK_STATUS_UPDATED = "desk:status:updated",
   TALK_END = "talk:end",
@@ -46,4 +47,8 @@ export interface Knock {
   fromUserId: string;
   fromUserNickname: string;
   timestamp: number;
+}
+
+export interface KnockCancelledPayload {
+  fromUserId: string;
 }

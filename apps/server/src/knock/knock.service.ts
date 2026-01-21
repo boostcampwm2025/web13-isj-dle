@@ -50,12 +50,22 @@ export class KnockService {
     this.pendingKnocks.delete(key);
   }
 
-  removeAllKnocksForUser(userId: string): void {
+  removeAllKnocksForUser(userId: string): { sentTo: string[]; receivedFrom: string[] } {
+    const sentTo: string[] = [];
+    const receivedFrom: string[] = [];
+
     for (const [key] of this.pendingKnocks) {
-      if (key.startsWith(userId) || key.endsWith(userId)) {
+      const [fromId, toId] = key.split("-");
+      if (fromId === userId) {
+        sentTo.push(toId);
+        this.pendingKnocks.delete(key);
+      } else if (toId === userId) {
+        receivedFrom.push(fromId);
         this.pendingKnocks.delete(key);
       }
     }
+
+    return { sentTo, receivedFrom };
   }
 
   getPendingKnock(fromUserId: string, toUserId: string): Knock | undefined {

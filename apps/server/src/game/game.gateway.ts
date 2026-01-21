@@ -83,7 +83,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const user = this.userManager.getSession(client.id);
       this.endTalkIfNeeded(client.id, user?.nickname ?? "알 수 없음", "disconnected");
 
-      this.knockService.removeAllKnocksForUser(client.id);
+      const { sentTo } = this.knockService.removeAllKnocksForUser(client.id);
+      for (const targetUserId of sentTo) {
+        this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {
+          fromUserId: client.id,
+        });
+      }
 
       const deleted = this.userManager.deleteSession(client.id);
       if (!deleted) {
@@ -141,6 +146,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       if (previousRoomId === "desk zone" && payload.roomId !== "desk zone") {
         this.endTalkIfNeeded(client.id, user.nickname, "left_deskzone");
+
+        const { sentTo } = this.knockService.removeAllKnocksForUser(client.id);
+        for (const targetUserId of sentTo) {
+          this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {
+            fromUserId: client.id,
+          });
+        }
+
         this.userManager.updateSessionDeskStatus(client.id, null);
       }
 
