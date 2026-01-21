@@ -1,6 +1,7 @@
 import type { Socket } from "socket.io-client";
 
-import type { AvatarDirection, AvatarState, UserEventType } from "@shared/types";
+import type { AvatarDirection, AvatarState, DeskStatus, UserEventType } from "@shared/types";
+import { KnockEventType } from "@shared/types";
 
 export class NetworkSyncManager {
   private socket?: Socket;
@@ -58,5 +59,10 @@ export class NetworkSyncManager {
       state,
       time: now,
     };
+  }
+
+  emitDeskStatusUpdate(status: DeskStatus): void {
+    if (!this.socket) return;
+    this.socket.emit(KnockEventType.DESK_STATUS_UPDATE, { status });
   }
 }
