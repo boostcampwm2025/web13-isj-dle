@@ -3,12 +3,14 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
 import { useLecternStore } from "@entities/lectern/lectern.store.ts";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import {
   type AvatarDirection,
   type AvatarState,
+  type BreakoutState,
   LecternEventType,
   type RoomType,
   type User,
@@ -117,8 +119,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleMuteAllExecuted = (data: { hostId: string }) => {
-      // TODO: 다음 이슈에서 상세 기능 구현 예정
-      console.log(data);
+      const currentUser = useUserStore.getState().user;
+      if (currentUser && data.hostId !== currentUser.id) {
+        updateUser({ id: currentUser.id, micOn: false });
+      }
+    };
+
+    const handleBreakoutUpdate = (data: { roomId: RoomType; state: BreakoutState | null }) => {
+      useBreakoutStore.getState().setBreakoutState(data.state);
     };
 
     socketInstance.on("connect", handleConnect);
@@ -137,6 +145,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     socketInstance.on(LecternEventType.LECTERN_UPDATE, handleLecternUpdate);
     socketInstance.on(LecternEventType.MUTE_ALL_EXECUTED, handleMuteAllExecuted);
+    socketInstance.on(LecternEventType.BREAKOUT_UPDATE, handleBreakoutUpdate);
 
     return () => {
       if (socketRef.current) {

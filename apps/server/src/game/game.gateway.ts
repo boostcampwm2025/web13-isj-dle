@@ -9,7 +9,7 @@ import {
 } from "@nestjs/websockets";
 
 import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import { LecternEventType, type RoomJoinPayload, type RoomType } from "@shared/types";
+import { type BreakoutConfig, LecternEventType, type RoomJoinPayload, type RoomType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 
@@ -232,9 +232,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(LecternEventType.MUTE_ALL)
-  handleMuteAll(client: Socket, payload: { roomId: RoomType }) {
+  handleMuteAll(client: Socket, payload: { roomId: RoomType }, callback?: (response: { success: boolean }) => void) {
     if (!this.lecternService.isHost(payload.roomId, client.id)) {
-      client.emit("error", { message: "You are not a host" });
+      callback?.({ success: false });
       return;
     }
 
@@ -257,5 +257,49 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
       }
     }
+
+    callback?.({ success: true });
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_CREATE)
+  handleBreakoutCreate(
+    client: Socket,
+    payload: {
+      roomId: RoomType;
+      config: BreakoutConfig;
+      userIds: string[];
+    },
+  ) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You're not a host" });
+      return;
+    }
+
+    const state = this.lecternService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
+
+    if (!state) {
+      client.emit("error", { message: "Breakout cannot be executed" });
+      return;
+    }
+
+    this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+      roomId: payload.roomId,
+      state,
+    });
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_END)
+  handleBreakoutEnd(client: Socket, payload: { roomId: RoomType }) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You're not a host" });
+      return;
+    }
+
+    this.lecternService.endBreakout(payload.roomId);
+
+    this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+      roomId: payload.roomId,
+      state: null,
+    });
   }
 }
