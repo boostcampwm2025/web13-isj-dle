@@ -18,9 +18,9 @@ interface SidebarState {
 }
 
 export const useSidebarStore = create<SidebarState>((set, get) => ({
-  sidebarKeys: ["users", "notices"],
+  sidebarKeys: ["users", "notices", "guide"],
   isOpen: true,
-  currentKey: "users",
+  currentKey: "guide",
   lastOpenedKey: "users",
 
   addKey: (key) =>

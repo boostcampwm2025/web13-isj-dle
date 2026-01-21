@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 
 import type { ComponentType } from "react";
 
-export type SidebarKey = "users" | "notices" | "chat" | "whiteboard" | "code-editor" | "deskZone" | "host";
+export type SidebarKey = "users" | "notices" | "guide" | "whiteboard" | "code-editor" | "chat" | "deskZone" | "host";
 
 export type SidebarItem = {
   title: string;
