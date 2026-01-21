@@ -2,6 +2,7 @@ import { SIDEBAR_MAP } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
+import { useKnockStore } from "@entities/knock";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 import { useBindChat } from "@src/entities/chat";
@@ -9,6 +10,7 @@ import { useBindChat } from "@src/entities/chat";
 const Sidebar = () => {
   useBindChat();
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
+  const knockCount = useKnockStore((s) => s.receivedKnocks.length);
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -60,15 +62,22 @@ const Sidebar = () => {
             if (!sidebarItem) return null;
 
             const IconComponent = sidebarItem.Icon;
+            const showBadge = key === "deskZone" && knockCount > 0;
+
             return (
               <button
                 key={key}
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
                   isOpen && validCurrentKey === key ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
                 }`}
                 onClick={() => handleTabClick(key)}
               >
                 <IconComponent className="h-6 w-6" size={ICON_SIZE} />
+                {showBadge && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
+                    {knockCount > 9 ? "9+" : knockCount}
+                  </span>
+                )}
               </button>
             );
           })}
