@@ -11,25 +11,37 @@ import {
 import {
   AvatarDirection,
   AvatarState,
-  type BreakoutConfig,
-  type DeskStatusUpdatePayload,
   KnockEventType,
-  type KnockResponsePayload,
-  type KnockSendPayload,
   LecternEventType,
   NoticeEventType,
   RoomEventType,
-  type RoomJoinPayload,
-  type RoomType,
+  TimerEventType,
   UserEventType,
+} from "@shared/types";
+import type {
+  BreakoutConfig,
+  DeskStatusUpdatePayload,
+  KnockResponsePayload,
+  KnockSendPayload,
+  RoomJoinPayload,
+  RoomType,
+  TimerAddTimePayload,
+  TimerPausePayload,
+  TimerResetPayload,
+  TimerStartPayload,
+  TimerSyncPayload,
 } from "@shared/types";
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
+import { TimerService } from "src/timer/timer.service";
 
 import { BoundaryService } from "../boundary/boundary.service";
 import { KnockService } from "../knock/knock.service";
 import { LecternService } from "../lectern/lectern.service";
 import { UserManager } from "../user/user-manager.service";
+
+const isMeetingRoomId = (roomId: string): boolean => roomId.startsWith("meeting");
+const isTimerRoomId = (roomId: string): boolean => isMeetingRoomId(roomId);
 
 @WebSocketGateway({
   cors: {
@@ -45,9 +57,26 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly userManager: UserManager,
     private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
+    private readonly timerService: TimerService,
     private readonly lecternService: LecternService,
     private readonly knockService: KnockService,
   ) {}
+
+  private cleanupTimerAfterLeave(roomId: RoomType) {
+    if (!isTimerRoomId(roomId)) return;
+
+    const remaining = this.userManager.getRoomSessions(roomId).length;
+    if (remaining !== 0) return;
+
+    this.timerService.deleteTimer(roomId);
+  }
+
+  private validateTimerRequest(client: Socket, roomId: RoomType): boolean {
+    const user = this.userManager.getSession(client.id);
+    if (!user) return false;
+
+    return user.avatar.currentRoomId === roomId;
+  }
 
   afterInit() {
     this.logger.log("🚀 WebSocket Gateway initialized");
@@ -82,6 +111,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.logger.log(`❌ Client disconnected: ${client.id}`);
 
       const user = this.userManager.getSession(client.id);
+      const previousRoomId = user?.avatar.currentRoomId;
       this.endTalkIfNeeded(client.id, user?.nickname ?? "알 수 없음", "disconnected");
 
       const { sentTo } = this.knockService.removeAllKnocksForUser(client.id);
@@ -97,6 +127,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
 
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
+
+      if (previousRoomId) {
+        this.cleanupTimerAfterLeave(previousRoomId);
+      }
 
       const affectedRooms = this.lecternService.removeUserFromAllLecterns(client.id);
       for (const [roomId, state] of affectedRooms) {
@@ -187,6 +221,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
 
+      this.cleanupTimerAfterLeave(previousRoomId);
+
       const updatedUser = this.userManager.getSession(client.id);
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
@@ -276,6 +312,51 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     }
     ack?.({ success: true });
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_START)
+  handleTimerStart(client: Socket, payload: TimerStartPayload) {
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
+
+    const timerState = this.timerService.startTimer(roomId, payload.initialTimeSec, payload.startedAt);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_PAUSE)
+  handleTimerPause(client: Socket, payload: TimerPausePayload) {
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
+
+    const timerState = this.timerService.pauseTimer(roomId, payload.pausedTimeSec);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_RESET)
+  handleTimerReset(client: Socket, payload: TimerResetPayload) {
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
+
+    const timerState = this.timerService.resetTimer(roomId);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_ADD_TIME)
+  handleTimerAddTime(client: Socket, payload: TimerAddTimePayload) {
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
+
+    const timerState = this.timerService.addTime(roomId, payload.additionalSec);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
+  @SubscribeMessage(TimerEventType.TIMER_SYNC)
+  handleTimerSync(client: Socket, payload: TimerSyncPayload) {
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
+
+    const timerState = this.timerService.getTimerState(roomId);
+    client.emit(TimerEventType.TIMER_STATE, timerState);
   }
 
   @SubscribeMessage(LecternEventType.LECTERN_ENTER)
