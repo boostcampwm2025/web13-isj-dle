@@ -15,6 +15,8 @@ export enum LecternEventType {
   BREAKOUT_CREATE = "lectern:breakout-create",
   BREAKOUT_UPDATE = "lectern:breakout-update",
   BREAKOUT_END = "lectern:breakout-end",
+  BREAKOUT_JOIN = "lectern:breakout-join",
+  BREAKOUT_LEAVE = "lectern:breakout-leave",
 }
 
 export interface BreakoutRoom {

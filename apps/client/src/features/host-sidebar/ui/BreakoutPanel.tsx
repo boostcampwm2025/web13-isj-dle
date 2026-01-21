@@ -60,7 +60,7 @@ export const BreakoutPanel = () => {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <BreakoutRoomList rooms={breakoutState.rooms} showJoinButton={false} />
+          <BreakoutRoomList rooms={breakoutState.rooms} />
         </div>
 
         <button

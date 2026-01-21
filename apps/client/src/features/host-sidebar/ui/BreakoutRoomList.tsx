@@ -6,7 +6,7 @@ interface BreakoutRoomListProps {
   rooms: BreakoutRoom[];
   showJoinButton?: boolean;
   onJoinRoom?: (roomId: string) => void;
-  currentRoomId?: string;
+  currentRoomId?: string | null;
 }
 
 export const BreakoutRoomList = ({
