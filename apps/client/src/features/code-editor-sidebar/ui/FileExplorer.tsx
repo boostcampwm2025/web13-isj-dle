@@ -27,7 +27,6 @@ const FileExplorer = ({
   const tree = useMemo(() => buildTree(fileSystem), [fileSystem]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  // State for creating items
   const [isCreatingRoot, setIsCreatingRoot] = useState<"file" | "folder" | null>(null);
   const [newRootItemName, setNewRootItemName] = useState("");
   const [creatingState, setCreatingState] = useState<{ parentId: string; type: "file" | "folder" } | null>(null);
@@ -50,7 +49,7 @@ const FileExplorer = ({
     if (newRootItemName.trim() && isCreatingRoot) {
       if (checkDuplicate(newRootItemName, null)) {
         alert("A file or folder with this name already exists in the root directory.");
-        return; // Keep input open
+        return;
       }
       createItem(newRootItemName, isCreatingRoot, null);
     }
