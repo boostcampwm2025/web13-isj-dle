@@ -1,3 +1,4 @@
+import { calculateTimerRemainingSeconds } from "../lib/timer.utils";
 import { playChime } from "../lib/use-chime-sound";
 import { type Mode, ONE_SECOND } from "./timer.constants";
 import { create } from "zustand";
@@ -77,8 +78,8 @@ const startGlobalTimerWatch = () => {
 
     if (!isRunning || startedAt === null) return;
 
-    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-    const remaining = initialTimeSec - elapsed;
+    const now = Date.now();
+    const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0, now);
 
     if (remaining <= 0) {
       useTimerStopwatchStore.setState({

@@ -1,4 +1,4 @@
-import { calculateTimerRemainingSeconds, clampTimerTotalSeconds, secondsToHms } from "../lib/timer-utils";
+import { calculateTimerRemainingSeconds, clampTimerTotalSeconds, hmsToSeconds, secondsToHms } from "../lib/timer.utils";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 import { MAX_HOURS, ONE_SECOND } from "./timer.constants";
 
@@ -58,13 +58,12 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
     };
   }, [isRunning, startedAt, initialTimeSec, pausedTimeSec]);
 
-  const setStoppedTime = useCallback(
-    (nextHours: number, nextMinutes: number, nextSeconds: number) => {
-      const total = clampTimerTotalSeconds(nextHours * 3600 + nextMinutes * 60 + nextSeconds, MAX_HOURS);
-      const next = secondsToHms(total);
+  const setStoppedTotalSeconds = useCallback(
+    (nextTimeSec: number) => {
+      const total = clampTimerTotalSeconds(nextTimeSec, MAX_HOURS);
       setTimeSec(total);
       setTimer({
-        ...next,
+        ...secondsToHms(total),
         isRunning: false,
         startedAt: null,
         pausedTimeSec: total,
@@ -72,6 +71,13 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
       });
     },
     [setTimer],
+  );
+
+  const setStoppedTime = useCallback(
+    (nextHours: number, nextMinutes: number, nextSeconds: number) => {
+      setStoppedTotalSeconds(hmsToSeconds(nextHours, nextMinutes, nextSeconds));
+    },
+    [setStoppedTotalSeconds],
   );
 
   const setHours = useCallback(
@@ -109,7 +115,7 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
     const { startedAt, pausedTimeSec } = useTimerStopwatchStore.getState().timer;
 
     if (startedAt === null && pausedTimeSec === 0) {
-      const total = hours * 3600 + minutes * 60 + seconds;
+      const total = clampTimerTotalSeconds(hmsToSeconds(hours, minutes, seconds), MAX_HOURS);
       if (total <= 0) return;
       setTimeSec(total);
       setTimer({ initialTimeSec: total, startedAt: Date.now(), isRunning: true });
@@ -122,6 +128,7 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
   const pause = useCallback(() => {
     const { startedAt, initialTimeSec } = useTimerStopwatchStore.getState().timer;
     const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0);
+    setTimeSec(remaining);
     setTimer({ isRunning: false, startedAt: null, pausedTimeSec: remaining });
   }, [setTimer]);
 
@@ -137,11 +144,10 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
         return;
       }
 
-      const base = pausedTimeSec > 0 ? pausedTimeSec : hours * 3600 + minutes * 60 + seconds;
-      const total = clampTimerTotalSeconds(base + sec, MAX_HOURS);
-      setStoppedTime(Math.floor(total / 3600), Math.floor((total % 3600) / 60), total % 60);
+      const base = pausedTimeSec > 0 ? pausedTimeSec : hmsToSeconds(hours, minutes, seconds);
+      setStoppedTotalSeconds(base + sec);
     },
-    [isRunning, hours, minutes, seconds, initialTimeSec, pausedTimeSec, setStoppedTime, setTimer],
+    [isRunning, hours, minutes, seconds, initialTimeSec, pausedTimeSec, setStoppedTotalSeconds, setTimer],
   );
 
   const isWarning = isRunning && timeSec > 0 && timeSec <= warningSeconds;

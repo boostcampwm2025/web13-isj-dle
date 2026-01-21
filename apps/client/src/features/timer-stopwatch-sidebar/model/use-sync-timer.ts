@@ -1,4 +1,4 @@
-import { secondsToHms } from "../lib/timer-utils";
+import { secondsToHms } from "../lib/timer.utils";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 import { useCallback, useEffect } from "react";

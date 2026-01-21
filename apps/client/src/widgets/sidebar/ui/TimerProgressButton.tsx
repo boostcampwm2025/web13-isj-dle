@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { useTimerStopwatchStore } from "@features/timer-stopwatch-sidebar";
+import {
+  calculateTimerProgressRatio,
+  calculateTimerRemainingSeconds,
+  useTimerStopwatchStore,
+} from "@features/timer-stopwatch-sidebar";
 import { ICON_SIZE } from "@shared/config";
 import type { SidebarItem } from "@shared/config";
 
@@ -16,22 +20,16 @@ const CENTER = SIZE / 2;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const calculateRemainingTime = (startedAt: number | null, initialTimeSec: number): number => {
-  if (startedAt === null) return 0;
-  const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-  return Math.max(0, initialTimeSec - elapsed);
-};
-
 export const TimerProgressButton = ({ sidebarItem, isActive, onClick }: TimerProgressButtonProps) => {
   const { mode, timer } = useTimerStopwatchStore();
   const { initialTimeSec, isRunning, startedAt } = timer;
 
-  const [timeSec, setTimeSec] = useState(() => calculateRemainingTime(startedAt, initialTimeSec));
+  const [timeSec, setTimeSec] = useState(() => calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0));
 
   useEffect(() => {
     const updateTime = () => {
       const { startedAt, initialTimeSec } = useTimerStopwatchStore.getState().timer;
-      setTimeSec(calculateRemainingTime(startedAt, initialTimeSec));
+      setTimeSec(calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0));
     };
 
     updateTime();
@@ -45,7 +43,7 @@ export const TimerProgressButton = ({ sidebarItem, isActive, onClick }: TimerPro
   const isTimerMode = mode === "timer";
   const showProgress = isTimerMode && isRunning && initialTimeSec > 0;
 
-  const progress = showProgress && initialTimeSec > 0 ? timeSec / initialTimeSec : 0;
+  const progress = showProgress ? calculateTimerProgressRatio(timeSec, initialTimeSec) : 0;
   const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
 
   const IconComponent = sidebarItem.Icon;

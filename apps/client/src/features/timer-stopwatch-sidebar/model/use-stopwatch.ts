@@ -1,3 +1,4 @@
+import { calculateStopwatchElapsedSeconds } from "../lib/timer.utils";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 import { ONE_SECOND } from "./timer.constants";
 
@@ -11,26 +12,18 @@ interface UseStopwatchReturn {
   reset: () => void;
 }
 
-const calculateElapsedTime = (startedAt: number | null, pausedTimeSec: number): number => {
-  if (startedAt === null) {
-    return pausedTimeSec;
-  }
-  const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-  return pausedTimeSec + elapsed;
-};
-
 export const useStopwatch = (): UseStopwatchReturn => {
   const { stopwatch, setStopwatch, resetStopwatch } = useTimerStopwatchStore();
   const { isRunning, startedAt, pausedTimeSec } = stopwatch;
 
-  const [timeSec, setTimeSec] = useState(() => calculateElapsedTime(startedAt, pausedTimeSec));
+  const [timeSec, setTimeSec] = useState(() => calculateStopwatchElapsedSeconds(startedAt, pausedTimeSec));
 
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     const updateTime = () => {
       const { startedAt, pausedTimeSec } = useTimerStopwatchStore.getState().stopwatch;
-      setTimeSec(calculateElapsedTime(startedAt, pausedTimeSec));
+      setTimeSec(calculateStopwatchElapsedSeconds(startedAt, pausedTimeSec));
     };
 
     updateTime();
@@ -52,7 +45,7 @@ export const useStopwatch = (): UseStopwatchReturn => {
 
   const pause = useCallback(() => {
     const { startedAt, pausedTimeSec } = useTimerStopwatchStore.getState().stopwatch;
-    const elapsed = calculateElapsedTime(startedAt, pausedTimeSec);
+    const elapsed = calculateStopwatchElapsedSeconds(startedAt, pausedTimeSec);
     setStopwatch({ isRunning: false, startedAt: null, pausedTimeSec: elapsed });
   }, [setStopwatch]);
 

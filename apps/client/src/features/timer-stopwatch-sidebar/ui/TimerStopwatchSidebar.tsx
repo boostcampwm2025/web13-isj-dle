@@ -1,3 +1,4 @@
+import { calculateTimerRemainingSeconds, hmsToSeconds, secondsToHms } from "../lib/timer.utils";
 import { useTimerStopwatchStore } from "../model/timer-stopwatch.store";
 import {
   MAX_HOURS,
@@ -20,12 +21,6 @@ import { TimerQuickButton } from "./TimerQuickButton";
 import { Pause, Play, RotateCcw } from "lucide-react";
 
 import { useUserStore } from "@entities/user";
-
-const getDisplayValues = (timeSec: number) => ({
-  hours: Math.floor(timeSec / 3600),
-  minutes: Math.floor((timeSec % 3600) / 60),
-  seconds: timeSec % 60,
-});
 
 export const TimerStopwatchSidebar = () => {
   const { mode, setMode } = useTimerStopwatchStore();
@@ -50,7 +45,7 @@ export const TimerStopwatchSidebar = () => {
       const { hours, minutes, seconds } = timer;
 
       if (startedAt === null && pausedTimeSec === 0) {
-        const total = hours * 3600 + minutes * 60 + seconds;
+        const total = hmsToSeconds(hours, minutes, seconds);
         if (total <= 0) return;
         const now = Date.now();
         timer.start();
@@ -72,8 +67,7 @@ export const TimerStopwatchSidebar = () => {
   const handlePause = () => {
     if (isTimerMode) {
       const { startedAt, initialTimeSec } = useTimerStopwatchStore.getState().timer;
-      const elapsed = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
-      const remaining = Math.max(0, initialTimeSec - elapsed);
+      const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0);
       timer.pause();
       if (isMeetingRoom) {
         syncPause(remaining);
@@ -105,9 +99,9 @@ export const TimerStopwatchSidebar = () => {
 
   const displayValues = isTimerMode
     ? timer.isRunning || timer.timeSec > 0
-      ? getDisplayValues(timer.timeSec)
+      ? secondsToHms(timer.timeSec)
       : { hours: timer.hours, minutes: timer.minutes, seconds: timer.seconds }
-    : getDisplayValues(stopwatch.timeSec);
+    : secondsToHms(stopwatch.timeSec);
 
   const startStopButtonStyle = activeControl.isRunning ? TIMER_BUTTON_STYLES.running : TIMER_BUTTON_STYLES.stopped;
 
