@@ -1,19 +1,23 @@
 import { WebSocketContext } from "./use-websocket";
+import Phaser from "phaser";
 import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
 import { useLecternStore } from "@entities/lectern/lectern.store.ts";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import {
   type AvatarDirection,
   type AvatarState,
+  type BreakoutState,
   LecternEventType,
   type RoomType,
   type User,
   UserEventType,
 } from "@shared/types";
+import type { GameScene } from "@src/features/game";
 
 interface WebSocketProviderProps {
   children: ReactNode;
@@ -29,6 +33,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const updateUser = useUserStore((s) => s.updateUser);
   const updateUserPosition = useUserStore((s) => s.updateUserPosition);
   const setLecternState = useLecternStore.getState().setLecternState;
+  const [game, setGame] = useState<Phaser.Game | null>(null);
 
   useEffect(() => {
     const socketInstance = io(SERVER_URL, {
@@ -98,8 +103,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       y: number;
       direction: AvatarDirection;
       state: AvatarState;
+      force?: boolean;
     }) => {
-      updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
+      const isMe = updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
+      if (isMe && game && data.force) {
+        const scene = game.scene.getScene("GameScene") as GameScene;
+        scene.movePlayer(data.x, data.y, data.direction, data.state);
+      }
     };
 
     const handleBoundaryUpdate = (updates: Record<string, string | null>) => {
@@ -117,8 +127,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleMuteAllExecuted = (data: { hostId: string }) => {
-      // TODO: 다음 이슈에서 상세 기능 구현 예정
-      console.log(data);
+      const currentUser = useUserStore.getState().user;
+      if (currentUser && data.hostId !== currentUser.id) {
+        updateUser({ id: currentUser.id, micOn: false });
+      }
+    };
+
+    const handleBreakoutUpdate = (data: { roomId: RoomType; state: BreakoutState | null }) => {
+      useBreakoutStore.getState().setBreakoutState(data.state);
     };
 
     socketInstance.on("connect", handleConnect);
@@ -137,6 +153,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     socketInstance.on(LecternEventType.LECTERN_UPDATE, handleLecternUpdate);
     socketInstance.on(LecternEventType.MUTE_ALL_EXECUTED, handleMuteAllExecuted);
+    socketInstance.on(LecternEventType.BREAKOUT_UPDATE, handleBreakoutUpdate);
 
     return () => {
       if (socketRef.current) {
@@ -148,7 +165,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, [addUser, removeUser, setSyncUsers, updateUser, updateUserPosition, setLecternState]);
+  }, [addUser, removeUser, setSyncUsers, updateUser, updateUserPosition, setLecternState, game]);
 
-  return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
+  return <WebSocketContext.Provider value={{ socket, isConnected, setGame }}>{children}</WebSocketContext.Provider>;
 };

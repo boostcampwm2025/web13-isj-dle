@@ -3,6 +3,7 @@ import { getEffectiveRoomId } from "./use-livekit";
 import { useEffect, useRef, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS, TIMER_STOPWATCH_SIDEBAR_KEY } from "@entities/collaboration-tool";
+import { useLecternStore } from "@entities/lectern/lectern.store.ts";
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
 import { useTimerStopwatchStore } from "@features/timer-stopwatch-sidebar";
@@ -48,6 +49,11 @@ export const useVideoConference = () => {
 
   const currentUserFromList = users.find((u) => u.id === userId);
   const contactId = currentUserFromList?.contactId ?? user?.contactId;
+
+  const hostId = useLecternStore((state) => state.hostId);
+  const isHost = userId === hostId;
+
+  const isSeminarRoom = currentRoomId?.startsWith(COLLABORATION_ROOM_PREFIX.SEMINAR) ?? false;
 
   useEffect(() => {
     const actionKey: ActionKey = "view_mode";
@@ -102,8 +108,7 @@ export const useVideoConference = () => {
       setRoomId(effectiveRoomId);
 
       if (
-        (currentRoomId === "lobby" && !contactId) ||
-        currentRoomId === "desk zone" ||
+        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
         isMeetingRoomRange(currentRoomId)
       ) {
         setMode(null);
@@ -112,10 +117,24 @@ export const useVideoConference = () => {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
         addSidebarKey("chat");
       }
+
+      if (currentRoomId === "desk zone") {
+        addSidebarKey("deskZone");
+      } else {
+        removeSidebarKey("deskZone");
+      }
     };
 
     updateMode();
   }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey]);
+
+  useEffect(() => {
+    if (isSeminarRoom && isHost) {
+      addSidebarKey("host");
+    } else {
+      removeSidebarKey("host");
+    }
+  }, [isSeminarRoom, isHost, addSidebarKey, removeSidebarKey]);
 
   return {
     mode,

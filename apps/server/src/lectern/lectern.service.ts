@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
 
-import { LecternState, RoomType } from "@shared/types";
+import { BreakoutConfig, BreakoutRoom, BreakoutState, LecternState, RoomType } from "@shared/types";
 
 @Injectable()
 export class LecternService {
   private states: Map<RoomType, LecternState> = new Map();
+  private breakoutStates: Map<RoomType, BreakoutState> = new Map();
 
   private getOrCreateState(roomId: RoomType): LecternState {
     if (!this.states.has(roomId)) {
@@ -55,5 +56,78 @@ export class LecternService {
       }
     }
     return affectedRooms;
+  }
+
+  private generateBreakoutRoomId(hostRoomId: string, index: number): string {
+    const sanitized = hostRoomId.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+    return `breakout-${sanitized}-${index + 1}`;
+  }
+
+  private shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  createBreakout(
+    hostRoomId: RoomType,
+    hostId: string,
+    config: BreakoutConfig,
+    userIds: string[],
+  ): BreakoutState | null {
+    if (this.breakoutStates.has(hostRoomId)) {
+      return null;
+    }
+
+    const { roomCount, isRandom } = config;
+
+    if (isRandom && roomCount > userIds.length) {
+      return null;
+    }
+
+    const rooms: BreakoutRoom[] = [];
+
+    if (isRandom) {
+      const shuffledUsers = this.shuffleArray([...userIds]);
+      const usersPerRoom = Math.ceil(shuffledUsers.length / roomCount);
+
+      for (let i = 0; i < roomCount; i++) {
+        const start = i * usersPerRoom;
+        const end = Math.min(start + usersPerRoom, shuffledUsers.length);
+        const roomUserIds = shuffledUsers.slice(start, end);
+
+        rooms.push({
+          roomId: this.generateBreakoutRoomId(hostRoomId, i),
+          userIds: roomUserIds,
+        });
+      }
+    } else {
+      for (let i = 0; i < roomCount; i++) {
+        rooms.push({
+          roomId: this.generateBreakoutRoomId(hostRoomId, i),
+          userIds: [],
+        });
+      }
+    }
+
+    const state: BreakoutState = {
+      isActive: true,
+      hostRoomId,
+      rooms,
+      hostId,
+    };
+
+    this.breakoutStates.set(hostRoomId, state);
+    return state;
+  }
+
+  getBreakoutState(roomId: RoomType): BreakoutState | null {
+    return this.breakoutStates.get(roomId) ?? null;
+  }
+
+  endBreakout(roomId: RoomType): void {
+    this.breakoutStates.delete(roomId);
   }
 }
