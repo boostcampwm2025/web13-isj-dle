@@ -4,6 +4,7 @@ import { NestFactory } from "@nestjs/core";
 import type { Server } from "http";
 
 import { AppModule } from "./app.module";
+import { TldrawService } from "./tldraw/tldraw.service";
 import { YjsService } from "./yjs/yjs.service";
 
 const bootstrap = async () => {
@@ -24,9 +25,12 @@ const bootstrap = async () => {
     credentials: true,
   });
 
-  const yjsService = app.get(YjsService);
   const httpServer = app.getHttpServer() as Server;
+  const yjsService = app.get(YjsService);
+  const tldrawService = app.get(TldrawService);
+
   yjsService.attachToServer(httpServer);
+  tldrawService.attachToServer(httpServer);
 
   await app.listen(process.env.PORT ?? 3000);
 };

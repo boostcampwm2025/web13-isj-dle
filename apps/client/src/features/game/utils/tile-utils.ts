@@ -53,3 +53,22 @@ export function getSeatDirectionAtPosition(
 
   return null;
 }
+
+export function isLecternTile(tile: Phaser.Tilemaps.Tile | null): boolean {
+  if (!tile) return false;
+
+  const props = tile.properties;
+  if (props === null || typeof props !== "object") return false;
+
+  const type = (props as { type?: unknown }).type;
+  return type === "lectern";
+}
+
+export function isLecternAtPosition(map: Phaser.Tilemaps.Tilemap | null, x: number, y: number): boolean {
+  const tiles = getTilesAtWorld(map, Math.round(x), Math.round(y));
+
+  for (const tile of tiles) {
+    if (isLecternTile(tile)) return true;
+  }
+  return false;
+}
