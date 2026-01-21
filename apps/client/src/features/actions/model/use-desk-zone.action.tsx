@@ -25,8 +25,7 @@ export const useDeskZoneAction: ActionHook = () => {
       const isOccupied = users.some((user) => isSameTileAtWorld(scene.mapInfo.map, user.avatar, point));
       if (!isOccupied) {
         socket.emit(RoomEventType.ROOM_JOIN, { roomId: "desk zone" as RoomType });
-        socket.emit(UserEventType.PLAYER_MOVE, { ...point, state: "sit" as AvatarState });
-        scene.movePlayer(point.x, point.y, point.direction, "sit" as AvatarState);
+        socket.emit(UserEventType.PLAYER_MOVE, { ...point, state: "sit" as AvatarState, force: true });
         return;
       }
     }

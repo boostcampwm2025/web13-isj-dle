@@ -177,7 +177,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(UserEventType.PLAYER_MOVE)
-  handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
+  handlePlayerMove(
+    client: Socket,
+    payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState; force?: boolean },
+  ) {
     const updated = this.userManager.updateSessionPosition(client.id, payload);
     const user = this.userManager.getSession(client.id);
 
