@@ -1,8 +1,13 @@
 import { IDLE_FRAME, NICKNAME_OFFSET_Y, SIT_FRAME } from "../model/game.constants";
 import Phaser from "phaser";
 
-import type { User } from "@shared/types";
-import type { AvatarDirection } from "@shared/types";
+import type { AvatarDirection, DeskStatus, User } from "@shared/types";
+
+const DESK_STATUS_INDICATOR_COLORS: Record<DeskStatus, string> = {
+  available: "#10b981",
+  focusing: "#f43f5e",
+  talking: "#f59e0b",
+};
 
 export class AvatarRenderer {
   private scene: Phaser.Scene;
@@ -66,24 +71,65 @@ export class AvatarRenderer {
     let nicknameText = this.nicknameTexts.get(user.id);
     if (nicknameText) {
       this.updateNicknamePosition(nicknameText, avatar);
+      this.updateStatusIndicator(nicknameText, user.deskStatus);
     } else {
-      nicknameText = this.createNicknameText(avatarModel.x, avatarModel.y - NICKNAME_OFFSET_Y, user.nickname);
+      nicknameText = this.createNicknameText(
+        avatarModel.x,
+        avatarModel.y - NICKNAME_OFFSET_Y,
+        user.nickname,
+        user.deskStatus,
+      );
       this.nicknameTexts.set(user.id, nicknameText);
     }
 
     nicknameText.setDepth(depth);
   }
 
-  private createNicknameText(x: number, y: number, nickname: string): Phaser.GameObjects.DOMElement {
+  private createNicknameText(
+    x: number,
+    y: number,
+    nickname: string,
+    deskStatus: DeskStatus | null,
+  ): Phaser.GameObjects.DOMElement {
     const div = document.createElement("div");
-    div.textContent = nickname;
     div.className =
-      "text-[5px] text-white bg-black/66 px-1 py-0.5 rounded whitespace-nowrap pointer-events-none select-none";
+      "flex items-center text-[4px] leading-none text-white " +
+      "bg-black/70 px-[3px] py-[2px] rounded " +
+      "whitespace-nowrap pointer-events-none select-none";
+
+    if (deskStatus) {
+      const indicator = document.createElement("span");
+      indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+      indicator.style.backgroundColor = DESK_STATUS_INDICATOR_COLORS[deskStatus];
+      div.appendChild(indicator);
+    }
+
+    const text = document.createElement("span");
+    text.className = "ml-[1px]";
+
+    text.textContent = nickname;
+    div.appendChild(text);
 
     const domElement = this.scene.add.dom(x, y, div);
     domElement.setOrigin(0.5, 1);
 
     return domElement;
+  }
+
+  private updateStatusIndicator(domElement: Phaser.GameObjects.DOMElement, deskStatus: DeskStatus | null): void {
+    const div = domElement.node as HTMLDivElement;
+    let indicator = div.querySelector(".status-indicator") as HTMLSpanElement | null;
+
+    if (deskStatus) {
+      if (!indicator) {
+        indicator = document.createElement("span");
+        indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+        div.insertBefore(indicator, div.firstChild);
+      }
+      indicator.style.backgroundColor = DESK_STATUS_INDICATOR_COLORS[deskStatus];
+    } else if (indicator) {
+      indicator.remove();
+    }
   }
 
   private updateNicknamePosition(domElement: Phaser.GameObjects.DOMElement, sprite: Phaser.GameObjects.Sprite): void {

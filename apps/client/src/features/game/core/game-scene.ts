@@ -21,6 +21,7 @@ import {
   type AvatarAssetKey,
   type AvatarDirection,
   type AvatarState,
+  type DeskStatus,
   TILE_SIZE,
   type User,
   UserEventType,
@@ -140,9 +141,13 @@ export class GameScene extends Phaser.Scene {
     this.animationManager = new AvatarAnimationManager(this);
     this.animationManager.createAllAvatarAnimations();
 
-    this.roomEntranceManager = new RoomEntranceManager(this, this.mapObj.map);
-
     this.networkSyncManager = new NetworkSyncManager();
+    this.networkSyncManager.setOnDeskStatusChange((status) => {
+      this.updateMyNicknameIndicator(status);
+    });
+
+    this.roomEntranceManager = new RoomEntranceManager(this, this.mapObj.map);
+    this.roomEntranceManager.setNetworkSyncManager(this.networkSyncManager);
 
     this.avatarRenderer = new AvatarRenderer(this);
 
@@ -280,16 +285,60 @@ export class GameScene extends Phaser.Scene {
     );
   }
 
-  private createNicknameText(x: number, y: number, nickname: string): Phaser.GameObjects.DOMElement {
+  private createNicknameText(
+    x: number,
+    y: number,
+    nickname: string,
+    deskStatus?: DeskStatus | null,
+  ): Phaser.GameObjects.DOMElement {
     const div = document.createElement("div");
-    div.textContent = nickname;
     div.className =
-      "text-[5px] text-white bg-black/66 px-1 py-0.5 rounded whitespace-nowrap pointer-events-none select-none";
+      "flex items-center text-[4px] leading-none text-white bg-black/70 px-[3px] py-[2px] rounded whitespace-nowrap pointer-events-none select-none";
+
+    if (deskStatus) {
+      const indicator = document.createElement("span");
+      indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+      indicator.style.backgroundColor = this.getDeskStatusColor(deskStatus);
+      div.appendChild(indicator);
+    }
+
+    const text = document.createElement("span");
+    text.className = "ml-[1px]";
+
+    text.textContent = nickname;
+    div.appendChild(text);
 
     const domElement = this.add.dom(x, y, div);
     domElement.setOrigin(0.5, 1);
 
     return domElement;
+  }
+
+  private getDeskStatusColor(status: DeskStatus): string {
+    const colors: Record<DeskStatus, string> = {
+      available: "#10b981",
+      focusing: "#f43f5e",
+      talking: "#f59e0b",
+    };
+    return colors[status];
+  }
+
+  updateMyNicknameIndicator(deskStatus: DeskStatus | null): void {
+    if (!this.avatarNickname) return;
+
+    const div = this.avatarNickname.node as HTMLDivElement;
+    let indicator = div.querySelector(".status-indicator") as HTMLSpanElement | null;
+
+    if (deskStatus) {
+      if (!indicator) {
+        indicator = document.createElement("span");
+        indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+        div.insertBefore(indicator, div.firstChild);
+      }
+      indicator.style.backgroundColor = this.getDeskStatusColor(deskStatus);
+    } else if (indicator) {
+      indicator.remove();
+    }
   }
 
   setSocket(socket: Socket): void {

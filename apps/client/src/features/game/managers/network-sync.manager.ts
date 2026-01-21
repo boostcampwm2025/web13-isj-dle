@@ -13,9 +13,14 @@ export class NetworkSyncManager {
     time: 0,
   };
   private threshold: number = 16;
+  private onDeskStatusChange?: (status: DeskStatus | null) => void;
 
   setSocket(socket: Socket): void {
     this.socket = socket;
+  }
+
+  setOnDeskStatusChange(callback: (status: DeskStatus | null) => void): void {
+    this.onDeskStatusChange = callback;
   }
 
   isInitialized(): boolean {
@@ -61,8 +66,9 @@ export class NetworkSyncManager {
     };
   }
 
-  emitDeskStatusUpdate(status: DeskStatus): void {
+  emitDeskStatusUpdate(status: DeskStatus | null): void {
     if (!this.socket) return;
     this.socket.emit(KnockEventType.DESK_STATUS_UPDATE, { status });
+    this.onDeskStatusChange?.(status);
   }
 }
