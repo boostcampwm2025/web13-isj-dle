@@ -1,8 +1,8 @@
 import { calculateTimerRemainingSeconds, clampTimerTotalSeconds, hmsToSeconds, secondsToHms } from "../lib/timer.utils";
-import { useTimerStopwatchStore } from "./timer-stopwatch.store";
-import { MAX_HOURS, ONE_SECOND } from "./timer.constants";
+import { tickTimer, useTimerStopwatchStore } from "./timer-stopwatch.store";
+import { MAX_HOURS } from "./timer.constants";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 interface UseTimerReturn {
   hours: number;
@@ -23,51 +23,28 @@ interface UseTimerReturn {
 
 export const useTimer = (warningSeconds: number): UseTimerReturn => {
   const { timer, setTimer, resetTimer } = useTimerStopwatchStore();
-  const { hours, minutes, seconds, isRunning, initialTimeSec, startedAt, pausedTimeSec } = timer;
-
-  const [timeSec, setTimeSec] = useState(() =>
-    calculateTimerRemainingSeconds(startedAt, initialTimeSec, pausedTimeSec),
-  );
-
-  const intervalRef = useRef<number | null>(null);
+  const { hours, minutes, seconds, isRunning, initialTimeSec, startedAt, pausedTimeSec, remainingSeconds } = timer;
 
   useEffect(() => {
-    const updateTime = () => {
-      const { startedAt, initialTimeSec, pausedTimeSec } = useTimerStopwatchStore.getState().timer;
-      const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, pausedTimeSec);
-      setTimeSec(remaining);
-    };
+    tickTimer();
+  }, []);
 
-    updateTime();
+  const computedTimeSec =
+    isRunning && startedAt !== null ? calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0) : remainingSeconds;
 
-    if (!isRunning) {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
-
-    intervalRef.current = globalThis.setInterval(updateTime, ONE_SECOND);
-
-    return () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [isRunning, startedAt, initialTimeSec, pausedTimeSec]);
+  const isActuallyRunning = isRunning && computedTimeSec > 0;
+  const timeSec = isRunning ? Math.max(0, computedTimeSec) : remainingSeconds;
 
   const setStoppedTotalSeconds = useCallback(
     (nextTimeSec: number) => {
       const total = clampTimerTotalSeconds(nextTimeSec, MAX_HOURS);
-      setTimeSec(total);
       setTimer({
         ...secondsToHms(total),
         isRunning: false,
         startedAt: null,
         pausedTimeSec: total,
         initialTimeSec: total,
+        remainingSeconds: total,
       });
     },
     [setTimer],
@@ -117,24 +94,25 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
     if (startedAt === null && pausedTimeSec === 0) {
       const total = clampTimerTotalSeconds(hmsToSeconds(hours, minutes, seconds), MAX_HOURS);
       if (total <= 0) return;
-      setTimeSec(total);
-      setTimer({ initialTimeSec: total, startedAt: Date.now(), isRunning: true });
+      setTimer({ initialTimeSec: total, startedAt: Date.now(), isRunning: true, remainingSeconds: total });
     } else {
-      setTimeSec(pausedTimeSec);
-      setTimer({ startedAt: Date.now(), initialTimeSec: pausedTimeSec, isRunning: true });
+      setTimer({
+        startedAt: Date.now(),
+        initialTimeSec: pausedTimeSec,
+        isRunning: true,
+        remainingSeconds: pausedTimeSec,
+      });
     }
   }, [hours, minutes, seconds, setTimer]);
 
   const pause = useCallback(() => {
     const { startedAt, initialTimeSec } = useTimerStopwatchStore.getState().timer;
     const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0);
-    setTimeSec(remaining);
-    setTimer({ isRunning: false, startedAt: null, pausedTimeSec: remaining });
+    setTimer({ isRunning: false, startedAt: null, pausedTimeSec: remaining, remainingSeconds: remaining });
   }, [setTimer]);
 
   const reset = useCallback(() => {
     resetTimer();
-    setTimeSec(0);
   }, [resetTimer]);
 
   const addTime = useCallback(
@@ -150,7 +128,7 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
     [isRunning, hours, minutes, seconds, initialTimeSec, pausedTimeSec, setStoppedTotalSeconds, setTimer],
   );
 
-  const isWarning = isRunning && timeSec > 0 && timeSec <= warningSeconds;
+  const isWarning = isActuallyRunning && timeSec <= warningSeconds;
 
   return {
     hours,
@@ -158,7 +136,7 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
     seconds,
     timeSec,
     initialTimeSec,
-    isRunning,
+    isRunning: isActuallyRunning,
     isWarning,
     setHours,
     setMinutes,

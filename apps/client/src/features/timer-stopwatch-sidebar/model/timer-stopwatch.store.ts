@@ -10,6 +10,7 @@ export interface TimerState {
   initialTimeSec: number;
   startedAt: number | null;
   pausedTimeSec: number;
+  remainingSeconds: number;
 }
 
 export interface StopwatchState {
@@ -38,6 +39,7 @@ const initialTimerState: TimerState = {
   initialTimeSec: 0,
   startedAt: null,
   pausedTimeSec: 0,
+  remainingSeconds: 0,
 };
 
 const initialStopwatchState: StopwatchState = {
@@ -66,24 +68,35 @@ export const useTimerStopwatchStore = create<TimerStopwatchStore>((set) => ({
 
 let timerIntervalId: number | null = null;
 
+export const tickTimer = () => {
+  const { timer, setTimer } = useTimerStopwatchStore.getState();
+  const { isRunning, startedAt, initialTimeSec } = timer;
+
+  if (!isRunning || startedAt === null) return;
+
+  const now = Date.now();
+  const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0, now);
+
+  if (remaining <= 0) {
+    setTimer({
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      isRunning: false,
+      startedAt: null,
+      pausedTimeSec: 0,
+      remainingSeconds: 0,
+    });
+  } else {
+    setTimer({ remainingSeconds: remaining });
+  }
+};
+
 const startGlobalTimerWatch = () => {
   if (timerIntervalId !== null) return;
 
-  timerIntervalId = globalThis.setInterval(() => {
-    const { timer } = useTimerStopwatchStore.getState();
-    const { isRunning, startedAt, initialTimeSec } = timer;
-
-    if (!isRunning || startedAt === null) return;
-
-    const now = Date.now();
-    const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0, now);
-
-    if (remaining <= 0) {
-      useTimerStopwatchStore.setState({
-        timer: { ...timer, hours: 0, minutes: 0, seconds: 0, isRunning: false, startedAt: null, pausedTimeSec: 0 },
-      });
-    }
-  }, ONE_SECOND);
+  tickTimer();
+  timerIntervalId = globalThis.setInterval(tickTimer, ONE_SECOND);
 };
 
 const stopGlobalTimerWatch = () => {

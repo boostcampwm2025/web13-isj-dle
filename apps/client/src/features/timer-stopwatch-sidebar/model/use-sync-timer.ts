@@ -1,4 +1,4 @@
-import { secondsToHms } from "../lib/timer.utils";
+import { calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
 import { isTimerReset, isTimerStopped } from "./timer-state";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
@@ -34,12 +34,18 @@ export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseS
       }
 
       const stoppedTime = payload.pausedTimeSec;
+      const remainingSeconds = calculateTimerRemainingSeconds(
+        payload.startedAt,
+        payload.initialTimeSec,
+        payload.pausedTimeSec,
+      );
 
       setTimer({
         isRunning: payload.isRunning,
         initialTimeSec: payload.initialTimeSec,
         startedAt: payload.startedAt,
         pausedTimeSec: payload.pausedTimeSec,
+        remainingSeconds,
         ...(isTimerStopped(payload) ? secondsToHms(stoppedTime) : {}),
       });
     };
