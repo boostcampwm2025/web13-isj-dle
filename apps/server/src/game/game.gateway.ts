@@ -11,14 +11,13 @@ import {
 import {
   AvatarDirection,
   AvatarState,
+  KnockEventType,
   LecternEventType,
   NoticeEventType,
   RoomEventType,
   TimerEventType,
   UserEventType,
-  KnockEventType
 } from "@shared/types";
-
 import type {
   BreakoutConfig,
   DeskStatusUpdatePayload,
@@ -32,12 +31,12 @@ import type {
   TimerStartPayload,
   TimerSyncPayload,
 } from "@shared/types";
-
 import { Server, Socket } from "socket.io";
 import { BoundaryService } from "src/boundary/boundary.service";
 import { BoundaryTracker } from "src/boundary/boundaryTracker.service";
 import { NoticeService } from "src/notice/notice.service";
 import { TimerService } from "src/timer/timer.service";
+
 import { KnockService } from "../knock/knock.service";
 import { LecternService } from "../lectern/lectern.service";
 import { UserManager } from "../user/user-manager.service";
@@ -337,7 +336,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, Object.fromEntries(updates));
-    ack?.({ success: true });
   }
 
   @SubscribeMessage(TimerEventType.TIMER_START)

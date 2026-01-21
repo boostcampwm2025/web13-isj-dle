@@ -25,7 +25,6 @@ export class BoundaryService {
     const visited = new Set<string>();
     const groups = new Map<string, string[]>();
 
-    // 인접 리스트 생성
     const adjacency = new Map<string, string[]>();
     for (const user of eligibleUsers) {
       adjacency.set(user.id, []);

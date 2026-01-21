@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef } from "react";
-import { getEffectiveRoomId } from "./use-livekit";
+import { useEffect, useRef, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS, TIMER_STOPWATCH_SIDEBAR_KEY } from "@entities/collaboration-tool";
 import { useLecternStore } from "@entities/lectern/lectern.store.ts";
