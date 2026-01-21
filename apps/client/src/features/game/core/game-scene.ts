@@ -248,7 +248,6 @@ export class GameScene extends Phaser.Scene {
       users,
       currentUser,
       this.avatar ? { x: this.avatar.sprite.x, y: this.avatar.sprite.y } : undefined,
-      this.avatar?.state,
     );
   }
 

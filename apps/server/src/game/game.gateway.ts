@@ -15,7 +15,6 @@ import { BoundaryService } from "src/boundary/boundary.service";
 import { BoundaryTracker } from "src/boundary/boundaryTracker.service";
 import { NoticeService } from "src/notice/notice.service";
 
-import { BoundaryService } from "../boundary/boundary.service";
 import { LecternService } from "../lectern/lectern.service";
 import { UserManager } from "../user/user-manager.service";
 
