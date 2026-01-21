@@ -71,7 +71,7 @@ export class UserManager {
 
     if (position.state === "sit") {
       const usersAtPosition = this.getUsersByPosition(position.x, position.y);
-      const isAnotherUserSitting = usersAtPosition.some((u) => u.avatar.state === "sit");
+      const isAnotherUserSitting = usersAtPosition.some((u) => u.id !== id && u.avatar.state === "sit");
       if (isAnotherUserSitting) return false;
     }
 
