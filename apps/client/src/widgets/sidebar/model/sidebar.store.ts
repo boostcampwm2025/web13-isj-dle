@@ -2,6 +2,17 @@ import { create } from "zustand";
 
 import type { SidebarKey } from "@shared/config";
 
+const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
+  users: 0,
+  notices: 1,
+  chat: 2,
+  "code-editor": 3,
+  whiteboard: 4,
+  participant: 5,
+  host: 6,
+  deskZone: 7,
+};
+
 interface SidebarState {
   sidebarKeys: SidebarKey[];
   isOpen: boolean;
@@ -24,9 +35,13 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
   lastOpenedKey: "users",
 
   addKey: (key) =>
-    set((state) => ({
-      sidebarKeys: state.sidebarKeys.includes(key) ? state.sidebarKeys : [...state.sidebarKeys, key],
-    })),
+    set((state) => {
+      if (state.sidebarKeys.includes(key)) return state;
+      const newKeys = [...state.sidebarKeys, key].sort(
+        (a, b) => (SIDEBAR_KEY_ORDER[a] ?? 99) - (SIDEBAR_KEY_ORDER[b] ?? 99),
+      );
+      return { sidebarKeys: newKeys };
+    }),
 
   removeKey: (key) =>
     set((state) => ({

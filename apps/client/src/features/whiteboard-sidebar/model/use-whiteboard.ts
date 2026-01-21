@@ -3,6 +3,7 @@ import { CURSOR_COLORS } from "./whiteboard.constants";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
+import { useBreakoutStore } from "@entities/lectern/breakout.store";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import { useSync } from "@tldraw/sync";
@@ -16,8 +17,15 @@ const getTldrawWebSocketUri = (roomId: string) => {
 export const useWhiteboard = () => {
   const userId = useUserStore((state) => state.user?.id) || "guest";
   const nickname = useUserStore((state) => state.user?.nickname) || "Guest";
-  const roomId = useUserStore((state) => state.user?.avatar.currentRoomId) || "default";
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId) || "default";
+  const breakoutState = useBreakoutStore((state) => state.breakoutState);
   const objectUrlsRef = useRef<Set<string>>(new Set());
+
+  const myBreakoutRoomId =
+    breakoutState?.isActive && userId !== "guest"
+      ? (breakoutState.rooms.find((room) => room.userIds.includes(userId))?.roomId ?? null)
+      : null;
+  const roomId = myBreakoutRoomId || currentRoomId;
 
   const uri = useMemo(() => getTldrawWebSocketUri(roomId), [roomId]);
 

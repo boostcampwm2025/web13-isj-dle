@@ -15,11 +15,16 @@ import { useSidebarStore } from "@widgets/sidebar";
 const COLLABORATION_ROOM_PREFIX = {
   SEMINAR: "seminar",
   MEETING: "meeting",
+  BREAKOUT: "breakout",
 } as const;
 
 const isCollaborationRoomType = (roomId: string | null): boolean => {
   if (!roomId) return false;
-  return roomId.startsWith(COLLABORATION_ROOM_PREFIX.SEMINAR) || roomId.startsWith(COLLABORATION_ROOM_PREFIX.MEETING);
+  return (
+    roomId.startsWith(COLLABORATION_ROOM_PREFIX.SEMINAR) ||
+    roomId.startsWith(COLLABORATION_ROOM_PREFIX.MEETING) ||
+    roomId.startsWith(COLLABORATION_ROOM_PREFIX.BREAKOUT)
+  );
 };
 
 export const useVideoConference = () => {
