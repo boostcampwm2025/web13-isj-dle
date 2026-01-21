@@ -56,29 +56,43 @@ const Sidebar = () => {
 
         <div className="mb-2 h-0.5 w-full bg-gray-400" />
 
-        <div className="scrollbar-hide flex flex-col gap-4 overflow-y-auto">
-          {sidebarKeys.map((key) => {
-            const sidebarItem = SIDEBAR_MAP[key];
-            if (!sidebarItem) return null;
+        <div className="relative flex-1">
+          <div className="scrollbar-hide flex h-full flex-col gap-4 overflow-y-auto">
+            {sidebarKeys.map((key) => {
+              const sidebarItem = SIDEBAR_MAP[key];
+              if (!sidebarItem) return null;
 
-            const IconComponent = sidebarItem.Icon;
+              const IconComponent = sidebarItem.Icon;
+
+              return (
+                <button
+                  key={key}
+                  className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                    isOpen && validCurrentKey === key ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                  onClick={() => handleTabClick(key)}
+                >
+                  <IconComponent className="h-6 w-6" size={ICON_SIZE} />
+                </button>
+              );
+            })}
+          </div>
+
+          {sidebarKeys.map((key, index) => {
             const showBadge = key === "deskZone" && knockCount > 0;
+            if (!showBadge) return null;
 
             return (
-              <button
-                key={key}
-                className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                  isOpen && validCurrentKey === key ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
-                }`}
-                onClick={() => handleTabClick(key)}
+              <span
+                key={`badge-${key}`}
+                className="pointer-events-none absolute flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
+                style={{
+                  top: `${index * (48 + 14)}px`,
+                  right: "-5px",
+                }}
               >
-                <IconComponent className="h-6 w-6" size={ICON_SIZE} />
-                {showBadge && (
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
-                    {knockCount > 9 ? "9+" : knockCount}
-                  </span>
-                )}
-              </button>
+                {knockCount > 9 ? "9+" : knockCount}
+              </span>
             );
           })}
         </div>
