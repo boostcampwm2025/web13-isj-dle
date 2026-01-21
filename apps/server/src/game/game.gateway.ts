@@ -11,11 +11,11 @@ import {
 import {
   AvatarDirection,
   AvatarState,
+  LecternEventType,
   NoticeEventType,
   RoomEventType,
   TimerEventType,
   UserEventType,
-  LecternEventType
 } from "@shared/types";
 import type {
   RoomJoinPayload,
@@ -26,7 +26,6 @@ import type {
   TimerStartPayload,
   TimerSyncPayload,
 } from "@shared/types";
-
 import { Server, Socket } from "socket.io";
 import { NoticeService } from "src/notice/notice.service";
 import { TimerService } from "src/timer/timer.service";
@@ -117,7 +116,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (previousRoomId) {
         this.cleanupTimerAfterLeave(previousRoomId);
       }
-      
+
       const affectedRooms = this.lecternService.removeUserFromAllLecterns(client.id);
       for (const [roomId, state] of affectedRooms) {
         this.server.to(roomId).emit(LecternEventType.LECTERN_UPDATE, {
@@ -300,7 +299,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const timerState = this.timerService.getTimerState(roomId);
     client.emit(TimerEventType.TIMER_STATE, timerState);
-    
+  }
+
   @SubscribeMessage(LecternEventType.LECTERN_ENTER)
   handleLecternEnter(client: Socket, payload: { roomId: RoomType }) {
     const state = this.lecternService.enterLectern(payload.roomId, client.id);
