@@ -6,6 +6,7 @@ import type {
   AvatarDirection,
   AvatarState,
   CreateGameUserDto,
+  DeskStatus,
   RoomType,
   User,
 } from "@shared/types";
@@ -42,6 +43,7 @@ export class UserManager {
       cameraOn: false,
       micOn: false,
       avatar,
+      deskStatus: null,
     };
 
     this.sessions.set(id, user);
@@ -87,6 +89,12 @@ export class UserManager {
 
     user.avatar.currentRoomId = roomId;
 
+    if (roomId === "desk zone") {
+      user.deskStatus = "available";
+    } else {
+      user.deskStatus = null;
+    }
+
     return true;
   }
 
@@ -111,6 +119,16 @@ export class UserManager {
     if (!user) return false;
 
     user.contactId = contactId;
+
+    return true;
+  }
+
+  updateSessionDeskStatus(id: string, status: DeskStatus | null): boolean {
+    const user = this.sessions.get(id);
+
+    if (!user) return false;
+
+    user.deskStatus = status;
 
     return true;
   }

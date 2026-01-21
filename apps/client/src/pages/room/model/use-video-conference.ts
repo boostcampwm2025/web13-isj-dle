@@ -79,8 +79,7 @@ export const useVideoConference = () => {
       setRoomId(effectiveRoomId);
 
       if (
-        (currentRoomId === "lobby" && !contactId) ||
-        currentRoomId === "desk zone" ||
+        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
         isMeetingRoomRange(currentRoomId)
       ) {
         setMode(null);
@@ -88,6 +87,12 @@ export const useVideoConference = () => {
       } else {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
         addSidebarKey("chat");
+      }
+
+      if (currentRoomId === "desk zone") {
+        addSidebarKey("deskZone");
+      } else {
+        removeSidebarKey("deskZone");
       }
     };
 
