@@ -6,6 +6,12 @@ import { useEffect, useRef } from "react";
 import { positionStore, useUserStore } from "@entities/user";
 import type { User } from "@shared/types";
 
+const isSameUserStructure = (nextUsers: User[], prevUsers: User[]) => {
+  if (nextUsers.length !== prevUsers.length) return false;
+
+  return nextUsers.every((user, index) => user.id === prevUsers[index]?.id);
+};
+
 export const useAvatarRenderer = (game: Phaser.Game | null) => {
   const sameRoomUsersRef = useRef<User[]>([]);
   const userRef = useRef<User | null>(null);
@@ -55,10 +61,11 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
     const unsubscribePosition = positionStore.subscribe(renderAvatars);
 
     const unsubscribeUsers = useUserStore.subscribe((state, prevState) => {
-      if (
-        state.users !== prevState.users ||
-        state.user?.avatar.currentRoomId !== prevState.user?.avatar.currentRoomId
-      ) {
+      const usersStructureChanged = !isSameUserStructure(state.users, prevState.users);
+
+      const currentRoomChanged = state.user?.avatar.currentRoomId !== prevState.user?.avatar.currentRoomId;
+
+      if (usersStructureChanged || currentRoomChanged) {
         renderAvatars();
       }
     });
