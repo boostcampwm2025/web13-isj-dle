@@ -78,7 +78,7 @@ export class LecternService {
     userIds: string[],
   ): BreakoutState | null {
     if (this.breakoutStates.has(hostRoomId)) {
-      return null;
+      this.breakoutStates.delete(hostRoomId);
     }
 
     const { roomCount, isRandom } = config;
@@ -136,7 +136,7 @@ export class LecternService {
     if (!state?.isActive) return null;
 
     state.rooms.forEach((room) => {
-      room.userIds.filter((id) => id !== userId);
+      room.userIds = room.userIds.filter((id) => id !== userId);
     });
 
     const targetRoom = state.rooms.find((room) => room.roomId === targetRoomId);

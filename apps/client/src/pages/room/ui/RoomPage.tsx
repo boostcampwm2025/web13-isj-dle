@@ -64,8 +64,8 @@ const RoomPage = () => {
   const { getHookByKey } = useAction();
   const { isOn: isMicOn } = getHookByKey("mic");
   const { isOn: isCameraOn } = getHookByKey("camera");
-  const { token, serverUrl } = useLivekit();
-  const { mode, setMode, roomId } = useVideoConference();
+  const { token, serverUrl, roomId } = useLivekit();
+  const { mode, setMode } = useVideoConference();
   const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
   return (
@@ -75,10 +75,10 @@ const RoomPage = () => {
       <div className="pointer-events-none absolute inset-0 z-10">
         <LiveKitRoom
           data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
-          key={roomId || ""}
+          key={`${roomId || ""}-${token || ""}`}
           serverUrl={serverUrl || ""}
           token={token || ""}
-          connect
+          connect={!!token && !!serverUrl}
           video={isCameraOn}
           audio={isMicOn}
         >

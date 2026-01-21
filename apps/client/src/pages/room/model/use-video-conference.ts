@@ -1,4 +1,4 @@
-import { getEffectiveRoomId } from "./use-livekit";
+import { useLivekit } from "./use-livekit";
 
 import { useEffect, useState } from "react";
 
@@ -29,16 +29,14 @@ export const useVideoConference = () => {
   const addSidebarKey = useSidebarStore((state) => state.addKey);
   const removeSidebarKey = useSidebarStore((state) => state.removeKey);
   const [mode, setMode] = useState<VideoConferenceMode | null>(null);
-  const [roomId, setRoomId] = useState<string | null>(null);
 
   const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
 
   const currentRoomId = user?.avatar.currentRoomId;
   const userId = user?.id;
   const nickname = user?.nickname;
 
-  const currentUserFromList = users.find((u) => u.id === userId);
+  const currentUserFromList = useUserStore((state) => state.users).find((u) => u.id === userId);
   const contactId = currentUserFromList?.contactId ?? user?.contactId;
 
   const hostId = useLecternStore((state) => state.hostId);
@@ -60,6 +58,8 @@ export const useVideoConference = () => {
     }
   }, [addBottomNavKey, getHookByKey, mode, removeBottomNavKey]);
 
+  const { roomId } = useLivekit();
+
   useEffect(() => {
     const isCollaborationRoom = isCollaborationRoomType(roomId);
 
@@ -77,29 +77,25 @@ export const useVideoConference = () => {
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
 
-    const updateMode = () => {
-      const effectiveRoomId = getEffectiveRoomId(currentRoomId, contactId);
-      setRoomId(effectiveRoomId);
-
-      if (
-        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
-        isMeetingRoomRange(currentRoomId)
-      ) {
-        setMode(null);
-        removeSidebarKey("chat");
-      } else {
+    if (
+      ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
+      isMeetingRoomRange(currentRoomId)
+    ) {
+      if (mode !== null) setMode(null);
+      removeSidebarKey("chat");
+    } else {
+      if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
-        addSidebarKey("chat");
       }
+      addSidebarKey("chat");
+    }
 
-      if (currentRoomId === "desk zone") {
-        addSidebarKey("deskZone");
-      } else {
-        removeSidebarKey("deskZone");
-      }
-    };
-
-    updateMode();
+    if (currentRoomId === "desk zone") {
+      addSidebarKey("deskZone");
+    } else {
+      removeSidebarKey("deskZone");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey]);
 
   useEffect(() => {
@@ -123,6 +119,5 @@ export const useVideoConference = () => {
   return {
     mode,
     setMode,
-    roomId,
   };
 };
