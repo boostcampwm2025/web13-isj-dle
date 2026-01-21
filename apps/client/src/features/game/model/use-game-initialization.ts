@@ -34,10 +34,15 @@ export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | n
 
   useEffect(() => {
     const deskZoneAction = getHookByKey("desk_zone");
-    if (deskZoneAction && deskZoneAction.setGame && deskZoneAction.setSocket) {
-      deskZoneAction.setGame(game);
-      deskZoneAction.setSocket(socket);
-    }
+    if (!deskZoneAction || !deskZoneAction.setGame || !deskZoneAction.setSocket) return;
+
+    deskZoneAction.setGame(game);
+    deskZoneAction.setSocket(socket);
+
+    return () => {
+      deskZoneAction?.setGame?.(null);
+      deskZoneAction?.setSocket?.(null);
+    };
   }, [getHookByKey, game, socket]);
 
   return {
