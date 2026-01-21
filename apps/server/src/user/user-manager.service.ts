@@ -69,6 +69,12 @@ export class UserManager {
 
     if (!user) return false;
 
+    if (position.state === "sit") {
+      const usersAtPosition = this.getUsersByPosition(position.x, position.y);
+      const isAnotherUserSitting = usersAtPosition.some((u) => u.id !== id && u.avatar.state === "sit");
+      if (isAnotherUserSitting) return false;
+    }
+
     user.avatar = { ...user.avatar, ...position };
 
     return true;
@@ -112,5 +118,11 @@ export class UserManager {
   deleteSession(id: string): boolean {
     const deleted = this.sessions.delete(id);
     return deleted;
+  }
+
+  private getUsersByPosition(x: number, y: number): User[] {
+    return Array.from(this.sessions.values()).filter((user) => {
+      return user.avatar.x === x && user.avatar.y === y;
+    });
   }
 }
