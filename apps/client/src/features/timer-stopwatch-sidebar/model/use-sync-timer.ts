@@ -1,3 +1,4 @@
+import { secondsToHms } from "../lib/timer-utils";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 import { useCallback, useEffect } from "react";
@@ -20,16 +21,29 @@ interface UseSyncTimerReturn {
 export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseSyncTimerReturn => {
   const { socket } = useWebSocket();
   const setTimer = useTimerStopwatchStore((state) => state.setTimer);
+  const resetTimer = useTimerStopwatchStore((state) => state.resetTimer);
 
   useEffect(() => {
     if (!socket || !roomId || !isMeetingRoom) return;
 
     const handleTimerState = (payload: TimerStatePayload) => {
+      const isReset =
+        !payload.isRunning && payload.startedAt === null && payload.initialTimeSec === 0 && payload.pausedTimeSec === 0;
+
+      if (isReset) {
+        resetTimer();
+        return;
+      }
+
+      const isStopped = !payload.isRunning && payload.startedAt === null;
+      const stoppedTime = payload.pausedTimeSec;
+
       setTimer({
         isRunning: payload.isRunning,
         initialTimeSec: payload.initialTimeSec,
         startedAt: payload.startedAt,
         pausedTimeSec: payload.pausedTimeSec,
+        ...(isStopped ? secondsToHms(stoppedTime) : {}),
       });
     };
 
@@ -39,7 +53,7 @@ export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseS
     return () => {
       socket.off(TimerEventType.TIMER_STATE, handleTimerState);
     };
-  }, [socket, roomId, isMeetingRoom, setTimer]);
+  }, [socket, roomId, isMeetingRoom, resetTimer, setTimer]);
 
   const syncStart = useCallback(
     (initialTimeSec: number, startedAt: number) => {

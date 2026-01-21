@@ -54,7 +54,13 @@ export class TimerService {
 
   addTime(roomId: RoomType, additionalSec: number): TimerStatePayload {
     const timer = this.getOrCreateTimer(roomId);
-    timer.initialTimeSec += additionalSec;
+    if (timer.isRunning) {
+      timer.initialTimeSec = Math.max(0, timer.initialTimeSec + additionalSec);
+      return this.getTimerState(roomId);
+    }
+
+    timer.pausedTimeSec = Math.max(0, timer.pausedTimeSec + additionalSec);
+    timer.initialTimeSec = timer.pausedTimeSec;
     return this.getTimerState(roomId);
   }
 

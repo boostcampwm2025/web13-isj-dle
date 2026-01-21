@@ -96,7 +96,7 @@ export const TimerStopwatchSidebar = () => {
 
   const handleAddTime = (sec: number) => {
     timer.addTime(sec);
-    if (isMeetingRoom && timer.isRunning) {
+    if (isMeetingRoom) {
       syncAddTime(sec);
     }
   };
