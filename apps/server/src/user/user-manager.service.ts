@@ -6,6 +6,7 @@ import type {
   AvatarDirection,
   AvatarState,
   CreateGameUserDto,
+  DeskStatus,
   RoomType,
   User,
 } from "@shared/types";
@@ -42,6 +43,7 @@ export class UserManager {
       cameraOn: false,
       micOn: false,
       avatar,
+      deskStatus: null,
     };
 
     this.sessions.set(id, user);
@@ -69,6 +71,12 @@ export class UserManager {
 
     if (!user) return false;
 
+    if (position.state === "sit") {
+      const usersAtPosition = this.getUsersByPosition(position.x, position.y);
+      const isAnotherUserSitting = usersAtPosition.some((u) => u.id !== id && u.avatar.state === "sit");
+      if (isAnotherUserSitting) return false;
+    }
+
     user.avatar = { ...user.avatar, ...position };
 
     return true;
@@ -80,6 +88,12 @@ export class UserManager {
     if (!user) return false;
 
     user.avatar.currentRoomId = roomId;
+
+    if (roomId === "desk zone") {
+      user.deskStatus = "available";
+    } else {
+      user.deskStatus = null;
+    }
 
     return true;
   }
@@ -109,8 +123,24 @@ export class UserManager {
     return true;
   }
 
+  updateSessionDeskStatus(id: string, status: DeskStatus | null): boolean {
+    const user = this.sessions.get(id);
+
+    if (!user) return false;
+
+    user.deskStatus = status;
+
+    return true;
+  }
+
   deleteSession(id: string): boolean {
     const deleted = this.sessions.delete(id);
     return deleted;
+  }
+
+  private getUsersByPosition(x: number, y: number): User[] {
+    return Array.from(this.sessions.values()).filter((user) => {
+      return user.avatar.x === x && user.avatar.y === y;
+    });
   }
 }

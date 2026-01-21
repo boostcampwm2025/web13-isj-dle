@@ -1,11 +1,19 @@
-import { Code, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+import { Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Timer, Users } from "lucide-react";
+
+import { lazy } from "react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
+import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
+import { HostSidebar } from "@features/host-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
+
+const TimerStopwatchSidebar = lazy(() =>
+  import("@features/timer-stopwatch-sidebar").then((m) => ({ default: m.TimerStopwatchSidebar })),
+);
 
 export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
   users: {
@@ -29,9 +37,24 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     Icon: Code,
     Panel: CodeEditorSidebar,
   },
+  "timer-stopwatch": {
+    title: "타이머/스톱워치",
+    Icon: Timer,
+    Panel: TimerStopwatchSidebar,
+  },
   chat: {
     title: "채팅",
     Icon: MessageCircleMore,
     Panel: ChatSidebar,
+  },
+  deskZone: {
+    title: "데스크존",
+    Icon: Briefcase,
+    Panel: DeskZoneSidebar,
+  },
+  host: {
+    title: "관리자",
+    Icon: Crown,
+    Panel: HostSidebar,
   },
 };

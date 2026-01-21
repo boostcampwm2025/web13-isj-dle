@@ -37,9 +37,9 @@ export const useLivekit = (): UseLivekitState => {
       nickname,
     });
 
-    if (roomId === "lobby") {
+    if (roomId === "lobby" || roomId === "desk zone") {
       setLivekitState((prev) => ({ ...prev, isOpen: !!contactId }));
-    } else if (roomId === "desk zone" || (roomId.startsWith("meeting (") && roomId.includes("-"))) {
+    } else if (roomId.startsWith("meeting (") && roomId.includes("-")) {
       setLivekitState((prev) => ({ ...prev, isOpen: false }));
     } else {
       setLivekitState((prev) => ({ ...prev, isOpen: true }));
@@ -79,7 +79,18 @@ export const useLivekit = (): UseLivekitState => {
 
   return livekitState;
 };
+export const getEffectiveRoomId = (
+  roomId: string,
+  contactId: string | null | undefined,
+  breakoutRoomId?: string | null | undefined,
+): string => {
+  if (breakoutRoomId) {
+    return breakoutRoomId;
+  }
 
-export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
-  return roomId === "lobby" && contactId ? contactId : roomId;
+  if ((roomId === "lobby" || roomId === "desk zone") && contactId) {
+    return contactId;
+  }
+
+  return roomId;
 };

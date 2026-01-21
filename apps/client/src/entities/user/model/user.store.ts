@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import type { Avatar, AvatarDirection, AvatarState, User } from "@shared/types";
+import type { Avatar, AvatarDirection, AvatarState, DeskStatus, User } from "@shared/types";
 
 type UserUpdate = Partial<Omit<User, "avatar">> & {
   id: string;
@@ -47,7 +47,8 @@ interface UserState {
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
   updateUser: (updated: UserUpdate) => void;
-  updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
+  updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => boolean;
+  updateUserDeskStatus: (userId: string, status: DeskStatus | null) => void;
 }
 
 export const useUserStore = create(
@@ -146,14 +147,22 @@ export const useUserStore = create(
       }),
 
     updateUserPosition: (userId, x, y, direction, avatarState) => {
+      let isMe = false;
       positionStore.set(userId, { x, y, direction, state: avatarState });
 
       const state = get();
       if (state.user?.id === userId) {
+        isMe = true;
         set({
           user: { ...state.user, avatar: { ...state.user.avatar, x, y, direction, state: avatarState } },
         });
       }
-    },
-  })),
-);
+    return isMe;
+  },
+
+  updateUserDeskStatus: (userId, status) =>
+    set((state) => ({
+      users: state.users.map((u) => (u.id === userId ? { ...u, deskStatus: status } : u)),
+      user: state.user?.id === userId ? { ...state.user, deskStatus: status } : state.user,
+    })),
+}));

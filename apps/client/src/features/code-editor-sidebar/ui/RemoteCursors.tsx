@@ -166,6 +166,8 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
     updateCursors();
     awareness.on("change", updateCursors);
 
+    const currentWidgets = widgetsRef.current;
+    const currentFadeTimeouts = fadeTimeoutsRef.current;
     return () => {
       awareness.off("change", updateCursors);
 
@@ -174,14 +176,14 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
         throttleTimerRef.current = null;
       }
 
-      widgetsRef.current.forEach((widget, clientID) => {
+      currentWidgets.forEach((widget, clientID) => {
         editor.removeContentWidget(widget);
         removeCursorStyles(clientID);
       });
-      widgetsRef.current.clear();
+      currentWidgets.clear();
 
-      fadeTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
-      fadeTimeoutsRef.current.clear();
+      currentFadeTimeouts.forEach((timeout) => clearTimeout(timeout));
+      currentFadeTimeouts.clear();
     };
   }, [editor, awareness, ytext]);
 

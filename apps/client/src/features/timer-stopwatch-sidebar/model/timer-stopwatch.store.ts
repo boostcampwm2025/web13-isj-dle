@@ -1,0 +1,118 @@
+import { calculateTimerRemainingSeconds } from "../lib/timer.utils";
+import { type Mode, ONE_SECOND } from "./timer.constants";
+import { create } from "zustand";
+
+export interface TimerState {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  isRunning: boolean;
+  initialTimeSec: number;
+  startedAt: number | null;
+  pausedTimeSec: number;
+  remainingSeconds: number;
+}
+
+export interface StopwatchState {
+  isRunning: boolean;
+  startedAt: number | null;
+  pausedTimeSec: number;
+}
+
+interface TimerStopwatchStore {
+  mode: Mode;
+  timer: TimerState;
+  stopwatch: StopwatchState;
+
+  setMode: (mode: Mode) => void;
+  setTimer: (timer: Partial<TimerState>) => void;
+  setStopwatch: (stopwatch: Partial<StopwatchState>) => void;
+  resetTimer: () => void;
+  resetStopwatch: () => void;
+}
+
+const initialTimerState: TimerState = {
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+  isRunning: false,
+  initialTimeSec: 0,
+  startedAt: null,
+  pausedTimeSec: 0,
+  remainingSeconds: 0,
+};
+
+const initialStopwatchState: StopwatchState = {
+  isRunning: false,
+  startedAt: null,
+  pausedTimeSec: 0,
+};
+
+export const useTimerStopwatchStore = create<TimerStopwatchStore>((set) => ({
+  mode: "timer",
+  timer: initialTimerState,
+  stopwatch: initialStopwatchState,
+
+  setMode: (mode) => set({ mode }),
+  setTimer: (timer) =>
+    set((state) => ({
+      timer: { ...state.timer, ...timer },
+    })),
+  setStopwatch: (stopwatch) =>
+    set((state) => ({
+      stopwatch: { ...state.stopwatch, ...stopwatch },
+    })),
+  resetTimer: () => set({ timer: initialTimerState }),
+  resetStopwatch: () => set({ stopwatch: initialStopwatchState }),
+}));
+
+let timerIntervalId: number | null = null;
+
+export const tickTimer = () => {
+  const { timer, setTimer } = useTimerStopwatchStore.getState();
+  const { isRunning, startedAt, initialTimeSec } = timer;
+
+  if (!isRunning || startedAt === null) return;
+
+  const now = Date.now();
+  const remaining = calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0, now);
+
+  if (remaining <= 0) {
+    setTimer({
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      isRunning: false,
+      startedAt: null,
+      pausedTimeSec: 0,
+      remainingSeconds: 0,
+    });
+  } else {
+    setTimer({ remainingSeconds: remaining });
+  }
+};
+
+const startGlobalTimerWatch = () => {
+  if (timerIntervalId !== null) return;
+
+  tickTimer();
+  timerIntervalId = globalThis.setInterval(tickTimer, ONE_SECOND);
+};
+
+const stopGlobalTimerWatch = () => {
+  if (timerIntervalId !== null) {
+    clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+};
+
+useTimerStopwatchStore.subscribe((state, prevState) => {
+  const wasRunning = prevState.timer.isRunning;
+  const isRunning = state.timer.isRunning;
+
+  if (!wasRunning && isRunning) {
+    startGlobalTimerWatch();
+  } else if (wasRunning && !isRunning) {
+    stopGlobalTimerWatch();
+  }
+});

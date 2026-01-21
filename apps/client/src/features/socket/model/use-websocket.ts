@@ -5,6 +5,7 @@ import { createContext, useContext } from "react";
 export interface WebSocketContextValue {
   readonly socket: Socket | null;
   readonly isConnected: boolean;
+  readonly setGame: (game: Phaser.Game | null) => void;
 }
 
 export const WebSocketContext = createContext<WebSocketContextValue | null>(null);

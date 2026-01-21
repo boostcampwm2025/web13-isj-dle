@@ -14,6 +14,7 @@ import {
   usePhaserGame,
   useRoomSelector,
 } from "@features/game";
+import { useKnockSocket } from "@features/knock";
 import { useWebSocket } from "@features/socket";
 import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
@@ -56,6 +57,8 @@ const RoomPage = () => {
   useAvatarLoader(game);
   useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
   useAvatarRenderer(game);
+
+  useKnockSocket();
 
   const { getHookByKey } = useAction();
   const { isOn: isMicOn } = getHookByKey("mic");
