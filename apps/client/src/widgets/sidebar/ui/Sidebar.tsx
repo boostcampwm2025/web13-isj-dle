@@ -1,6 +1,9 @@
 import { SIDEBAR_MAP } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
+import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
+
+import { Suspense } from "react";
 
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
@@ -27,7 +30,9 @@ const Sidebar = () => {
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2 text-gray-500" />
               <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
-                <currentPanel.Panel />
+                <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                  <currentPanel.Panel />
+                </Suspense>
               </div>
             </div>
           ) : (
@@ -59,12 +64,25 @@ const Sidebar = () => {
             const sidebarItem = SIDEBAR_MAP[key];
             if (!sidebarItem) return null;
 
+            const isActive = isOpen && validCurrentKey === key;
+
+            if (key === "timer-stopwatch") {
+              return (
+                <TimerProgressButton
+                  key={key}
+                  sidebarItem={sidebarItem}
+                  isActive={isActive}
+                  onClick={() => handleTabClick(key)}
+                />
+              );
+            }
+
             const IconComponent = sidebarItem.Icon;
             return (
               <button
                 key={key}
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                  isOpen && validCurrentKey === key ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
+                  isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
                 }`}
                 onClick={() => handleTabClick(key)}
               >
