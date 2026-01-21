@@ -5,6 +5,8 @@ export enum KnockEventType {
   KNOCK_RECEIVED = "knock:received",
   KNOCK_ACCEPT = "knock:accept",
   KNOCK_ACCEPTED = "knock:accepted",
+  KNOCK_ACCEPT_SUCCESS = "knock:accept:success",
+  KNOCK_ACCEPT_FAILED = "knock:accept:failed",
   KNOCK_REJECT = "knock:reject",
   KNOCK_REJECTED = "knock:rejected",
   KNOCK_CANCELLED = "knock:cancelled",
@@ -51,4 +53,13 @@ export interface Knock {
 
 export interface KnockCancelledPayload {
   fromUserId: string;
+}
+
+export interface KnockAcceptSuccessPayload {
+  fromUserId: string;
+}
+
+export interface KnockAcceptFailedPayload {
+  fromUserId: string;
+  reason: string;
 }

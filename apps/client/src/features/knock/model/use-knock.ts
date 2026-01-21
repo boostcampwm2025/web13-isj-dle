@@ -5,7 +5,6 @@ import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
 import type { DeskStatus } from "@shared/types";
 import { KnockEventType } from "@shared/types";
-import { useSidebarStore } from "@widgets/sidebar";
 
 export const useKnock = () => {
   const { socket, isConnected } = useWebSocket();
@@ -14,7 +13,6 @@ export const useKnock = () => {
   const sentKnockTargets = useKnockStore((s) => s.sentKnockTargets);
   const addSentKnock = useKnockStore((s) => s.addSentKnock);
   const removeReceivedKnock = useKnockStore((s) => s.removeReceivedKnock);
-  const addSidebarKey = useSidebarStore((s) => s.addKey);
 
   const sendKnock = useCallback(
     (targetUserId: string): boolean => {
@@ -48,10 +46,8 @@ export const useKnock = () => {
       if (!socket || !isConnected) return;
 
       socket.emit(KnockEventType.KNOCK_ACCEPT, { fromUserId });
-      removeReceivedKnock(fromUserId);
-      addSidebarKey("chat");
     },
-    [socket, isConnected, removeReceivedKnock, addSidebarKey],
+    [socket, isConnected],
   );
 
   const rejectKnock = useCallback(

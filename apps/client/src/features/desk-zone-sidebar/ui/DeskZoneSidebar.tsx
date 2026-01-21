@@ -1,6 +1,7 @@
 import { ICON_SIZE } from "../model/desk-status.constants";
 import { EndTalkConfirmModal } from "./EndTalkConfirmModal";
 import { KnockButton } from "./KnockButton";
+import { KnockFailedModal } from "./KnockFailedModal";
 import { KnockRequestCard } from "./KnockRequestCard";
 import { MyStatusSelector } from "./MyStatusSelector";
 import { UserListItem } from "./UserListItem";
@@ -16,6 +17,8 @@ const DeskZoneSidebar = () => {
   const user = useUserStore((s) => s.user);
   const users = useUserStore((s) => s.users);
   const receivedKnocks = useKnockStore((s) => s.receivedKnocks);
+  const knockFailedMessage = useKnockStore((s) => s.knockFailedMessage);
+  const setKnockFailedMessage = useKnockStore((s) => s.setKnockFailedMessage);
 
   const { sendKnock, acceptKnock, rejectKnock, updateDeskStatus, canKnockTo, endTalk, isTalking } = useKnock();
 
@@ -148,6 +151,12 @@ const DeskZoneSidebar = () => {
         isOpen={showEndTalkConfirm}
         onConfirm={handleConfirmEndAndAccept}
         onCancel={handleCancelEndTalk}
+      />
+
+      <KnockFailedModal
+        isOpen={knockFailedMessage !== null}
+        message={knockFailedMessage ?? ""}
+        onClose={() => setKnockFailedMessage(null)}
       />
     </div>
   );

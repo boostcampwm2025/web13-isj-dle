@@ -359,18 +359,27 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const fromUser = this.userManager.getSession(payload.fromUserId);
 
     if (!toUser || !fromUser) {
-      client.emit("error", { message: "사용자를 찾을 수 없습니다." });
+      client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
+        fromUserId: payload.fromUserId,
+        reason: "사용자를 찾을 수 없습니다.",
+      });
       return;
     }
 
     const knock = this.knockService.getPendingKnock(payload.fromUserId, client.id);
     if (!knock) {
-      client.emit("error", { message: "노크 요청을 찾을 수 없습니다." });
+      client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
+        fromUserId: payload.fromUserId,
+        reason: "노크 요청을 찾을 수 없습니다.",
+      });
       return;
     }
 
     if (fromUser.deskStatus === "talking") {
-      client.emit("error", { message: "상대방이 이미 다른 대화를 시작했습니다." });
+      client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
+        fromUserId: payload.fromUserId,
+        reason: "상대방이 이미 다른 대화 중입니다.",
+      });
       this.knockService.removePendingKnock(payload.fromUserId, client.id);
       return;
     }
@@ -390,6 +399,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       targetUserId: client.id,
       targetUserNickname: toUser.nickname,
       status: "accepted",
+    });
+
+    client.emit(KnockEventType.KNOCK_ACCEPT_SUCCESS, {
+      fromUserId: payload.fromUserId,
     });
 
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {

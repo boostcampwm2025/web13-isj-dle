@@ -5,16 +5,19 @@ import type { Knock } from "@shared/types";
 interface KnockState {
   receivedKnocks: Knock[];
   sentKnockTargets: string[];
+  knockFailedMessage: string | null;
   addReceivedKnock: (knock: Knock) => void;
   removeReceivedKnock: (fromUserId: string) => void;
   addSentKnock: (targetUserId: string) => void;
   removeSentKnock: (targetUserId: string) => void;
+  setKnockFailedMessage: (message: string | null) => void;
   clearAllKnocks: () => void;
 }
 
 export const useKnockStore = create<KnockState>((set) => ({
   receivedKnocks: [],
   sentKnockTargets: [],
+  knockFailedMessage: null,
 
   addReceivedKnock: (knock) =>
     set((state) => {
@@ -40,6 +43,8 @@ export const useKnockStore = create<KnockState>((set) => ({
     set((state) => ({
       sentKnockTargets: state.sentKnockTargets.filter((id) => id !== targetUserId),
     })),
+
+  setKnockFailedMessage: (message) => set({ knockFailedMessage: message }),
 
   clearAllKnocks: () =>
     set({
