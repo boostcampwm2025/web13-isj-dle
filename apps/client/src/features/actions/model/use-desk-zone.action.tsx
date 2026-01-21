@@ -21,16 +21,28 @@ export const useDeskZoneAction: ActionHook = () => {
       return;
     }
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (!scene || !scene.mapInfo.map || !scene.deskSeatPoints.length) {
+      return;
+    }
+    const map = scene.mapInfo.map;
+
     const deskSeats = scene.deskSeatPoints;
+    deskSeats.sort(
+      (a, b) => b.y - a.y || Math.abs(a.x - map.widthInPixels / 2) - Math.abs(b.x - map.widthInPixels / 2),
+    );
     for (const point of deskSeats) {
-      const isOccupied = users.some((user) => isSameTileAtWorld(scene.mapInfo.map, user.avatar, point));
+      const isOccupied = users.some((user) => isSameTileAtWorld(map, user.avatar, point));
       if (!isOccupied) {
-        await emitAck<{ success: boolean }>(socket, RoomEventType.ROOM_JOIN, { roomId: "desk zone" as RoomType });
-        await emitAck<{ success: boolean }>(socket, UserEventType.PLAYER_MOVE, {
+        let pass = await emitAck<{ success: boolean }>(socket, RoomEventType.ROOM_JOIN, {
+          roomId: "desk zone" as RoomType,
+        });
+        if (!pass || !pass.success) continue;
+        pass = await emitAck<{ success: boolean }>(socket, UserEventType.PLAYER_MOVE, {
           ...point,
           state: "sit" as AvatarState,
           force: true,
         });
+        if (!pass || !pass.success) continue;
         return;
       }
     }
