@@ -1,11 +1,13 @@
 import { useLivekit } from "../model/use-livekit";
 import { useVideoConference } from "../model/use-video-conference";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
 import {
+  GAME_SCENE_KEY,
+  type GameScene,
   useAvatarLoader,
   useAvatarRenderer,
   useGameInitialization,
@@ -21,6 +23,7 @@ import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import type { DeskStatus } from "@shared/types";
 import { LecternEventType } from "@shared/types";
 import { BottomNav } from "@widgets/bottom-nav";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
@@ -54,12 +57,31 @@ const RoomPage = () => {
     [socket],
   );
 
+  const updateMyDeskStatus = useCallback(
+    (status: DeskStatus | null) => {
+      if (!game) return;
+      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+      if (scene?.isReady) {
+        scene.updateMyNicknameIndicator(status);
+      }
+    },
+    [game],
+  );
+
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game, user);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
+  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave, updateMyDeskStatus);
   useAvatarRenderer(game, users, user);
 
   useKnockSocket();
+
+  useEffect(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.updateMyNicknameIndicator(user?.deskStatus ?? null);
+    }
+  }, [game, user?.deskStatus]);
 
   const { getHookByKey } = useAction();
   const { isOn: isMicOn } = getHookByKey("mic");

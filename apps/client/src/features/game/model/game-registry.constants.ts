@@ -1,8 +1,11 @@
+import type { DeskStatus } from "@shared/types";
+
 export const GAME_REGISTRY_KEYS = {
   OPEN_ROOM_SELECTOR: "openRoomSelector",
   JOIN_ROOM: "joinRoom",
   LECTERN_ENTER: "lecternEnter",
   LECTERN_LEAVE: "lecternLeave",
+  UPDATE_MY_DESK_STATUS: "updateMyDeskStatus",
 } as const;
 
 export interface GameRegistryFunctions {
@@ -10,6 +13,7 @@ export interface GameRegistryFunctions {
   [GAME_REGISTRY_KEYS.JOIN_ROOM]: (roomId: string) => void;
   [GAME_REGISTRY_KEYS.LECTERN_ENTER]: (roomId: string) => void;
   [GAME_REGISTRY_KEYS.LECTERN_LEAVE]: (roomId: string) => void;
+  [GAME_REGISTRY_KEYS.UPDATE_MY_DESK_STATUS]: (status: DeskStatus | null) => void;
 }
 
 export const getRegistryFunction = <K extends keyof GameRegistryFunctions>(

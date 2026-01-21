@@ -1,3 +1,5 @@
+import type { GameScene } from "../core/game-scene";
+import { GAME_SCENE_KEY } from "../model/game.constants";
 import { useAvatarLoader } from "../model/use-avatar-loader";
 import { useAvatarRenderer } from "../model/use-avatar-renderer";
 import { useGameInitialization } from "../model/use-game-initialization";
@@ -6,10 +8,11 @@ import { useGameSocket } from "../model/use-game-socket";
 import { usePhaserGame } from "../model/use-phaser-game";
 import { useRoomSelector } from "../model/use-room-selector";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
+import type { DeskStatus } from "@shared/types";
 import { LecternEventType } from "@shared/types";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
 
@@ -45,10 +48,27 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     [socket],
   );
 
+  const updateMyDeskStatus = useCallback(
+    (status: DeskStatus | null) => {
+      if (!game) return;
+      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+      scene?.updateMyNicknameIndicator(status);
+    },
+    [game],
+  );
+
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game, user);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
+  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave, updateMyDeskStatus);
   useAvatarRenderer(game, users, user);
+
+  useEffect(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.updateMyNicknameIndicator(user?.deskStatus ?? null);
+    }
+  }, [game, user?.deskStatus]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
