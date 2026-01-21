@@ -1,38 +1,12 @@
+import { useMuteAll } from "../model/use-mute-all";
 import { Check, VolumeX } from "lucide-react";
 
-import { useEffect, useState } from "react";
-
-import { useUserStore } from "@entities/user";
-import { useWebSocket } from "@features/socket";
-import { LecternEventType } from "@shared/types";
-
 export const MuteAllButton = () => {
-  const { socket } = useWebSocket();
-  const user = useUserStore((state) => state.user);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  const handleMuteAll = () => {
-    if (!socket || !user) return;
-
-    socket.emit(LecternEventType.MUTE_ALL, { roomId: user.avatar.currentRoomId }, (response: { success: boolean }) => {
-      if (response.success) {
-        setIsSuccess(true);
-      }
-    });
-  };
-  useEffect(() => {
-    if (isSuccess) {
-      const timer = setTimeout(() => {
-        setIsSuccess(false);
-      }, 2500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess]);
+  const { isSuccess, muteAll } = useMuteAll();
 
   return (
     <button
-      onClick={handleMuteAll}
+      onClick={muteAll}
       disabled={isSuccess}
       className={`group flex items-center gap-5 rounded-lg border px-4 py-3 transition-all duration-300 active:scale-[0.98] ${
         isSuccess

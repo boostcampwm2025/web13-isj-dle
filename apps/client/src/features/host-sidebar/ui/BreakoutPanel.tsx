@@ -1,29 +1,14 @@
+import { MAX_ROOM_COUNT, MIN_ROOM_COUNT } from "../model/breakout.constants";
+import { useBreakout } from "../model/use-breakout";
 import { Blocks, Minus, Plus, Shuffle, Users, X } from "lucide-react";
 
 import { useState } from "react";
 
-import { useBreakoutStore } from "@entities/lectern/breakout.store";
-import { useUserStore } from "@entities/user";
-import { useWebSocket } from "@features/socket";
-import { LecternEventType } from "@shared/types";
-
-const MAX_ROOM_COUNT = 50;
-const MIN_ROOM_COUNT = 2;
-
 export const BreakoutPanel = () => {
-  const { socket } = useWebSocket();
-  const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
-  const breakoutState = useBreakoutStore((state) => state.breakoutState);
+  const { breakoutState, isBreakoutActive, currentRoomUsers, createBreakout, endBreakout } = useBreakout();
 
   const [roomCount, setRoomCount] = useState(2);
   const [isRandom, setIsRandom] = useState(true);
-
-  const isBreakoutActive = breakoutState?.isActive ?? false;
-
-  const currentRoomUsers = users
-    .filter((u) => u.avatar.currentRoomId === user?.avatar.currentRoomId)
-    .filter((u) => u.id !== user?.id);
 
   const maxRoomCount = isRandom ? Math.min(MAX_ROOM_COUNT, currentRoomUsers.length) : MAX_ROOM_COUNT;
 
@@ -39,24 +24,16 @@ export const BreakoutPanel = () => {
     }
   };
 
-  const handleCreateBreakout = () => {
-    if (!socket || !user) return;
+  const handleToggleRandom = () => {
+    setIsRandom((prev) => {
+      const nextIsRandom = !prev;
 
-    socket.emit(LecternEventType.BREAKOUT_CREATE, {
-      roomId: user.avatar.currentRoomId,
-      config: {
-        roomCount,
-        isRandom,
-      },
-      userIds: currentRoomUsers.map((u) => u.id),
-    });
-  };
+      if (nextIsRandom) {
+        const nextMax = Math.min(MAX_ROOM_COUNT, currentRoomUsers.length);
+        setRoomCount((prevRoomCount) => Math.max(MIN_ROOM_COUNT, Math.min(nextMax, prevRoomCount)));
+      }
 
-  const handleEndBreakout = () => {
-    if (!socket || !user) return;
-
-    socket.emit(LecternEventType.BREAKOUT_END, {
-      roomId: user.avatar.currentRoomId,
+      return nextIsRandom;
     });
   };
 
@@ -102,7 +79,7 @@ export const BreakoutPanel = () => {
         </div>
 
         <button
-          onClick={handleEndBreakout}
+          onClick={endBreakout}
           className="group flex items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-500 px-4 py-3 text-white shadow-sm transition-all hover:border-red-300 hover:bg-red-600 hover:shadow-md active:scale-[0.98]"
         >
           <X className="h-5 w-5" />
@@ -154,7 +131,7 @@ export const BreakoutPanel = () => {
       </div>
 
       <button
-        onClick={() => setIsRandom(!isRandom)}
+        onClick={handleToggleRandom}
         className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 transition-all hover:bg-gray-100"
       >
         <div className="flex items-center gap-3">
@@ -183,7 +160,7 @@ export const BreakoutPanel = () => {
       </button>
 
       <button
-        onClick={handleCreateBreakout}
+        onClick={() => createBreakout(roomCount, isRandom)}
         disabled={!canCreate}
         className="group flex items-center justify-center gap-3 rounded-lg border border-blue-200 bg-blue-500 px-4 py-3 text-white shadow-sm transition-all hover:border-blue-300 hover:bg-blue-600 hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-300 disabled:shadow-none"
       >
