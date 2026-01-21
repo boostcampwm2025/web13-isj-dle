@@ -1,4 +1,4 @@
-import { MONACO_EDITOR_OPTIONS } from "../model/code-editor.constants";
+import { MONACO_EDITOR_OPTIONS, THEME_COLORS } from "../model/code-editor.constants";
 import { useCodeEditor } from "../model/use-code-editor";
 import { useEditorBinding } from "../model/use-editor-binding";
 import { useFileSystem } from "../model/use-file-system";
@@ -58,16 +58,12 @@ const CodeEditorModalContent = () => {
     >
       <div className="flex h-full w-full overflow-hidden">
         <div
-          className={`flex w-12 flex-col items-center border-r py-4 ${
-            theme === "vs" ? "border-gray-200 bg-gray-50" : "border-zinc-800 bg-zinc-900"
-          }`}
+          className={`flex w-12 flex-col items-center border-r py-4 ${THEME_COLORS[theme].border} ${THEME_COLORS[theme].bg}`}
         >
           <button
             onClick={() => setShowExplorer(!showExplorer)}
-            className={`flex h-10 w-10 items-center justify-center rounded-md ${
-              theme === "vs" ? "hover:bg-gray-200" : "hover:bg-zinc-800"
-            } ${showExplorer ? "text-blue-500" : "text-gray-500"}`}
-            title="Toggle Explorer"
+            className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-md ${THEME_COLORS[theme].hoverBg} ${showExplorer ? "text-blue-500" : "text-gray-500"}`}
+            title="파일 탐색기"
           >
             <Files size={20} />
           </button>
@@ -75,9 +71,7 @@ const CodeEditorModalContent = () => {
 
         {showExplorer && (
           <div
-            className={`h-full w-64 shrink-0 border-r text-gray-400 ${
-              theme === "vs" ? "border-gray-200 bg-gray-50" : "border-zinc-800 bg-zinc-900"
-            }`}
+            className={`h-full w-64 shrink-0 border-r text-gray-400 ${THEME_COLORS[theme].border} ${THEME_COLORS[theme].bg}`}
           >
             <FileExplorer
               theme={theme}
@@ -94,9 +88,7 @@ const CodeEditorModalContent = () => {
         <div className="relative h-full min-w-0 flex-1">
           {!selectedFileId && (
             <div
-              className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 ${
-                theme === "vs" ? "bg-gray-50" : "bg-zinc-900"
-              }`}
+              className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 ${THEME_COLORS[theme].bg}`}
             >
               <div>Select a file to start editing</div>
             </div>

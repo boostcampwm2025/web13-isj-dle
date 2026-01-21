@@ -1,4 +1,4 @@
-import type { EditorTheme } from "../model/code-editor.constants";
+import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
 import { type FileSystemItem, buildTree } from "../model/file-explorer.utils";
 import { FileExplorerItem } from "./FileExplorerItem";
 import { File, FilePlus, Folder, FolderPlus } from "lucide-react";
@@ -67,27 +67,21 @@ const FileExplorer = ({
 
   return (
     <div
-      className={`flex h-full flex-col border-r select-none ${
-        theme === "vs" ? "border-gray-200 bg-gray-50" : "border-zinc-800 bg-zinc-900"
-      }`}
+      className={`flex h-full flex-col border-r select-none ${THEME_COLORS[theme].bg} ${THEME_COLORS[theme].border}`}
     >
-      <div
-        className={`flex items-center justify-between border-b px-3 py-2 ${
-          theme === "vs" ? "border-gray-200" : "border-zinc-800"
-        }`}
-      >
-        <span className={`text-sm font-semibold ${theme === "vs" ? "text-gray-700" : "text-gray-300"}`}>EXPLORER</span>
+      <div className={`flex items-center justify-between border-b px-3 py-2 ${THEME_COLORS[theme].border}`}>
+        <span className={`text-sm font-semibold ${THEME_COLORS[theme].textColor}`}>EXPLORER</span>
         <div className="flex space-x-1">
           <button
             onClick={() => setIsCreatingRoot("file")}
-            className={`cursor-pointer rounded p-1 ${theme === "vs" ? "text-gray-700 hover:bg-gray-200" : "text-gray-400 hover:bg-gray-700"}`}
+            className={`cursor-pointer rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
             title="새 파일"
           >
             <FilePlus size={16} />
           </button>
           <button
             onClick={() => setIsCreatingRoot("folder")}
-            className={`cursor-pointer rounded p-1 ${theme === "vs" ? "text-gray-700 hover:bg-gray-200" : "text-gray-400 hover:bg-gray-700"}`}
+            className={`cursor-pointer rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
             title="새 폴더"
           >
             <FolderPlus size={16} />
@@ -104,9 +98,7 @@ const FileExplorer = ({
             <input
               autoFocus
               type="text"
-              className={`flex-1 border border-blue-500 px-1 py-0 text-sm focus:outline-none ${
-                theme === "vs" ? "bg-white text-black" : "bg-gray-800 text-white"
-              }`}
+              className={`flex-1 border border-blue-500 px-1 py-0 text-sm focus:outline-none ${THEME_COLORS[theme].bg} ${THEME_COLORS[theme].textColor}`}
               value={newRootItemName}
               onChange={(e) => setNewRootItemName(e.target.value)}
               onBlur={handleCreateRootSubmit}
@@ -140,7 +132,7 @@ const FileExplorer = ({
         ))}
 
         {tree.length === 0 && !isCreatingRoot && (
-          <div className={`px-4 py-8 text-center text-sm ${theme === "vs" ? "text-gray-700" : "text-gray-400"}`}>
+          <div className={`px-4 py-8 text-center text-sm ${THEME_COLORS[theme].textColor}`}>
             No files yet.
             <br />
             Create one to start!

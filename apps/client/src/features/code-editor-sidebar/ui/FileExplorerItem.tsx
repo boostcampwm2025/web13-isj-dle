@@ -1,4 +1,4 @@
-import type { EditorTheme } from "../model/code-editor.constants";
+import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
 import type { FileSystemNode } from "../model/file-explorer.utils";
 import { ChevronDown, ChevronRight, Edit2, File, FilePlus, Folder, FolderOpen, FolderPlus, Trash2 } from "lucide-react";
 
@@ -59,9 +59,7 @@ export const FileExplorerItem = ({
   return (
     <div>
       <div
-        className={`group flex cursor-pointer items-center px-2 py-1 ${
-          theme === "vs" ? "hover:bg-gray-200" : "hover:bg-zinc-800"
-        } ${isSelected ? (theme === "vs" ? "bg-blue-100" : "bg-blue-900") : ""}`}
+        className={`group flex cursor-pointer items-center px-2 py-1 ${THEME_COLORS[theme].hoverBg} ${isSelected ? THEME_COLORS[theme].selectedBg : ""}`}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         onClick={() => {
           if (node.type === "folder") {
@@ -71,7 +69,7 @@ export const FileExplorerItem = ({
           }
         }}
       >
-        <span className={`mr-1 ${theme === "vs" ? "text-gray-700" : "text-gray-400"}`}>
+        <span className={`mr-1 ${THEME_COLORS[theme].textColor}`}>
           {node.type === "folder" ? (
             isExpanded ? (
               <ChevronDown size={14} />
@@ -97,13 +95,11 @@ export const FileExplorerItem = ({
               if (e.key === "Enter") handleRenameSubmit();
             }}
             autoFocus
-            className={`flex-1 border border-blue-500 px-1 py-0 text-sm focus:outline-none ${
-              theme === "vs" ? "bg-white text-black" : "bg-gray-800 text-white"
-            }`}
+            className={`flex-1 border border-blue-500 px-1 py-0 text-sm focus:outline-none ${THEME_COLORS[theme].bg} ${THEME_COLORS[theme].textColor}`}
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="flex-1 truncate text-sm select-none">{node.name}</span>
+          <span className={`flex-1 truncate text-sm select-none ${THEME_COLORS[theme].textColor}`}>{node.name}</span>
         )}
 
         <div className="hidden items-center space-x-1 group-hover:flex">
@@ -115,7 +111,7 @@ export const FileExplorerItem = ({
                   setCreatingState({ parentId: node.id, type: "file" });
                   if (!isExpanded) toggleFolder(node.id);
                 }}
-                className={`cursor-pointer rounded p-0.5 ${theme === "vs" ? "text-gray-700 hover:bg-gray-200" : "text-gray-400 hover:bg-gray-700"}`}
+                className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
                 title="새 파일"
               >
                 <FilePlus size={12} />
@@ -126,7 +122,7 @@ export const FileExplorerItem = ({
                   setCreatingState({ parentId: node.id, type: "folder" });
                   if (!isExpanded) toggleFolder(node.id);
                 }}
-                className={`cursor-pointer rounded p-0.5 ${theme === "vs" ? "text-gray-700 hover:bg-gray-200" : "text-gray-400 hover:bg-gray-700"}`}
+                className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
                 title="새 폴더"
               >
                 <FolderPlus size={12} />
@@ -138,8 +134,8 @@ export const FileExplorerItem = ({
               e.stopPropagation();
               setIsEditing(true);
             }}
-            className={`cursor-pointer rounded p-0.5 ${theme === "vs" ? "text-gray-700 hover:bg-gray-200" : "text-gray-400 hover:bg-gray-700"}`}
-            title="Rename"
+            className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
+            title="이름 변경"
           >
             <Edit2 size={12} />
           </button>
@@ -148,8 +144,8 @@ export const FileExplorerItem = ({
               e.stopPropagation();
               onDelete(node.id);
             }}
-            className={`cursor-pointer rounded p-0.5 ${theme === "vs" ? "text-red-700 hover:bg-gray-200" : "text-red-400 hover:bg-gray-700"}`}
-            title="Delete"
+            className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].deletedTextColor}`}
+            title="삭제"
           >
             <Trash2 size={12} />
           </button>
@@ -166,9 +162,7 @@ export const FileExplorerItem = ({
               <input
                 autoFocus
                 type="text"
-                className={`flex-1 border border-blue-500 px-1 py-0 text-sm focus:outline-none ${
-                  theme === "vs" ? "bg-white text-black" : "bg-gray-800 text-white"
-                }`}
+                className={`flex-1 border border-blue-500 px-1 py-0 text-sm focus:outline-none ${THEME_COLORS[theme].bg} ${THEME_COLORS[theme].textColor}`}
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
                 onBlur={handleCreateSubmit}
