@@ -2,7 +2,7 @@ import { Briefcase, Code, Megaphone, MessageCircleMore, PenTool, Users } from "l
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
-import { DeskzoneSidebar } from "@features/deskzone-sidebar";
+import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
@@ -35,9 +35,9 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     Icon: MessageCircleMore,
     Panel: ChatSidebar,
   },
-  deskzone: {
+  deskZone: {
     title: "데스크존",
     Icon: Briefcase,
-    Panel: DeskzoneSidebar,
+    Panel: DeskZoneSidebar,
   },
 };

@@ -12,7 +12,7 @@ import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useKnock } from "@features/knock";
 
-const DeskzoneSidebar = () => {
+const DeskZoneSidebar = () => {
   const user = useUserStore((s) => s.user);
   const users = useUserStore((s) => s.users);
   const receivedKnocks = useKnockStore((s) => s.receivedKnocks);
@@ -23,9 +23,9 @@ const DeskzoneSidebar = () => {
   const [pendingAcceptUserId, setPendingAcceptUserId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  const deskzoneUsers = users.filter((u) => u.avatar.currentRoomId === "desk zone");
+  const deskZoneUsers = users.filter((u) => u.avatar.currentRoomId === "desk zone");
 
-  const sortedUsers = [...deskzoneUsers].sort((a, b) => {
+  const sortedUsers = [...deskZoneUsers].sort((a, b) => {
     if (a.id === user?.id) return -1;
     if (b.id === user?.id) return 1;
     return a.nickname.localeCompare(b.nickname);
@@ -73,7 +73,7 @@ const DeskzoneSidebar = () => {
         <div className="mb-2 flex items-center gap-2 py-2 text-sm font-semibold text-gray-600">
           <Users size={ICON_SIZE} />
           <span>데스크존 사용자</span>
-          <span className="text-gray-400">({deskzoneUsers.length})</span>
+          <span className="text-gray-400">({deskZoneUsers.length})</span>
         </div>
 
         <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -153,4 +153,4 @@ const DeskzoneSidebar = () => {
   );
 };
 
-export default DeskzoneSidebar;
+export default DeskZoneSidebar;
