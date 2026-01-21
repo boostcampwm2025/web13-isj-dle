@@ -42,7 +42,7 @@ export const useKnockSocket = () => {
 
     const handleKnockRejected = (payload: KnockResultPayload) => {
       removeSentKnock(payload.targetUserId);
-      // TODO: 거절 알림 표시
+      setKnockFailedMessage(`${payload.targetUserNickname}님이 노크를 거절했습니다.`);
     };
 
     const handleDeskStatusUpdated = (payload: DeskStatusUpdatedPayload) => {
