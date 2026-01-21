@@ -1,9 +1,9 @@
-import { Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+import { Blocks, Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
 import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
-import { HostSidebar } from "@features/host-sidebar";
+import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
@@ -45,5 +45,10 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "관리자",
     Icon: Crown,
     Panel: HostSidebar,
+  },
+  participant: {
+    title: "조별 활동",
+    Icon: Blocks,
+    Panel: ParticipantSidebar,
   },
 };

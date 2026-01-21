@@ -3,6 +3,7 @@ import { getEffectiveRoomId } from "./use-livekit";
 import { useEffect, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS } from "@entities/collaboration-tool";
+import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
 import { useLecternStore } from "@entities/lectern/lectern.store.ts";
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
@@ -44,6 +45,8 @@ export const useVideoConference = () => {
   const isHost = userId === hostId;
 
   const isSeminarRoom = currentRoomId?.startsWith(COLLABORATION_ROOM_PREFIX.SEMINAR) ?? false;
+
+  const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
   useEffect(() => {
     const actionKey: ActionKey = "view_mode";
@@ -106,6 +109,16 @@ export const useVideoConference = () => {
       removeSidebarKey("host");
     }
   }, [isSeminarRoom, isHost, addSidebarKey, removeSidebarKey]);
+
+  useEffect(() => {
+    const isBreakoutActive = breakoutState?.isActive ?? false;
+
+    if (isSeminarRoom && isBreakoutActive && !isHost) {
+      addSidebarKey("participant");
+    } else {
+      removeSidebarKey("participant");
+    }
+  }, [isSeminarRoom, breakoutState?.isActive, isHost, addSidebarKey, removeSidebarKey]);
 
   return {
     mode,

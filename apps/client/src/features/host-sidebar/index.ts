@@ -1,1 +1,2 @@
-export { default as HostSidebar } from "./ui/HostSidebar";
+export { HostSidebar } from "./ui/HostSidebar";
+export { ParticipantSidebar } from "./ui/ParticipantSidebar";
