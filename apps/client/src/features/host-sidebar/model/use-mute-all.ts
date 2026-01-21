@@ -6,18 +6,18 @@ import { LecternEventType } from "@shared/types";
 
 export const useMuteAll = () => {
   const { socket } = useWebSocket();
-  const user = useUserStore((state) => state.user);
+  const roomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const muteAll = useCallback(() => {
-    if (!socket || !user) return;
+    if (!socket || !roomId) return;
 
-    socket.emit(LecternEventType.MUTE_ALL, { roomId: user.avatar.currentRoomId }, (response: { success: boolean }) => {
+    socket.emit(LecternEventType.MUTE_ALL, { roomId }, (response: { success: boolean }) => {
       if (response.success) {
         setIsSuccess(true);
       }
     });
-  }, [socket, user]);
+  }, [socket, roomId]);
 
   useEffect(() => {
     if (isSuccess) {
