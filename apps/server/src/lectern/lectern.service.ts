@@ -83,6 +83,10 @@ export class LecternService {
 
     const { roomCount, isRandom } = config;
 
+    if (isRandom && roomCount > userIds.length) {
+      return null;
+    }
+
     const rooms: BreakoutRoom[] = [];
 
     if (isRandom) {
