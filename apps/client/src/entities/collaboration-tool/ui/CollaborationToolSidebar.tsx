@@ -7,6 +7,7 @@ type CollaborationToolSidebarProps = {
   description: string;
   features: string[];
   buttonColor: "blue" | "purple";
+  children?: React.ReactNode;
 };
 
 const BUTTON_COLORS = {
@@ -26,6 +27,7 @@ const CollaborationToolSidebar = ({
   description,
   features,
   buttonColor,
+  children,
 }: CollaborationToolSidebarProps) => {
   const activeTool = useCollaborationToolStore((state) => state.activeTool);
   const closeTool = useCollaborationToolStore((state) => state.closeTool);
@@ -73,6 +75,8 @@ const CollaborationToolSidebar = ({
           {title}가 열려있습니다
         </div>
       )}
+
+      {children}
     </div>
   );
 };

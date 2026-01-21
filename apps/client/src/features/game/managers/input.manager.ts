@@ -10,8 +10,41 @@ export class InputManager {
   private keys?: MoveKeys;
   private lastDir: AvatarDirection = "down";
 
+  private _enabled: boolean = true;
+
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
+  }
+
+  setEnabled(enabled: boolean): void {
+    this._enabled = enabled;
+
+    if (this.scene.input.keyboard) {
+      if (enabled) {
+        this.scene.input.keyboard.enableGlobalCapture();
+      } else {
+        this.scene.input.keyboard.disableGlobalCapture();
+      }
+    }
+
+    if (this.keys) {
+      this.keys.up.enabled = enabled;
+      this.keys.down.enabled = enabled;
+      this.keys.left.enabled = enabled;
+      this.keys.right.enabled = enabled;
+      this.keys.sit.enabled = enabled;
+    }
+
+    if (this.cursors) {
+      this.cursors.up.enabled = enabled;
+      this.cursors.down.enabled = enabled;
+      this.cursors.left.enabled = enabled;
+      this.cursors.right.enabled = enabled;
+    }
+  }
+
+  get enabled(): boolean {
+    return this._enabled;
   }
 
   initialize(): void {
@@ -29,6 +62,8 @@ export class InputManager {
     }) as MoveKeys;
 
     keyboard.on("keydown", (e: KeyboardEvent) => {
+      if (!this._enabled) return;
+
       const k = e.code;
 
       if (k === "ArrowLeft" || k === "KeyA") this.lastDir = "left";
@@ -39,6 +74,7 @@ export class InputManager {
   }
 
   getNextDirection(): AvatarDirection | null {
+    if (!this._enabled) return null;
     if (!this.cursors || !this.keys) return null;
 
     const down = this.cursors.down.isDown || this.keys.down.isDown;
@@ -65,6 +101,7 @@ export class InputManager {
   }
 
   isSitKeyPressed(): boolean {
+    if (!this._enabled) return false;
     return this.keys?.sit.isDown ?? false;
   }
 

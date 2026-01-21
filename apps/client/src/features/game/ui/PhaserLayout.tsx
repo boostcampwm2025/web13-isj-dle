@@ -6,10 +6,11 @@ import { useGameSocket } from "../model/use-game-socket";
 import { usePhaserGame } from "../model/use-phaser-game";
 import { useRoomSelector } from "../model/use-room-selector";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
+import { LecternEventType } from "@shared/types";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
 
 interface PhaserLayoutProps {
@@ -29,9 +30,23 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     currentRoomId,
   );
 
+  const lecternEnter = useCallback(
+    (roomId: string) => {
+      socket?.emit(LecternEventType.LECTERN_ENTER, { roomId });
+    },
+    [socket],
+  );
+
+  const lecternLeave = useCallback(
+    (roomId: string) => {
+      socket?.emit(LecternEventType.LECTERN_LEAVE, { roomId });
+    },
+    [socket],
+  );
+
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector);
+  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
   useAvatarRenderer(game);
 
   return (

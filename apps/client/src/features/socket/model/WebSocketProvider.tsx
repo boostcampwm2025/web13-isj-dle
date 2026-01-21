@@ -3,9 +3,17 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { useLecternStore } from "@entities/lectern/lectern.store.ts";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
-import { type AvatarDirection, type AvatarState, type User, UserEventType } from "@shared/types";
+import {
+  type AvatarDirection,
+  type AvatarState,
+  LecternEventType,
+  type RoomType,
+  type User,
+  UserEventType,
+} from "@shared/types";
 
 interface WebSocketProviderProps {
   children: ReactNode;
@@ -20,6 +28,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const removeUser = useUserStore((s) => s.removeUser);
   const updateUser = useUserStore((s) => s.updateUser);
   const updateUserPosition = useUserStore((s) => s.updateUserPosition);
+  const setLecternState = useLecternStore.getState().setLecternState;
 
   useEffect(() => {
     const socketInstance = io(SERVER_URL, {
@@ -99,6 +108,19 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       }
     };
 
+    const handleLecternUpdate = (data: { roomId: RoomType; hostId: string | null; usersOnLectern: string[] }) => {
+      setLecternState({
+        roomId: data.roomId,
+        hostId: data.hostId,
+        usersOnLectern: data.usersOnLectern,
+      });
+    };
+
+    const handleMuteAllExecuted = (data: { hostId: string }) => {
+      // TODO: 다음 이슈에서 상세 기능 구현 예정
+      console.log(data);
+    };
+
     socketInstance.on("connect", handleConnect);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("connect_error", handleConnectError);
@@ -113,6 +135,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketInstance.on(UserEventType.PLAYER_MOVED, handlePlayerMoved);
     socketInstance.on(UserEventType.BOUNDARY_UPDATE, handleBoundaryUpdate);
 
+    socketInstance.on(LecternEventType.LECTERN_UPDATE, handleLecternUpdate);
+    socketInstance.on(LecternEventType.MUTE_ALL_EXECUTED, handleMuteAllExecuted);
+
     return () => {
       if (socketRef.current) {
         console.log("[WebSocket] Cleaning up connection");
@@ -123,7 +148,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, [addUser, removeUser, setSyncUsers, updateUser, updateUserPosition]);
+  }, [addUser, removeUser, setSyncUsers, updateUser, updateUserPosition, setLecternState]);
 
   return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
 };

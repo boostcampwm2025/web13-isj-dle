@@ -15,6 +15,7 @@ import { getAvatarSpawnPoint, getSeatDirectionAtPosition, loadTilesets } from ".
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
+import { LecternManager } from "@features/game/managers/lectern.manager.ts";
 import { AVATAR_ASSETS, type AvatarAssetKey, TILE_SIZE, type User, UserEventType } from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
@@ -30,6 +31,7 @@ export class GameScene extends Phaser.Scene {
   private networkSyncManager!: NetworkSyncManager;
   private avatarRenderer!: AvatarRenderer;
   private boundaryRenderer!: BoundaryRenderer;
+  private lecternManager!: LecternManager;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -89,6 +91,8 @@ export class GameScene extends Phaser.Scene {
         }
       });
 
+      this.lecternManager = new LecternManager(this, map);
+
       this.input.on(
         "wheel",
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
@@ -144,6 +148,11 @@ export class GameScene extends Phaser.Scene {
     const inputDirection = this.inputManager.getNextDirection();
 
     this.roomEntranceManager.checkRoomEntrance(this.avatar.sprite.x, this.avatar.sprite.y);
+    this.lecternManager.checkLectern(
+      this.avatar.sprite.x,
+      this.avatar.sprite.y,
+      this.roomEntranceManager.getCurrentRoomId(),
+    );
 
     if (this.avatar.state === "sit") {
       const x = this.avatar.sprite.x;
@@ -257,5 +266,9 @@ export class GameScene extends Phaser.Scene {
 
   setSocket(socket: Socket): void {
     this.networkSyncManager.setSocket(socket);
+  }
+
+  setInputEnabled(enabled: boolean): void {
+    this.inputManager?.setEnabled(enabled);
   }
 }

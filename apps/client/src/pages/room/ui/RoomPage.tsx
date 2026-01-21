@@ -1,7 +1,7 @@
 import { useLivekit } from "../model/use-livekit";
 import { useVideoConference } from "../model/use-video-conference";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
@@ -20,6 +20,7 @@ import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import { LecternEventType } from "@shared/types";
 import { BottomNav } from "@widgets/bottom-nav";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
 import { Sidebar, useSidebarStore } from "@widgets/sidebar";
@@ -37,9 +38,23 @@ const RoomPage = () => {
     currentRoomId,
   );
 
+  const lecternEnter = useCallback(
+    (roomId: string) => {
+      socket?.emit(LecternEventType.LECTERN_ENTER, { roomId });
+    },
+    [socket],
+  );
+
+  const lecternLeave = useCallback(
+    (roomId: string) => {
+      socket?.emit(LecternEventType.LECTERN_LEAVE, { roomId });
+    },
+    [socket],
+  );
+
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector);
+  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
   useAvatarRenderer(game);
 
   const { getHookByKey } = useAction();
