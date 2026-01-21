@@ -11,6 +11,7 @@ import {
 import {
   AvatarDirection,
   AvatarState,
+  type BreakoutConfig,
   type DeskStatusUpdatePayload,
   KnockEventType,
   type KnockResponsePayload,
@@ -128,9 +129,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
-  async handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
+  async handleRoomJoin(client: Socket, payload: RoomJoinPayload, ack?: (res: any) => void) {
     if (!payload || !payload.roomId) {
       this.logger.warn(`⚠️ ROOM_JOIN called without roomId from client: ${client.id}`);
+      ack?.({ success: false });
       return;
     }
 
@@ -139,6 +141,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (!user) {
         this.logger.error(`❌ User session not found for client: ${client.id}`);
         client.emit("error", { message: "User session not found" });
+        ack?.({ success: false });
         return;
       }
 
@@ -160,6 +163,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
       if (!updated) {
         this.logger.error(`❌ Failed to update room for user: ${client.id}`);
+        ack?.({ success: false });
         return;
       }
 
@@ -213,10 +217,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           }
         }
       }
+      ack?.({ success: true });
     } catch (error) {
       const trace = error instanceof Error ? error.stack : String(error);
       this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
       client.emit("error", { message: "Failed to join room" });
+      ack?.({ success: false });
     }
   }
 
@@ -234,12 +240,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(UserEventType.PLAYER_MOVE)
-  handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
+  handlePlayerMove(
+    client: Socket,
+    payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState; force?: boolean },
+    ack?: (res: any) => void,
+  ) {
     const updated = this.userManager.updateSessionPosition(client.id, payload);
     const user = this.userManager.getSession(client.id);
 
     if (!updated || !user) {
       this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);
+      ack?.({ success: false });
       return;
     }
 
@@ -264,6 +275,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
       }
     }
+    ack?.({ success: true });
   }
 
   @SubscribeMessage(LecternEventType.LECTERN_ENTER)
@@ -289,9 +301,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(LecternEventType.MUTE_ALL)
-  handleMuteAll(client: Socket, payload: { roomId: RoomType }) {
+  handleMuteAll(client: Socket, payload: { roomId: RoomType }, callback?: (response: { success: boolean }) => void) {
     if (!this.lecternService.isHost(payload.roomId, client.id)) {
-      client.emit("error", { message: "You are not a host" });
+      callback?.({ success: false });
       return;
     }
 
@@ -314,6 +326,50 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
       }
     }
+
+    callback?.({ success: true });
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_CREATE)
+  handleBreakoutCreate(
+    client: Socket,
+    payload: {
+      roomId: RoomType;
+      config: BreakoutConfig;
+      userIds: string[];
+    },
+  ) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You're not a host" });
+      return;
+    }
+
+    const state = this.lecternService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
+
+    if (!state) {
+      client.emit("error", { message: "Breakout cannot be executed" });
+      return;
+    }
+
+    this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+      roomId: payload.roomId,
+      state,
+    });
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_END)
+  handleBreakoutEnd(client: Socket, payload: { roomId: RoomType }) {
+    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+      client.emit("error", { message: "You're not a host" });
+      return;
+    }
+
+    this.lecternService.endBreakout(payload.roomId);
+
+    this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+      roomId: payload.roomId,
+      state: null,
+    });
   }
 
   @SubscribeMessage(KnockEventType.KNOCK_SEND)

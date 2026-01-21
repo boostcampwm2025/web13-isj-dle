@@ -12,4 +12,24 @@ export enum LecternEventType {
   LECTERN_UPDATE = "lectern:update",
   MUTE_ALL = "lectern:mute-all",
   MUTE_ALL_EXECUTED = "lectern:mute-all-executed",
+  BREAKOUT_CREATE = "lectern:breakout-create",
+  BREAKOUT_UPDATE = "lectern:breakout-update",
+  BREAKOUT_END = "lectern:breakout-end",
+}
+
+export interface BreakoutRoom {
+  roomId: string;
+  userIds: string[];
+}
+
+export interface BreakoutConfig {
+  roomCount: number;
+  isRandom: boolean;
+}
+
+export interface BreakoutState {
+  isActive: boolean;
+  hostRoomId: string;
+  rooms: BreakoutRoom[];
+  hostId: string | null;
 }
