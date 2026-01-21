@@ -30,7 +30,17 @@ export const useVisibleUsers = () => {
   }, []);
 
   const subscribe = useCallback((onStoreChange: () => void) => {
-    return useUserStore.subscribe(() => onStoreChange());
+    return useUserStore.subscribe(
+      (state) => ({
+        currentRoomId: state.user?.avatar.currentRoomId ?? null,
+        currentContactId: state.user?.contactId ?? null,
+        users: state.users.map((u) => ({
+          id: u.id,
+          contactId: u.contactId,
+        })),
+      }),
+      () => onStoreChange(),
+    );
   }, []);
 
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
