@@ -6,7 +6,7 @@ import type { Socket } from "socket.io-client";
 import { useState } from "react";
 
 import { useUserStore } from "@entities/user";
-import { GAME_SCENE_KEY, GameScene } from "@features/game";
+import { GAME_SCENE_KEY, GameScene, isSameTileAtWorld } from "@features/game";
 import { type AvatarState, RoomEventType, type RoomType, UserEventType } from "@shared/types";
 
 export const useDeskZoneAction: ActionHook = () => {
@@ -22,9 +22,7 @@ export const useDeskZoneAction: ActionHook = () => {
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
     const deskSeats = scene.deskSeatPoints;
     for (const point of deskSeats) {
-      const isOccupied = Object.values(users).some(
-        (user) => Math.round(user.avatar.x) === point.x && Math.round(user.avatar.y) === point.y,
-      );
+      const isOccupied = users.some((user) => isSameTileAtWorld(scene.mapInfo.map, user.avatar, point));
       if (!isOccupied) {
         socket.emit(RoomEventType.ROOM_JOIN, { roomId: "desk zone" as RoomType });
         socket.emit(UserEventType.PLAYER_MOVE, { ...point, state: "sit" as AvatarState });
