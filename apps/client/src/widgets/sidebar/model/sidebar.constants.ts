@@ -1,8 +1,9 @@
-import { Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+import { BookOpen, Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
 import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
+import { GuideSidebar } from "@features/guide-sidebar";
 import { HostSidebar } from "@features/host-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
@@ -20,7 +21,11 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     Icon: Megaphone,
     Panel: NoticeSidebar,
   },
-
+  guide: {
+    title: "이용 가이드",
+    Icon: BookOpen,
+    Panel: GuideSidebar,
+  },
   whiteboard: {
     title: "화이트보드",
     Icon: PenTool,
