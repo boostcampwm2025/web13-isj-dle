@@ -16,7 +16,6 @@ import {
 import { useStopwatch } from "../model/use-stopwatch";
 import { useSyncTimer } from "../model/use-sync-timer";
 import { useTimer } from "../model/use-timer";
-import { useTimerComplete } from "../model/use-timer-complete";
 import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
 import { Pause, Play, RotateCcw } from "lucide-react";
@@ -28,8 +27,6 @@ export const TimerStopwatchSidebar = () => {
   const user = useUserStore((state) => state.user);
   const roomId = user?.avatar.currentRoomId ?? null;
   const isMeetingRoom = roomId?.startsWith("meeting") ?? false;
-
-  useTimerComplete();
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
@@ -100,11 +97,7 @@ export const TimerStopwatchSidebar = () => {
 
   const isEditable = isTimerMode && !timer.isRunning;
 
-  const displayValues = isTimerMode
-    ? timer.isRunning || timer.timeSec > 0
-      ? secondsToHms(timer.timeSec)
-      : { hours: timer.hours, minutes: timer.minutes, seconds: timer.seconds }
-    : secondsToHms(stopwatch.timeSec);
+  const displayValues = isTimerMode ? secondsToHms(timer.timeSec) : secondsToHms(stopwatch.timeSec);
 
   const startStopButtonStyle = activeControl.isRunning ? TIMER_BUTTON_STYLES.running : TIMER_BUTTON_STYLES.stopped;
 
@@ -131,6 +124,8 @@ export const TimerStopwatchSidebar = () => {
               value={displayValues.minutes}
               onChange={timer.setMinutes}
               max={MAX_MINUTES}
+              allowOverflow
+              overflowBase={60}
               editable={isEditable}
               isWarning={isTimerMode && timer.isWarning}
             />
@@ -143,6 +138,8 @@ export const TimerStopwatchSidebar = () => {
               value={displayValues.seconds}
               onChange={timer.setSeconds}
               max={MAX_SECONDS}
+              allowOverflow
+              overflowBase={60}
               editable={isEditable}
               isWarning={isTimerMode && timer.isWarning}
             />

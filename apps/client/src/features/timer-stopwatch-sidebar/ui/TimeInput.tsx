@@ -4,19 +4,38 @@ interface TimeInputProps {
   value: number;
   onChange: (v: number) => void;
   max: number;
+  allowOverflow?: boolean;
+  overflowBase?: number;
   editable?: boolean;
   isWarning?: boolean;
 }
 
-export const TimeInput = ({ value, onChange, max, editable = false, isWarning = false }: TimeInputProps) => {
+export const TimeInput = ({
+  value,
+  onChange,
+  max,
+  allowOverflow = false,
+  overflowBase,
+  editable = false,
+  isWarning = false,
+}: TimeInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localValue, setLocalValue] = useState<string>("");
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replaceAll(/\D/g, "").slice(0, 2);
-    setLocalValue(raw);
-    const num = Math.min(max, Math.max(0, Number(raw) || 0));
+    const num = Math.max(0, Number(raw) || 0);
+
+    if (!allowOverflow) {
+      setLocalValue(raw);
+      onChange(Math.min(max, num));
+      return;
+    }
+
+    const base = overflowBase ?? max + 1;
+    const displayNum = num >= base ? num % base : num;
+    setLocalValue(raw === "" ? "" : String(displayNum));
     onChange(num);
   };
 
