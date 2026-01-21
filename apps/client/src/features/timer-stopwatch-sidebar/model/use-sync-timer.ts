@@ -1,4 +1,5 @@
 import { secondsToHms } from "../lib/timer.utils";
+import { isTimerReset, isTimerStopped } from "./timer-state";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 import { useCallback, useEffect } from "react";
@@ -27,25 +28,19 @@ export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseS
     if (!socket || !roomId || !isMeetingRoom) return;
 
     const handleTimerState = (payload: TimerStatePayload) => {
-      const isReset =
-        !payload.isRunning && payload.startedAt === null && payload.initialTimeSec === 0 && payload.pausedTimeSec === 0;
-
-      if (isReset) {
+      if (isTimerReset(payload)) {
         resetTimer();
         return;
       }
 
-      const isStopped = !payload.isRunning && payload.startedAt === null;
       const stoppedTime = payload.pausedTimeSec;
-      const isCompleted = isStopped && payload.initialTimeSec > 0 && payload.pausedTimeSec === 0;
 
       setTimer({
         isRunning: payload.isRunning,
         initialTimeSec: payload.initialTimeSec,
         startedAt: payload.startedAt,
         pausedTimeSec: payload.pausedTimeSec,
-        completedAt: isCompleted ? Date.now() : null,
-        ...(isStopped ? secondsToHms(stoppedTime) : {}),
+        ...(isTimerStopped(payload) ? secondsToHms(stoppedTime) : {}),
       });
     };
 

@@ -68,7 +68,6 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
         startedAt: null,
         pausedTimeSec: total,
         initialTimeSec: total,
-        completedAt: null,
       });
     },
     [setTimer],
@@ -119,10 +118,10 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
       const total = clampTimerTotalSeconds(hmsToSeconds(hours, minutes, seconds), MAX_HOURS);
       if (total <= 0) return;
       setTimeSec(total);
-      setTimer({ initialTimeSec: total, startedAt: Date.now(), isRunning: true, completedAt: null });
+      setTimer({ initialTimeSec: total, startedAt: Date.now(), isRunning: true });
     } else {
       setTimeSec(pausedTimeSec);
-      setTimer({ startedAt: Date.now(), initialTimeSec: pausedTimeSec, isRunning: true, completedAt: null });
+      setTimer({ startedAt: Date.now(), initialTimeSec: pausedTimeSec, isRunning: true });
     }
   }, [hours, minutes, seconds, setTimer]);
 
@@ -141,7 +140,7 @@ export const useTimer = (warningSeconds: number): UseTimerReturn => {
   const addTime = useCallback(
     (sec: number) => {
       if (isRunning) {
-        setTimer({ initialTimeSec: clampTimerTotalSeconds(initialTimeSec + sec, MAX_HOURS), completedAt: null });
+        setTimer({ initialTimeSec: clampTimerTotalSeconds(initialTimeSec + sec, MAX_HOURS) });
         return;
       }
 

@@ -1,20 +1,32 @@
 import { playChime } from "../lib/use-chime-sound";
+import { isTimerCompleted } from "./timer-state";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 import { useEffect, useRef } from "react";
 
 import { toast } from "@shared/ui";
 
-export const useTimerComplete = () => {
-  const completedAt = useTimerStopwatchStore((state) => state.timer.completedAt);
-  const lastCompletedAtRef = useRef<number | null>(null);
+let lastNotifiedRunId: number | null = null;
+
+export const useTimerCompletionNotification = () => {
+  const isCompleted = useTimerStopwatchStore((state) => isTimerCompleted(state.timer));
+  const startedAt = useTimerStopwatchStore((state) => state.timer.startedAt);
+
+  const runIdRef = useRef<number | null>(startedAt);
 
   useEffect(() => {
-    if (completedAt === null) return;
-    if (lastCompletedAtRef.current === completedAt) return;
+    if (startedAt === null) return;
+    runIdRef.current = startedAt;
+  }, [startedAt]);
 
-    lastCompletedAtRef.current = completedAt;
+  useEffect(() => {
+    if (!isCompleted) return;
+
+    const runId = runIdRef.current;
+    if (runId !== null && lastNotifiedRunId === runId) return;
+    lastNotifiedRunId = runId;
+
     playChime();
-    toast("타이머 시간이 종료되었습니다.");
-  }, [completedAt]);
+    toast("타이머 시간이 종료되었습니다.", { id: "timer-complete" });
+  }, [isCompleted]);
 };
