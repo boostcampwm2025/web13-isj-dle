@@ -124,7 +124,7 @@ export const useFileSystem = (
       const fsMap = ydoc.getMap<FileSystemItem>("file-system");
       const items = fsMap.toJSON();
       if (Object.keys(items).length === 0) {
-        createItem("readme", "file", null);
+        createItem("README.md", "file", null);
       }
     };
 
