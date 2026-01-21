@@ -1,5 +1,6 @@
 import { MAX_ROOM_COUNT, MIN_ROOM_COUNT } from "../model/breakout.constants";
 import { useBreakout } from "../model/use-breakout";
+import { useBreakoutJoin } from "../model/use-breakout-join";
 import { Blocks, Minus, Plus, Shuffle, Users, X } from "lucide-react";
 
 import { useState } from "react";
@@ -8,6 +9,7 @@ import { BreakoutRoomList } from "@features/host-sidebar/ui/BreakoutRoomList.tsx
 
 export const BreakoutPanel = () => {
   const { breakoutState, isBreakoutActive, currentRoomUsers, createBreakout, endBreakout } = useBreakout();
+  const { joinRoom, currentBreakoutRoomId } = useBreakoutJoin();
 
   const [roomCount, setRoomCount] = useState(2);
   const [isRandom, setIsRandom] = useState(true);
@@ -60,7 +62,14 @@ export const BreakoutPanel = () => {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <BreakoutRoomList rooms={breakoutState.rooms} />
+          <BreakoutRoomList
+            rooms={breakoutState.rooms}
+            showJoinButton={true}
+            onJoinRoom={joinRoom}
+            currentRoomId={currentBreakoutRoomId}
+            isHost={true}
+            isRandom={breakoutState.config?.isRandom ?? false}
+          />
         </div>
 
         <button

@@ -620,7 +620,22 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage(LecternEventType.BREAKOUT_JOIN)
-  handleBreakoutJoin(_client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+  handleBreakoutJoin(client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+    const breakoutState = this.lecternService.getBreakoutState(payload.hostRoomId);
+
+    if (!breakoutState) {
+      client.emit("error", { message: "진행 중인 소회의실이 없습니다." });
+      return;
+    }
+
+    const isHost = this.lecternService.isHost(payload.hostRoomId, client.id);
+    const isRandom = breakoutState.config.isRandom;
+
+    if (!isHost && isRandom) {
+      client.emit("error", { message: "랜덤 배정 모드에서는 방 이동이 불가능합니다." });
+      return;
+    }
+
     const state = this.lecternService.joinBreakoutRoom(payload.hostRoomId, payload.userId, payload.targetRoomId);
 
     if (state) {

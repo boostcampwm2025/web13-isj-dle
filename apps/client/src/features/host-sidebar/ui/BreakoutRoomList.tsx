@@ -7,6 +7,8 @@ interface BreakoutRoomListProps {
   showJoinButton?: boolean;
   onJoinRoom?: (roomId: string) => void;
   currentRoomId?: string | null;
+  isHost?: boolean;
+  isRandom?: boolean;
 }
 
 export const BreakoutRoomList = ({
@@ -14,6 +16,8 @@ export const BreakoutRoomList = ({
   showJoinButton = false,
   onJoinRoom,
   currentRoomId,
+  isHost = false,
+  isRandom = false,
 }: BreakoutRoomListProps) => {
   return (
     <div className="flex flex-col gap-2.5">
@@ -25,6 +29,8 @@ export const BreakoutRoomList = ({
           showJoinButton={showJoinButton}
           onJoin={() => onJoinRoom?.(room.roomId)}
           isCurrentRoom={room.roomId === currentRoomId}
+          isHost={isHost}
+          isRandom={isRandom}
         />
       ))}
     </div>

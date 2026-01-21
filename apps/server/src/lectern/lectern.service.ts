@@ -117,6 +117,7 @@ export class LecternService {
       hostRoomId,
       rooms,
       hostId,
+      config,
     };
 
     this.breakoutStates.set(hostRoomId, state);

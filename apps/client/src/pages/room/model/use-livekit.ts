@@ -48,8 +48,8 @@ export const useLivekit = (): UseLivekitState => {
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
 
-    const effectiveRoomId =
-      !isHost && myBreakoutRoomId ? myBreakoutRoomId : getEffectiveRoomId(currentRoomId, contactId);
+    // 호스트/비호스트 관계없이 breakout room에 속해있으면 해당 room으로 연결
+    const effectiveRoomId = myBreakoutRoomId ? myBreakoutRoomId : getEffectiveRoomId(currentRoomId, contactId);
 
     console.log("[useLivekit] effectiveRoomId calculation", {
       isHost,

@@ -8,6 +8,8 @@ interface BreakoutRoomCardProps {
   showJoinButton?: boolean;
   onJoin?: () => void;
   isCurrentRoom?: boolean;
+  isHost?: boolean;
+  isRandom?: boolean;
 }
 
 export const BreakoutRoomCard = ({
@@ -16,7 +18,10 @@ export const BreakoutRoomCard = ({
   showJoinButton = false,
   onJoin,
   isCurrentRoom = false,
+  isHost = false,
+  isRandom = false,
 }: BreakoutRoomCardProps) => {
+  const canJoin = isHost || !isRandom;
   return (
     <div
       className={`rounded-lg border px-3.5 py-3 shadow-sm ${
@@ -35,7 +40,7 @@ export const BreakoutRoomCard = ({
             <Users className="h-3.5 w-3.5" />
             <span className="font-medium text-gray-700">{room.userIds.length}명</span>
           </div>
-          {showJoinButton && !isCurrentRoom && (
+          {showJoinButton && !isCurrentRoom && canJoin && (
             <button
               onClick={onJoin}
               className="rounded-md bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600"

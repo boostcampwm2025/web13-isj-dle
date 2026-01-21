@@ -34,4 +34,5 @@ export interface BreakoutState {
   hostRoomId: string;
   rooms: BreakoutRoom[];
   hostId: string | null;
+  config: BreakoutConfig;
 }

@@ -1,11 +1,13 @@
 import { Blocks } from "lucide-react";
 
 import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
+import { useUserStore } from "@entities/user";
 import { useBreakoutJoin } from "@features/host-sidebar/model/use-breakout-join.ts";
 import { BreakoutRoomList } from "@features/host-sidebar/ui/BreakoutRoomList.tsx";
 
 export const ParticipantSidebar = () => {
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
+  const user = useUserStore((state) => state.user);
   const { joinRoom, currentBreakoutRoomId } = useBreakoutJoin();
 
   if (!breakoutState?.isActive) {
@@ -15,6 +17,10 @@ export const ParticipantSidebar = () => {
       </div>
     );
   }
+
+  const isHost = breakoutState.hostId === user?.id;
+  const isRandom = breakoutState.config?.isRandom ?? false;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
@@ -31,6 +37,8 @@ export const ParticipantSidebar = () => {
         showJoinButton={true}
         onJoinRoom={joinRoom}
         currentRoomId={currentBreakoutRoomId}
+        isHost={isHost}
+        isRandom={isRandom}
       />
     </div>
   );
