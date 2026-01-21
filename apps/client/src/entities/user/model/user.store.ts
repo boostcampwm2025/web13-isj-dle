@@ -27,6 +27,7 @@ export const positionStore = {
 
   delete: (userId: string) => {
     positionMap.delete(userId);
+    positionListeners.forEach((listener) => listener());
   },
 
   subscribe: (listener: () => void) => {
@@ -34,7 +35,7 @@ export const positionStore = {
     return () => positionListeners.delete(listener);
   },
 
-  getAll: () => positionMap,
+  getAll: () => new Map(positionMap),
 };
 
 interface UserState {
