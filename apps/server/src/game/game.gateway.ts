@@ -339,11 +339,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       userIds: string[];
     },
   ) {
-    this.logger.log(`[Breakout] BREAKOUT_CREATE received from ${client.id}`);
-    this.logger.log(`[Breakout] Payload: ${JSON.stringify(payload)}`);
-
     const isHost = this.lecternService.isHost(payload.roomId, client.id);
-    this.logger.log(`[Breakout] isHost check: roomId=${payload.roomId}, clientId=${client.id}, isHost=${isHost}`);
 
     if (!isHost) {
       this.logger.warn(`[Breakout] Not a host - rejecting`);
@@ -352,7 +348,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     const state = this.lecternService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
-    this.logger.log(`[Breakout] createBreakout result: ${state ? "success" : "failed"}`);
 
     if (!state) {
       this.logger.warn(`[Breakout] createBreakout failed`);
@@ -360,7 +355,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       return;
     }
 
-    this.logger.log(`[Breakout] Broadcasting BREAKOUT_UPDATE to room ${payload.roomId}`);
     this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
       roomId: payload.roomId,
       state,
