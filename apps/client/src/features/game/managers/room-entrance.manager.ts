@@ -85,6 +85,8 @@ export class RoomEntranceManager {
         this.networkSyncManager?.emitDeskStatusUpdate("available");
       } else if (previousRoomId === "desk zone") {
         this.networkSyncManager?.emitDeskStatusUpdate(null);
+        const clearKnocks = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.CLEAR_KNOCKS);
+        clearKnocks?.();
       }
     }
   }

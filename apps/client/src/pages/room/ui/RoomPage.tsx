@@ -3,6 +3,7 @@ import { useVideoConference } from "../model/use-video-conference";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
 import {
@@ -35,6 +36,7 @@ const RoomPage = () => {
   const { socket, isConnected } = useWebSocket();
   const user = useUserStore((state) => state.user);
   const users = useUserStore((state) => state.users);
+  const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
 
   const { game } = useGameInitialization(containerRef);
 
@@ -70,7 +72,15 @@ const RoomPage = () => {
 
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game, user);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave, updateMyDeskStatus);
+  useGameRegistry(
+    game,
+    joinRoom ?? null,
+    openRoomSelector,
+    lecternEnter,
+    lecternLeave,
+    updateMyDeskStatus,
+    clearAllKnocks,
+  );
   useAvatarRenderer(game, users, user);
 
   useKnockSocket();

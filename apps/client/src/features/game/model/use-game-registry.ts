@@ -11,6 +11,7 @@ export const useGameRegistry = (
   lecternEnter: (roomId: string) => void,
   lecternLeave: (roomId: string) => void,
   updateMyDeskStatus?: (status: DeskStatus | null) => void,
+  clearKnocks?: () => void,
 ) => {
   useEffect(() => {
     if (game && joinRoom) {
@@ -63,6 +64,16 @@ export const useGameRegistry = (
       game.registry.remove(GAME_REGISTRY_KEYS.UPDATE_MY_DESK_STATUS);
     };
   }, [game, updateMyDeskStatus]);
+
+  useEffect(() => {
+    if (!game || !clearKnocks) return;
+
+    setRegistryFunction(game, GAME_REGISTRY_KEYS.CLEAR_KNOCKS, clearKnocks);
+
+    return () => {
+      game.registry.remove(GAME_REGISTRY_KEYS.CLEAR_KNOCKS);
+    };
+  }, [game, clearKnocks]);
 
   return null;
 };
