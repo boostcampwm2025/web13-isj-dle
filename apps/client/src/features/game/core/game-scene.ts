@@ -1,5 +1,11 @@
-import { AvatarAnimationManager, InputManager, NetworkSyncManager, RoomEntranceManager } from "../managers";
-import { NicknameManager } from "../managers/nickname.manager";
+import {
+  AvatarAnimationManager,
+  InputManager,
+  LecternManager,
+  NetworkSyncManager,
+  NicknameManager,
+  RoomEntranceManager,
+} from "../managers";
 import {
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
@@ -15,7 +21,6 @@ import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTil
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
-import { LecternManager } from "@features/game/managers/lectern.manager.ts";
 import {
   AVATAR_ASSETS,
   type AvatarAssetKey,
