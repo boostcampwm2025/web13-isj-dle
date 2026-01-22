@@ -89,7 +89,7 @@ const FileExplorer = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="scrollbar-hide flex-1 overflow-y-auto py-2">
         {isCreatingRoot && (
           <div className="flex items-center px-2 py-1 pl-5">
             <span className="mr-2 text-blue-500">
