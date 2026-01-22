@@ -2,7 +2,13 @@ import { useMemo } from "react";
 
 import type { User } from "@shared/types";
 
-export const useGroupedUsers = (user: User | null, users: User[]) => {
+interface MinimalUser {
+  id: string;
+  contactId?: string | null;
+  avatar: { currentRoomId: string };
+}
+
+export const useGroupedUsers = (user: MinimalUser | null, users: User[]) => {
   const sameContactUsers = useMemo(() => {
     if (!user?.contactId) return [];
     return users.filter((u) => u.contactId === user.contactId);

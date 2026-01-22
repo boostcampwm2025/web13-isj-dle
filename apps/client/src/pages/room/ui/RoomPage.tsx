@@ -30,14 +30,13 @@ const RoomPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
-  const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   const { game } = useGameInitialization(containerRef);
 
   const { roomSelectorOpen, selectedRoomRange, openRoomSelector, handleCloseModal, handleRoomSelect } = useRoomSelector(
     joinRoom,
-    user?.avatar.currentRoomId,
+    currentRoomId,
   );
 
   const lecternEnter = useCallback(
@@ -55,9 +54,9 @@ const RoomPage = () => {
   );
 
   useGameSocket(game, socket, isConnected);
-  useAvatarLoader(game, user);
+  useAvatarLoader(game);
   useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
-  useAvatarRenderer(game, users, user);
+  useAvatarRenderer(game);
 
   useKnockSocket();
 

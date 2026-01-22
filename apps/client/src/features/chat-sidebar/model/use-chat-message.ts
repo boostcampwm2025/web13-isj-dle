@@ -1,22 +1,66 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { JOIN_SUFFIX, LEAVE_SUFFIX, useChatStore } from "@entities/chat";
+import { useUserStore } from "@entities/user";
 import { type ReceivedChatMessage, useChat } from "@livekit/components-react";
+
+type BoundaryChatMessage = ReceivedChatMessage & {
+  contactId: string | null;
+};
 
 export const useChatMessage = () => {
   const ulRef = useRef<HTMLUListElement>(null);
+
   const chatMessages = useChatStore((s) => s.chatMessages);
   const systemMessages = useChatStore((s) => s.systemMessages);
 
+  const currentRoomId = useUserStore((s) => s.user?.avatar.currentRoomId ?? null);
+  const myContactId = useUserStore((s) => s.user?.contactId ?? null);
+
   const { isSending, send } = useChat();
 
-  const messages = useMemo(() => {
-    const combined = [...systemMessages, ...chatMessages].sort((a, b) => a.timestamp - b.timestamp);
-    const deduped: ReceivedChatMessage[] = [];
+  const parseMessage = (msg: ReceivedChatMessage): BoundaryChatMessage => {
+    try {
+      const parsed: unknown = JSON.parse(msg.message);
 
+      if (typeof parsed === "object" && parsed !== null && "text" in parsed) {
+        const payload = parsed as Record<string, unknown>;
+
+        if (typeof payload.text === "string") {
+          return {
+            ...msg,
+            message: payload.text,
+            contactId: typeof payload.contactId === "string" ? payload.contactId : null,
+          };
+        }
+      }
+    } catch {
+      // json 아님(console 대신 작성)
+    }
+
+    return {
+      ...msg,
+      contactId: null,
+    };
+  };
+
+  const messages = useMemo(() => {
+    if (!currentRoomId) return [];
+    const isLobby = currentRoomId === "lobby";
+    if (isLobby && !myContactId) return [];
+
+    const combined = [...systemMessages, ...chatMessages]
+      .map(parseMessage)
+      .filter((msg) => {
+        if (msg.from?.name === "System") return true;
+        if (!isLobby) return true;
+        return msg.contactId === myContactId;
+      })
+      .sort((a, b) => a.timestamp - b.timestamp);
+
+    const deduped: BoundaryChatMessage[] = [];
     let joinRun = 0;
     let leaveRun = 0;
-
     const MAX_RUN = 5;
 
     for (const cur of combined) {
@@ -28,7 +72,7 @@ export const useChatMessage = () => {
         leaveRun = 0;
 
         if (joinRun <= MAX_RUN) {
-          deduped.push({ ...cur });
+          deduped.push(cur);
           continue;
         }
 
@@ -44,7 +88,7 @@ export const useChatMessage = () => {
         joinRun = 0;
 
         if (leaveRun <= MAX_RUN) {
-          deduped.push({ ...cur });
+          deduped.push(cur);
           continue;
         }
 
@@ -57,11 +101,11 @@ export const useChatMessage = () => {
 
       joinRun = 0;
       leaveRun = 0;
-      deduped.push({ ...cur });
+      deduped.push(cur);
     }
 
     return deduped;
-  }, [systemMessages, chatMessages]);
+  }, [chatMessages, systemMessages, myContactId, currentRoomId]);
 
   useEffect(() => {
     if (ulRef.current && ulRef.current.scrollHeight - ulRef.current.scrollTop - ulRef.current.clientHeight < 100) {
@@ -69,5 +113,22 @@ export const useChatMessage = () => {
     }
   }, [messages]);
 
-  return { messages, isSending, send, ulRef };
+  const sendMessage = async (text: string) => {
+    if (!text.trim()) return;
+
+    const isLobby = currentRoomId === "lobby";
+    await send(
+      JSON.stringify({
+        text,
+        contactId: isLobby ? myContactId : null,
+      }),
+    );
+  };
+
+  return {
+    messages,
+    isSending,
+    send: sendMessage,
+    ulRef,
+  };
 };

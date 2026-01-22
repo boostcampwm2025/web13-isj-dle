@@ -1,5 +1,3 @@
-import { getEffectiveRoomId } from "./use-livekit";
-
 import { useEffect, useRef, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS, TIMER_STOPWATCH_SIDEBAR_KEY } from "@entities/collaboration-tool";
@@ -40,15 +38,10 @@ export const useVideoConference = () => {
   const [roomId, setRoomId] = useState<string | null>(null);
   const prevRoomIdRef = useRef<string | null>(null);
 
-  const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
-
-  const currentRoomId = user?.avatar.currentRoomId;
-  const userId = user?.id;
-  const nickname = user?.nickname;
-
-  const currentUserFromList = users.find((u) => u.id === userId);
-  const contactId = currentUserFromList?.contactId ?? user?.contactId;
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const userId = useUserStore((state) => state.user?.id);
+  const nickname = useUserStore((state) => state.user?.nickname);
+  const contactId = useUserStore((state) => state.user?.contactId);
 
   const hostId = useLecternStore((state) => state.hostId);
   const isHost = userId === hostId;
@@ -104,8 +97,7 @@ export const useVideoConference = () => {
     if (!currentRoomId || !userId || !nickname) return;
 
     const updateMode = () => {
-      const effectiveRoomId = getEffectiveRoomId(currentRoomId, contactId);
-      setRoomId(effectiveRoomId);
+      setRoomId(currentRoomId);
 
       if (
         ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
