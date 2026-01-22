@@ -12,6 +12,7 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.17",
     "@livekit/components-styles": "^1.2.0",
+    "@livekit/krisp-noise-filter": "^0.4.1",
     "@monaco-editor/react": "^4.7.0",
     "@shared/types": "workspace:*",
     "@tldraw/sync": "^4.2.3",
