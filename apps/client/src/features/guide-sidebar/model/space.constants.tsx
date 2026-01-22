@@ -10,11 +10,17 @@ export const SPACES: Record<Space, SpaceContent> = {
     items: [
       "다른 공간으로 이동하는 메인 허브",
       "웹·안드로이드·iOS 회의실과 모여방이 배치",
-      "왼쪽 상단부터 오른쪽으로 web 1-10 회의실, web 11-20 회의실, web 21-30 회의실이 배치되어있음",
-      "왼쪽 하단부터 오른쪽으로 android 1-3 회의실, ios 1-5 회의실, 모여방이 배치되어있음",
+      <>
+        왼쪽 상단부터 오른쪽으로 <b>web 1-10 회의실, web 11-20 회의실, web 21-30 회의실</b>이 배치되어있음
+      </>,
+      <>
+        왼쪽 하단부터 오른쪽으로 <b>android 1-3 회의실, ios 1-5 회의실, 모여방</b>이 배치되어있음
+      </>,
       "회의실 입장 시 상세 회의실을 고르는 모달이 표시됨",
       "모여방은 자유 출입 가능하며 휴식과 가벼운 대화에 적합",
       "회의실에서는 공동 협업 툴 제공(화이트보드, 코드에디터)",
+      "회의실: 데일리 스크럼, 기획, 논의",
+      "모여방: 자유로운 대화, 휴식",
     ],
   },
   desk_zone: {
@@ -35,14 +41,14 @@ export const SPACES: Record<Space, SpaceContent> = {
     url: "/assets/maps/restaurant.png",
     Icon: Utensils,
     title: "식당",
-    description: "가벼운 대화와 휴식 공간",
+    description: "점심, 저녁 식사 및 자유로운 대화",
     items: ["자유로운 대화 가능", "음식 사진을 공유하며 소통 가능"],
   },
   seminar_lounge: {
     url: "/assets/maps/seminar_lounge.png",
     Icon: Presentation,
     title: "세미나실 (라운지)",
-    description: "대규모 발표 및 강연 공간",
+    description: "오픈 스테이지, 타운홀",
     items: [
       "발표자 중심 세미나 진행",
       "단상 위에 올라간 사용자가 호스트 권한을 가짐",
@@ -54,7 +60,7 @@ export const SPACES: Record<Space, SpaceContent> = {
     url: "/assets/maps/seminar_web.png",
     Icon: Presentation,
     title: "세미나실 (웹)",
-    description: "대규모 발표 및 강연 공간",
+    description: "마스터 클래스",
     items: [
       "발표자 중심 세미나 진행",
       "단상 위에 올라간 사용자가 호스트 권한을 가짐",
@@ -66,7 +72,7 @@ export const SPACES: Record<Space, SpaceContent> = {
     url: "/assets/maps/seminar_ios.png",
     Icon: Presentation,
     title: "세미나실 (iOS)",
-    description: "대규모 발표 및 강연 공간",
+    description: "마스터 클래스",
     items: [
       "발표자 중심 세미나 진행",
       "단상 위에 올라간 사용자가 호스트 권한을 가짐",
@@ -78,7 +84,7 @@ export const SPACES: Record<Space, SpaceContent> = {
     url: "/assets/maps/seminar_android.png",
     Icon: Presentation,
     title: "세미나실 (Android)",
-    description: "대규모 발표 및 강연 공간",
+    description: "마스터 클래스",
     items: [
       "발표자 중심 세미나 진행",
       "단상 위에 올라간 사용자가 호스트 권한을 가짐",

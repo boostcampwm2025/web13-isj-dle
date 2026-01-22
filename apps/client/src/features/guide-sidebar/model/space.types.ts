@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
+import type { ReactNode } from "react";
+
 export type Space =
   | "desk_zone"
   | "lobby"
@@ -15,5 +17,5 @@ export type SpaceContent = {
   Icon: LucideIcon;
   title: string;
   description: string;
-  items: string[];
+  items: ReactNode[];
 };
