@@ -18,6 +18,13 @@ export const useEditorBinding = (
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const ytextRef = useRef<Y.Text | null>(null);
+  const fileSystemRef = useRef(fileSystem);
+  const onSelectedFileDeletedRef = useRef(onSelectedFileDeleted);
+
+  useEffect(() => {
+    fileSystemRef.current = fileSystem;
+    onSelectedFileDeletedRef.current = onSelectedFileDeleted;
+  }, [fileSystem, onSelectedFileDeleted]);
 
   const handleEditorDidMount = useCallback((editor: Monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
@@ -39,7 +46,7 @@ export const useEditorBinding = (
       return;
     }
 
-    const item = fileSystem[selectedFileId];
+    const item = fileSystemRef.current[selectedFileId];
     if (!item) {
       if (bindingRef.current) {
         bindingRef.current.destroy();
@@ -48,7 +55,7 @@ export const useEditorBinding = (
       if (editorRef.current) {
         editorRef.current.setModel(null);
       }
-      onSelectedFileDeleted();
+      onSelectedFileDeletedRef.current();
       return;
     }
 
@@ -72,7 +79,23 @@ export const useEditorBinding = (
     editorRef.current.setModel(model);
     const binding = new MonacoBinding(ytext, model, new Set([editorRef.current]), providerRef.current.awareness);
     bindingRef.current = binding;
-  }, [selectedFileId, monaco, fileSystem, ydocRef, providerRef, setLanguage, onSelectedFileDeleted]);
+  }, [selectedFileId, monaco, ydocRef, providerRef, setLanguage]);
+
+  useEffect(() => {
+    if (!selectedFileId) return;
+
+    const item = fileSystem[selectedFileId];
+    if (!item) {
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+        bindingRef.current = null;
+      }
+      if (editorRef.current) {
+        editorRef.current.setModel(null);
+      }
+      onSelectedFileDeletedRef.current();
+    }
+  }, [fileSystem, selectedFileId]);
 
   useEffect(() => {
     return () => {

@@ -14,7 +14,7 @@ const WhiteboardModalContent = () => {
         </div>
       )}
       {!store && <div className="flex h-full items-center justify-center">연결 중...</div>}
-      {store && status !== "error" && <Tldraw store={store} />}
+      {store && status !== "error" && <Tldraw licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY} store={store} />}
     </CollaborationModal>
   );
 };
