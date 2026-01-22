@@ -1,4 +1,11 @@
-import { AvatarAnimationManager, InputManager, NetworkSyncManager, RoomEntranceManager } from "../managers";
+import {
+  AvatarAnimationManager,
+  InputManager,
+  LecternManager,
+  NetworkSyncManager,
+  NicknameManager,
+  RoomEntranceManager,
+} from "../managers";
 import {
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
@@ -6,23 +13,30 @@ import {
   GAME_SCENE_KEY,
   IDLE_FRAME,
   MAP_NAME,
-  NICKNAME_OFFSET_Y,
   TMJ_URL,
 } from "../model/game.constants";
 import type { AvatarEntity, MapObj } from "../model/game.types";
 import { AvatarRenderer, BoundaryRenderer } from "../renderers";
-import { getAvatarSpawnPoint, getSeatDirectionAtPosition, loadTilesets } from "../utils";
+import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTilesets } from "../utils";
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
-import { AVATAR_ASSETS, type AvatarAssetKey, TILE_SIZE, type User, UserEventType } from "@shared/types";
+import {
+  AVATAR_ASSETS,
+  type AvatarAssetKey,
+  type AvatarDirection,
+  type AvatarState,
+  TILE_SIZE,
+  type User,
+  UserEventType,
+} from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
 
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
-  private avatarNickname?: Phaser.GameObjects.DOMElement;
+  private nicknameManager!: NicknameManager;
 
   private inputManager!: InputManager;
   private animationManager!: AvatarAnimationManager;
@@ -30,6 +44,7 @@ export class GameScene extends Phaser.Scene {
   private networkSyncManager!: NetworkSyncManager;
   private avatarRenderer!: AvatarRenderer;
   private boundaryRenderer!: BoundaryRenderer;
+  private lecternManager!: LecternManager;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -55,6 +70,22 @@ export class GameScene extends Phaser.Scene {
 
   get isInitializedSocket(): boolean {
     return this.networkSyncManager?.isInitialized() ?? false;
+  }
+
+  get deskSeatPoints() {
+    return getSeatPoints(this.mapObj.map, "DeskZone");
+  }
+
+  get nickname(): NicknameManager {
+    return this.nicknameManager;
+  }
+
+  movePlayer(x: number, y: number, direction: AvatarDirection, state: AvatarState): void {
+    if (!this.avatar) return;
+    this.avatar.direction = direction;
+    this.avatar.state = state;
+    this.avatar.sprite.setPosition(x, y);
+    this.animationManager.toSit(this.avatar.sprite, direction);
   }
 
   preload() {
@@ -85,9 +116,12 @@ export class GameScene extends Phaser.Scene {
 
         layer.setDepth(this.mapObj.depthCount++);
         if (name.includes("Collision")) {
+          layer.setVisible(false);
           layer.setCollisionByProperty({ collides: true });
         }
       });
+
+      this.lecternManager = new LecternManager(this, map);
 
       this.input.on(
         "wheel",
@@ -105,7 +139,7 @@ export class GameScene extends Phaser.Scene {
       this.isReady = true;
       this.events.emit("scene:ready");
     } catch (error) {
-      console.error("Error loading tilesets:", error);
+      console.error("Error loading Phaser:", error);
     }
   }
 
@@ -116,14 +150,19 @@ export class GameScene extends Phaser.Scene {
     this.animationManager = new AvatarAnimationManager(this);
     this.animationManager.createAllAvatarAnimations();
 
-    this.roomEntranceManager = new RoomEntranceManager(this, this.mapObj.map);
-
     this.networkSyncManager = new NetworkSyncManager();
+    this.networkSyncManager.setOnDeskStatusChange((status) => {
+      this.nicknameManager.updateIndicator(status);
+    });
+
+    this.roomEntranceManager = new RoomEntranceManager(this, this.mapObj.map);
+    this.roomEntranceManager.setNetworkSyncManager(this.networkSyncManager);
 
     this.avatarRenderer = new AvatarRenderer(this);
 
     this.boundaryRenderer = new BoundaryRenderer(this);
     this.boundaryRenderer.initialize(this.mapObj.depthCount - 1);
+    this.nicknameManager = new NicknameManager(this);
   }
 
   update() {
@@ -137,16 +176,39 @@ export class GameScene extends Phaser.Scene {
       UserEventType.PLAYER_MOVE,
     );
 
-    if (this.avatarNickname) {
-      this.avatarNickname.setPosition(this.avatar.sprite.x, this.avatar.sprite.y - NICKNAME_OFFSET_Y);
-    }
+    this.nicknameManager.updatePosition(this.avatar.sprite.x, this.avatar.sprite.y);
 
     const inputDirection = this.inputManager.getNextDirection();
 
     this.roomEntranceManager.checkRoomEntrance(this.avatar.sprite.x, this.avatar.sprite.y);
+    this.lecternManager.checkLectern(
+      this.avatar.sprite.x,
+      this.avatar.sprite.y,
+      this.roomEntranceManager.getCurrentRoomId(),
+    );
 
-    if (this.avatar.state === "sit" && !inputDirection) {
-      return;
+    if (this.avatar.state === "sit") {
+      const x = this.avatar.sprite.x;
+      const y = this.avatar.sprite.y;
+      const tileX = Math.floor(Math.round(x) / TILE_SIZE);
+      const tileY = Math.floor(Math.round(y) / TILE_SIZE);
+      const targetX = tileX * TILE_SIZE + TILE_SIZE / 2;
+      const targetY = tileY * TILE_SIZE + TILE_SIZE / 2;
+
+      const dx = Math.abs(x - targetX);
+      const dy = Math.abs(y - targetY);
+
+      if (dx > 0.5 || dy > 0.5) {
+        this.avatar.sprite.setPosition(
+          Phaser.Math.Linear(x, targetX, AVATAR_SNAP_SPEED),
+          Phaser.Math.Linear(y, targetY, AVATAR_SNAP_SPEED),
+        );
+        return;
+      } else if (dx > 0 || dy > 0) {
+        this.avatar.sprite.setPosition(targetX, targetY);
+      }
+
+      if (!inputDirection) return;
     }
 
     if (this.inputManager.isSitKeyPressed()) {
@@ -154,6 +216,7 @@ export class GameScene extends Phaser.Scene {
       if (seatDirection) {
         this.avatar.state = "sit";
         this.avatar.direction = seatDirection;
+        this.avatar.sprite.setVelocity(0, 0);
         this.animationManager.toSit(this.avatar.sprite, seatDirection);
         return;
       }
@@ -186,6 +249,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   loadAvatar(user: User): void {
+    if (this.avatar) return;
     const avatar = user.avatar;
     const spawn = getAvatarSpawnPoint(this.mapObj.map);
 
@@ -200,9 +264,8 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
-
-    this.avatarNickname = this.createNicknameText(spawn.x, spawn.y - NICKNAME_OFFSET_Y, user.nickname);
-    this.avatarNickname.setDepth(Number.MAX_SAFE_INTEGER);
+    this.nicknameManager.createNickname(spawn.x, spawn.y, user.nickname, user.deskStatus);
+    this.nicknameManager.setDepth(Number.MAX_SAFE_INTEGER);
 
     this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
     this.cameras.main.startFollow(sprite, false, 1, 1);
@@ -217,23 +280,14 @@ export class GameScene extends Phaser.Scene {
       users,
       currentUser,
       this.avatar ? { x: this.avatar.sprite.x, y: this.avatar.sprite.y } : undefined,
-      this.avatar?.state,
     );
-  }
-
-  private createNicknameText(x: number, y: number, nickname: string): Phaser.GameObjects.DOMElement {
-    const div = document.createElement("div");
-    div.textContent = nickname;
-    div.className =
-      "text-[5px] text-white bg-black/66 px-1 py-0.5 rounded whitespace-nowrap pointer-events-none select-none";
-
-    const domElement = this.add.dom(x, y, div);
-    domElement.setOrigin(0.5, 1);
-
-    return domElement;
   }
 
   setSocket(socket: Socket): void {
     this.networkSyncManager.setSocket(socket);
+  }
+
+  setInputEnabled(enabled: boolean): void {
+    this.inputManager?.setEnabled(enabled);
   }
 }

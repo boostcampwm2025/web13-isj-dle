@@ -1,19 +1,38 @@
+import type { GameScene } from "../core/game-scene";
 import { GAME_SCENE_KEY } from "./game.constants";
-import type { GameScene } from "./game.scene";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-import type { User } from "@shared/types";
+import { useUserStore } from "@entities/user";
 
-export const useAvatarLoader = (game: Phaser.Game | null, user: User | null) => {
+export const useAvatarLoader = (game: Phaser.Game | null) => {
+  const loadedRef = useRef(false);
+
   useEffect(() => {
-    if (!game || !user) return;
+    if (!game || loadedRef.current) return;
 
     const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
     if (gameScene.isLoadPlayer) return;
 
-    const loadUserAvatar = () => {
+    const tryLoad = () => {
+      const user = useUserStore.getState().user;
+      if (!user) return false;
+
       gameScene.loadAvatar(user);
+      loadedRef.current = true;
+      return true;
+    };
+
+    const loadUserAvatar = () => {
+      if (tryLoad()) return;
+
+      const unsubscribe = useUserStore.subscribe((state) => {
+        if (state.user && !loadedRef.current) {
+          gameScene.loadAvatar(state.user);
+          loadedRef.current = true;
+          unsubscribe();
+        }
+      });
     };
 
     if (!gameScene.isReady) {
@@ -21,7 +40,7 @@ export const useAvatarLoader = (game: Phaser.Game | null, user: User | null) => 
     } else {
       loadUserAvatar();
     }
-  }, [game, user]);
+  }, [game]);
 
   return null;
 };

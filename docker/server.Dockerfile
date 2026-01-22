@@ -13,11 +13,8 @@ RUN pnpm install --frozen-lockfile
 COPY apps/server ./apps/server
 COPY packages ./packages
 
-WORKDIR /app/packages/shared
-RUN pnpm build
-
-WORKDIR /app/apps/server
-RUN pnpm build
+RUN pnpm build:shared
+RUN pnpm build:server
 
 FROM node:20-alpine
 

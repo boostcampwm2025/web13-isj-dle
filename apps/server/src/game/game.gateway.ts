@@ -1,4 +1,5 @@
 import { Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -8,13 +9,14 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 
-import { AvatarDirection, AvatarState, NoticeEventType, RoomEventType, UserEventType } from "@shared/types";
-import type { RoomJoinPayload } from "@shared/types";
+import { UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
-import { NoticeService } from "src/notice/notice.service";
+import { BoundaryService } from "src/boundary/boundary.service";
+import { BoundaryTracker } from "src/boundary/boundaryTracker.service";
 
-import { BoundaryService } from "../boundary/boundary.service";
 import { UserManager } from "../user/user-manager.service";
+
+const BOUNDARY_TICK_MS = 100;
 
 @WebSocketGateway({
   cors: {
@@ -26,22 +28,31 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(GameGateway.name);
 
+  private boundaryTick: NodeJS.Timeout | null = null;
+
   constructor(
     private readonly userManager: UserManager,
-    private readonly noticeService: NoticeService,
     private readonly boundaryService: BoundaryService,
+    private readonly boundaryTracker: BoundaryTracker,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   afterInit() {
     this.logger.log("🚀 WebSocket Gateway initialized");
     this.logger.log(`📡 CORS origins: ${process.env.CLIENT_URL || "http://localhost:5173,http://localhost:3000"}`);
+
+    this.server.setMaxListeners(20);
+
+    this.boundaryTick = setInterval(() => {
+      this.runBoundaryTick();
+    }, BOUNDARY_TICK_MS);
   }
 
   async handleConnection(client: Socket) {
     try {
-      const user = this.userManager.createSession({
-        id: client.id,
-      });
+      client.setMaxListeners(20);
+
+      const user = this.userManager.createSession({ id: client.id });
 
       if (!user) {
         this.logger.error(`Failed to create session for client: ${client.id}`);
@@ -63,138 +74,71 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleDisconnect(client: Socket) {
     try {
       this.logger.log(`❌ Client disconnected: ${client.id}`);
+
+      const user = this.userManager.getSession(client.id);
+      const nickname = user?.nickname ?? "알 수 없음";
+      const previousRoomId = user?.avatar.currentRoomId;
+
+      this.boundaryTracker.clear(client.id);
+
+      this.eventEmitter.emit("user.disconnecting", { clientId: client.id, nickname });
+
       const deleted = this.userManager.deleteSession(client.id);
       if (!deleted) {
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
       }
 
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
+
+      if (previousRoomId) {
+        this.eventEmitter.emit("user.leaving-room", { roomId: previousRoomId });
+      }
     } catch (err) {
-      this.logger.error(`\`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
+      this.logger.error(`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
     }
   }
 
-  @SubscribeMessage(NoticeEventType.NOTICE_SYNC)
-  async handleNoticeSync(client: Socket, payload: { roomId: string }) {
-    if (!payload || !payload.roomId) {
-      this.logger.warn(`⚠️ NOTICE_SYNC called without roomId from client: ${client.id}`);
-      return;
-    }
-
-    try {
-      const notices = await this.noticeService.findByRoomId(payload.roomId);
-      client.emit(NoticeEventType.NOTICE_SYNC, notices);
-    } catch (error) {
-      const trace = error instanceof Error ? error.stack : String(error);
-      this.logger.error(`❗ Failed to sync notices for room ${payload.roomId} from client ${client.id}`, trace);
-      client.emit("error", { message: "Failed to sync notices" });
-    }
+  @SubscribeMessage("internal:boundary-clear")
+  handleBoundaryClear(client: Socket, payload: { userId: string }) {
+    this.boundaryTracker.clear(payload.userId);
   }
 
-  @SubscribeMessage(RoomEventType.ROOM_JOIN)
-  async handleRoomJoin(client: Socket, payload: RoomJoinPayload) {
-    if (!payload || !payload.roomId) {
-      this.logger.warn(`⚠️ ROOM_JOIN called without roomId from client: ${client.id}`);
-      return;
-    }
+  private runBoundaryTick() {
+    const lobbyUsers = this.userManager.getRoomSessions("lobby");
+    if (lobbyUsers.length === 0) return;
 
-    try {
-      const user = this.userManager.getSession(client.id);
-      if (!user) {
-        this.logger.error(`❌ User session not found for client: ${client.id}`);
-        client.emit("error", { message: "User session not found" });
-        return;
-      }
+    const updates = new Map<string, string | null>();
 
-      const previousRoomId = user.avatar.currentRoomId;
+    const connectedGroups = this.boundaryService.findConnectedGroups(lobbyUsers);
+    this.boundaryTracker.pruneInactiveGroups(new Set(connectedGroups.keys()));
 
-      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
-      if (!updated) {
-        this.logger.error(`❌ Failed to update room for user: ${client.id}`);
-        return;
-      }
-
-      this.userManager.updateSessionContactId(client.id, null);
-
-      if (previousRoomId === "lobby") {
-        const lobbyUsers = this.userManager.getRoomSessions("lobby");
-        const groups = this.boundaryService.findBoundaryGroups(lobbyUsers);
-        const contactIdUpdates = this.boundaryService.updateContactIds(lobbyUsers, groups);
-
-        for (const [userId, newContactId] of contactIdUpdates) {
-          this.userManager.updateSessionContactId(userId, newContactId);
-        }
-
-        if (contactIdUpdates.size > 0) {
-          const updates = Object.fromEntries(contactIdUpdates);
-          this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, updates);
-        }
-      }
-
-      await client.leave(previousRoomId);
-      await client.join(payload.roomId);
-
-      const updatedUser = this.userManager.getSession(client.id);
-
-      this.server.emit(RoomEventType.ROOM_JOINED, {
-        userId: client.id,
-        roomId: payload.roomId,
-      });
-
-      client.emit(UserEventType.USER_SYNC, {
-        user: updatedUser,
-        users: this.userManager.getAllSessions(),
-      });
-    } catch (error) {
-      const trace = error instanceof Error ? error.stack : String(error);
-      this.logger.error(`❗ Failed to handle room join for client ${client.id}`, trace);
-      client.emit("error", { message: "Failed to join room" });
-    }
-  }
-
-  @SubscribeMessage(UserEventType.USER_UPDATE)
-  handleUserUpdate(client: Socket, payload: { cameraOn?: boolean; micOn?: boolean }) {
-    const updated = this.userManager.updateSessionMedia(client.id, payload);
-    const user = this.userManager.getSession(client.id);
-
-    if (!updated || !user) {
-      this.logger.warn(`⚠️ USER_UPDATE: Session not found for client: ${client.id}`);
-      return;
-    }
-
-    this.server.emit(UserEventType.USER_UPDATE, { userId: client.id, ...payload });
-  }
-
-  @SubscribeMessage(UserEventType.PLAYER_MOVE)
-  handlePlayerMove(client: Socket, payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState }) {
-    const updated = this.userManager.updateSessionPosition(client.id, payload);
-    const user = this.userManager.getSession(client.id);
-
-    if (!updated || !user) {
-      this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);
-      return;
-    }
-
-    const roomId = user.avatar.currentRoomId;
-
-    this.server.to(roomId).emit(UserEventType.PLAYER_MOVED, {
-      userId: client.id,
-      ...payload,
-    });
-
-    if (roomId === "lobby") {
-      const roomUsers = this.userManager.getRoomSessions(roomId);
-      const groups = this.boundaryService.findBoundaryGroups(roomUsers);
-      const contactIdUpdates = this.boundaryService.updateContactIds(roomUsers, groups);
-
-      for (const [userId, newContactId] of contactIdUpdates) {
-        this.userManager.updateSessionContactId(userId, newContactId);
-      }
-
-      if (contactIdUpdates.size > 0) {
-        const updates = Object.fromEntries(contactIdUpdates);
-        this.server.to(roomId).emit(UserEventType.BOUNDARY_UPDATE, updates);
+    const usersInGroups = new Set<string>();
+    for (const members of connectedGroups.values()) {
+      for (const memberId of members) {
+        usersInGroups.add(memberId);
       }
     }
+
+    for (const [groupId, members] of connectedGroups) {
+      for (const memberId of members) {
+        const update = this.boundaryTracker.joinGroup(memberId, groupId);
+        if (update !== undefined) updates.set(memberId, update);
+      }
+    }
+
+    for (const user of lobbyUsers) {
+      if (usersInGroups.has(user.id)) continue;
+
+      const update = this.boundaryTracker.leaveGroup(user.id);
+      if (update !== undefined) updates.set(user.id, update);
+    }
+
+    if (updates.size === 0) return;
+
+    for (const [userId, contactId] of updates) {
+      this.userManager.updateSessionContactId(userId, contactId);
+    }
+
+    this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, Object.fromEntries(updates));
   }
 }

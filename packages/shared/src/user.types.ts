@@ -1,4 +1,5 @@
 import { Avatar } from "./avatar.types";
+import { DeskStatus } from "./knock.types";
 
 export interface User {
   id: string;
@@ -7,6 +8,7 @@ export interface User {
   cameraOn: boolean;
   micOn: boolean;
   avatar: Avatar;
+  deskStatus: DeskStatus | null;
 }
 
 export enum UserEventType {

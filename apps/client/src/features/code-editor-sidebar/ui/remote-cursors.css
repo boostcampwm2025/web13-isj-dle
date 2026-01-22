@@ -1,0 +1,29 @@
+.yRemoteSelection {
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  position: relative;
+}
+
+.yRemoteSelectionHead::after {
+  content: "";
+  position: absolute;
+  border-left: 2px solid;
+  border-top: 3px solid;
+  height: 100%;
+  box-sizing: border-box;
+  top: 0;
+}
+
+.fade-out {
+  animation: cursorLabelFadeOut 0.3s ease-out forwards;
+}
+
+@keyframes cursorLabelFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.6;
+  }
+}

@@ -12,13 +12,22 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.17",
     "@livekit/components-styles": "^1.2.0",
+    "@livekit/krisp-noise-filter": "^0.4.1",
+    "@monaco-editor/react": "^4.7.0",
     "@shared/types": "workspace:*",
+    "@tldraw/sync": "^4.2.3",
+    "@tldraw/tldraw": "^4.2.3",
     "livekit-client": "^2.16.1",
     "lucide-react": "^0.562.0",
+    "monaco-editor": "^0.55.1",
     "phaser": "^3.90.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hot-toast": "^2.6.0",
     "socket.io-client": "^4.8.3",
+    "y-monaco": "^0.1.6",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.29",
     "zustand": "^5.0.10"
   },
   "devDependencies": {

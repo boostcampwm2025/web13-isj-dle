@@ -19,6 +19,7 @@ import {
   useTracks,
 } from "@livekit/components-react";
 import { SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH, type VideoConferenceMode } from "@shared/config";
+import { useVisibleUsers } from "@shared/model";
 
 interface VideoFullGridProps {
   setMode: (mode: VideoConferenceMode | null) => void;
@@ -27,13 +28,16 @@ interface VideoFullGridProps {
 
 const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
   useBindLocalParticipant();
-  const tracks = useTracks(
+  const allTracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
     ],
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false },
   );
+
+  const visibleUserIds = useVisibleUsers();
+  const tracks = visibleUserIds ? allTracks.filter((t) => visibleUserIds.has(t.participant.identity)) : allTracks;
 
   const layoutContext = useCreateLayoutContext();
 

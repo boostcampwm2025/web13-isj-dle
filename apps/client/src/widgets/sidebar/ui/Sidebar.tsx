@@ -1,12 +1,30 @@
 import { SIDEBAR_MAP } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
+import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
+import { Suspense, useMemo } from "react";
+
+import { useBindChat } from "@entities/chat";
+import { useChatStore } from "@entities/chat";
+import { useKnockStore } from "@entities/knock";
+import { useUserStore } from "@entities/user";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 
+const MAX_BADGE_COUNT = 9;
+
 const Sidebar = () => {
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const initialRoomName = useMemo(() => {
+    if (!currentRoomId) return "알 수 없는";
+    return currentRoomId === "lobby" ? "" : currentRoomId;
+  }, [currentRoomId]);
+  useBindChat(initialRoomName);
+
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
+  const knockCount = useKnockStore((s) => s.receivedKnocks.length);
+  const chatUnreadCount = useChatStore((s) => s.unreadCount);
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -25,7 +43,9 @@ const Sidebar = () => {
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2 text-gray-500" />
               <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
-                <currentPanel.Panel />
+                <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                  <currentPanel.Panel />
+                </Suspense>
               </div>
             </div>
           ) : (
@@ -39,9 +59,9 @@ const Sidebar = () => {
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
         <button
-          className="mb-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
+          className="mb-2 flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
           onClick={toggleSidebar}
-          aria-label={isOpen ? "사이드바 닫기" : "사이드바 열기"}
+          title={isOpen ? "사이드바 닫기" : "사이드바 열기"}
         >
           {isOpen ? (
             <PanelLeftClose className="h-6 w-6 text-gray-600" />
@@ -52,22 +72,63 @@ const Sidebar = () => {
 
         <div className="mb-2 h-0.5 w-full bg-gray-400" />
 
-        <div className="scrollbar-hide flex flex-col gap-4 overflow-y-auto">
-          {sidebarKeys.map((key) => {
-            const sidebarItem = SIDEBAR_MAP[key];
-            if (!sidebarItem) return null;
+        <div className="relative flex-1">
+          <div className="scrollbar-hide flex h-full flex-col gap-4 overflow-y-auto">
+            {sidebarKeys.map((key) => {
+              const sidebarItem = SIDEBAR_MAP[key];
+              if (!sidebarItem) return null;
 
-            const IconComponent = sidebarItem.Icon;
+              const isActive = isOpen && validCurrentKey === key;
+
+              if (key === "timer-stopwatch") {
+                return (
+                  <TimerProgressButton
+                    key={key}
+                    sidebarItem={sidebarItem}
+                    isActive={isActive}
+                    onClick={() => handleTabClick(key)}
+                  />
+                );
+              }
+
+              const IconComponent = sidebarItem.Icon;
+              return (
+                <button
+                  key={key}
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                    isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                  onClick={() => handleTabClick(key)}
+                  title={sidebarItem.title}
+                >
+                  <IconComponent className="h-6 w-6" size={ICON_SIZE} />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 배지를 overflow 컨테이너 밖에 별도로 렌더링 */}
+          {sidebarKeys.map((key, index) => {
+            let badgeCount = 0;
+            if (key === "deskZone" && knockCount > 0) {
+              badgeCount = knockCount;
+            } else if (key === "chat" && chatUnreadCount > 0) {
+              badgeCount = chatUnreadCount;
+            }
+
+            if (badgeCount === 0) return null;
+
             return (
-              <button
-                key={key}
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                  isOpen && validCurrentKey === key ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
-                }`}
-                onClick={() => handleTabClick(key)}
+              <span
+                key={`badge-${key}`}
+                className="pointer-events-none absolute flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
+                style={{
+                  top: `${index * (48 + 16)}px`,
+                  right: "-4px",
+                }}
               >
-                <IconComponent className="h-6 w-6" size={ICON_SIZE} />
-              </button>
+                {badgeCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : badgeCount}
+              </span>
             );
           })}
         </div>

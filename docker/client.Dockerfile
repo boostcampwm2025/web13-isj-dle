@@ -13,12 +13,9 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY apps/client ./apps/client
 COPY packages ./packages
 
-WORKDIR /app/packages/shared
-RUN pnpm build
-
-WORKDIR /app/apps/client
-RUN echo "VITE_SERVER_URL=https://www.moyo.asia" > .env
-RUN pnpm build
+RUN pnpm build:shared
+RUN echo "VITE_SERVER_URL=https://www.moyo.asia" > ./apps/client/.env
+RUN pnpm build:client
 
 FROM nginx:alpine
 

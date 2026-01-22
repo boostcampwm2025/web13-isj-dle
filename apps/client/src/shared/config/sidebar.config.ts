@@ -2,8 +2,30 @@ import type { LucideIcon } from "lucide-react";
 
 import type { ComponentType } from "react";
 
-export type SidebarKey = "users" | "notices" | "chat" | "whiteboard" | "code-editor";
+export type SidebarKey =
+  | "users"
+  | "notices"
+  | "guide"
+  | "whiteboard"
+  | "code-editor"
+  | "timer-stopwatch"
+  | "chat"
+  | "deskZone"
+  | "host"
+  | "participant";
 
+export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
+  users: 0,
+  notices: 1,
+  guide: 2,
+  chat: 3,
+  "code-editor": 4,
+  whiteboard: 5,
+  "timer-stopwatch": 6,
+  participant: 7,
+  host: 8,
+  deskZone: 9,
+};
 export type SidebarItem = {
   title: string;
   Icon: LucideIcon;

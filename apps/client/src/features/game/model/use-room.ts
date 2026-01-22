@@ -7,13 +7,11 @@ import { RoomEventType, type RoomJoinedPayload } from "@shared/types";
 export const useRoom = () => {
   const { socket, isConnected } = useWebSocket();
   const updateUser = useUserStore((state) => state.updateUser);
+  const resetUsersDeskStatus = useUserStore((state) => state.resetUsersDeskStatus);
 
   const joinRoom = useCallback(
     (roomId: string) => {
-      if (!socket || !isConnected) {
-        console.warn("[useRoom] Socket not connected");
-        return;
-      }
+      if (!socket || !isConnected) return;
 
       socket.emit(RoomEventType.ROOM_JOIN, { roomId });
     },
@@ -23,13 +21,14 @@ export const useRoom = () => {
   useEffect(() => {
     if (!socket) return;
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
-      const { roomId, userId } = payload;
+      const { userId, avatar } = payload;
+      if (avatar.currentRoomId !== "desk zone") {
+        resetUsersDeskStatus();
+      }
 
       updateUser({
         id: userId,
-        avatar: {
-          currentRoomId: roomId,
-        },
+        avatar: avatar,
       });
     };
 
@@ -38,7 +37,7 @@ export const useRoom = () => {
     return () => {
       socket.off(RoomEventType.ROOM_JOINED, handleRoomJoined);
     };
-  }, [socket, updateUser]);
+  }, [resetUsersDeskStatus, socket, updateUser]);
 
   return {
     joinRoom,

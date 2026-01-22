@@ -1,0 +1,36 @@
+<svg
+  width="32"
+  height="32"
+  viewBox="0 0 32 32"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <rect
+    width="32"
+    height="32"
+    rx="6"
+    fill="#2563EB"
+  />
+  <rect
+    x="7"
+    y="7"
+    width="11"
+    height="11"
+    rx="2"
+    fill="white"
+    opacity="0.9"
+  />
+  <circle
+    cx="19.5"
+    cy="19.5"
+    r="5.5"
+    fill="white"
+    opacity="0.9"
+  />
+  <circle
+    cx="16"
+    cy="16"
+    r="2.5"
+    fill="#06B6D4"
+  />
+</svg>

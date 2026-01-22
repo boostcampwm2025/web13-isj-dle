@@ -1,7 +1,9 @@
 import { requestLivekitToken } from "../api/livekit.api";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useBreakoutStore } from "@entities/lectern";
+import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import type { LivekitRoomConfig } from "@shared/types";
 
@@ -11,18 +13,24 @@ interface UseLivekitState {
   isLoading: boolean;
   error: string | null;
   isOpen: boolean;
+  roomId: string | null;
 }
 
 export const useLivekit = (): UseLivekitState => {
-  const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
-  const roomId = user?.avatar.currentRoomId;
-  const userId = user?.id;
-  const nickname = user?.nickname;
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const userId = useUserStore((state) => state.user?.id);
+  const nickname = useUserStore((state) => state.user?.nickname);
+  const contactId = useUserStore((state) => state.user?.contactId);
 
-  const currentUserFromList = users.find((u) => u.id === userId);
-  const contactId = currentUserFromList?.contactId ?? user?.contactId;
+  const breakoutState = useBreakoutStore((state) => state.breakoutState);
+  const hostId = useLecternStore((state) => state.hostId);
+  const isHost = userId === hostId;
+
+  const myBreakoutRoomId = useMemo(() => {
+    if (!breakoutState?.isActive || !userId) return null;
+    return breakoutState.rooms.find((room) => room.userIds.includes(userId))?.roomId ?? null;
+  }, [breakoutState, userId]);
 
   const [livekitState, setLivekitState] = useState<UseLivekitState>({
     token: null,
@@ -30,25 +38,39 @@ export const useLivekit = (): UseLivekitState => {
     isLoading: false,
     error: null,
     isOpen: false,
+    roomId: null,
   });
 
   useEffect(() => {
-    if (!roomId || !userId || !nickname) return;
+    if (!currentRoomId || !userId || !nickname) return;
+
+    const effectiveRoomId = myBreakoutRoomId ? myBreakoutRoomId : getEffectiveRoomId(currentRoomId, contactId);
 
     setConfig({
-      roomId: getEffectiveRoomId(roomId, contactId),
+      roomId: effectiveRoomId,
       userId,
       nickname,
     });
 
-    if (roomId === "lobby") {
+    setLivekitState((prev) => {
+      if (prev.roomId !== effectiveRoomId) {
+        return { ...prev, roomId: effectiveRoomId, token: null, serverUrl: null };
+      }
+      return { ...prev, roomId: effectiveRoomId };
+    });
+
+    const isBreakoutRoom = effectiveRoomId.startsWith("breakout-");
+
+    if (currentRoomId === "lobby" || currentRoomId === "desk zone") {
       setLivekitState((prev) => ({ ...prev, isOpen: !!contactId }));
-    } else if (roomId === "desk zone" || (roomId.startsWith("meeting (") && roomId.includes("-"))) {
+    } else if (currentRoomId.startsWith("meeting (") && currentRoomId.includes("-")) {
       setLivekitState((prev) => ({ ...prev, isOpen: false }));
+    } else if (isBreakoutRoom) {
+      setLivekitState((prev) => ({ ...prev, isOpen: true }));
     } else {
       setLivekitState((prev) => ({ ...prev, isOpen: true }));
     }
-  }, [roomId, userId, nickname, contactId]);
+  }, [currentRoomId, userId, nickname, contactId, isHost, breakoutState?.isActive, myBreakoutRoomId]);
 
   useEffect(() => {
     if (!config) return;
@@ -58,10 +80,7 @@ export const useLivekit = (): UseLivekitState => {
       setLivekitState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
-        if (!livekitState.isOpen) {
-          throw new Error("Livekit room is not open");
-        }
-
+        if (!livekitState.isOpen) return;
         const data = await requestLivekitToken(config, controller.signal);
 
         setLivekitState((prev) => ({ ...prev, token: data.token, serverUrl: data.url, isLoading: false, error: null }));
@@ -84,6 +103,18 @@ export const useLivekit = (): UseLivekitState => {
   return livekitState;
 };
 
-export const getEffectiveRoomId = (roomId: string, contactId: string | null | undefined): string => {
-  return roomId === "lobby" && contactId ? contactId : roomId;
+export const getEffectiveRoomId = (
+  roomId: string,
+  contactId: string | null | undefined,
+  breakoutRoomId?: string | null | undefined,
+): string => {
+  if (breakoutRoomId) {
+    return breakoutRoomId;
+  }
+
+  if ((roomId === "lobby" || roomId === "desk zone") && contactId) {
+    return contactId;
+  }
+
+  return roomId;
 };
