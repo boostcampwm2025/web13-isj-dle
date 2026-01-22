@@ -50,9 +50,9 @@ const Sidebar = () => {
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
         <button
-          className="mb-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
+          className="mb-2 flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
           onClick={toggleSidebar}
-          aria-label={isOpen ? "사이드바 닫기" : "사이드바 열기"}
+          title={isOpen ? "사이드바 닫기" : "사이드바 열기"}
         >
           {isOpen ? (
             <PanelLeftClose className="h-6 w-6 text-gray-600" />
@@ -90,6 +90,7 @@ const Sidebar = () => {
                     isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
                   }`}
                   onClick={() => handleTabClick(key)}
+                  title={sidebarItem.title}
                 >
                   <IconComponent className="h-6 w-6" size={ICON_SIZE} />
                 </button>

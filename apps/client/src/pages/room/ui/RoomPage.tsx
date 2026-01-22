@@ -35,14 +35,14 @@ const RoomPage = () => {
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
   const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
   const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   const { game } = useGameInitialization(containerRef);
 
   const { roomSelectorOpen, selectedRoomRange, openRoomSelector, handleCloseModal, handleRoomSelect } = useRoomSelector(
     joinRoom,
-    user?.avatar.currentRoomId,
+    currentRoomId,
   );
 
   const lecternEnter = useCallback(
@@ -71,7 +71,7 @@ const RoomPage = () => {
   );
 
   useGameSocket(game, socket, isConnected);
-  useAvatarLoader(game, user);
+  useAvatarLoader(game);
   useGameRegistry(
     game,
     joinRoom ?? null,
@@ -81,7 +81,7 @@ const RoomPage = () => {
     updateMyDeskStatus,
     clearAllKnocks,
   );
-  useAvatarRenderer(game, users, user);
+  useAvatarRenderer(game);
 
   useKnockSocket();
 
