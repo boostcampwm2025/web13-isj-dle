@@ -17,7 +17,7 @@ interface ControlBarProps {
 }
 
 const ControlBar = ({ variation, setMode }: ControlBarProps) => {
-  const { onScreenShareChange, isScreenShareEnabled } = useControlBarState();
+  const { isScreenShareEnabled } = useControlBarState();
   const { microphoneOnChange, cameraOnChange, saveAudioInputDeviceId, saveVideoInputDeviceId } = useSyncMediaToggle();
   const browserSupportsScreenSharing = supportsScreenSharing();
   const visibleControls = useVisibleControls();
@@ -62,7 +62,6 @@ const ControlBar = ({ variation, setMode }: ControlBarProps) => {
           source={Track.Source.ScreenShare}
           captureOptions={{ audio: true, selfBrowserSurface: "include" }}
           showIcon={showIcon}
-          onChange={onScreenShareChange}
         >
           {showText && (isScreenShareEnabled ? "Stop screen share" : "Share screen")}
         </TrackToggle>
