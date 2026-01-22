@@ -1,19 +1,6 @@
 import { create } from "zustand";
 
-import type { SidebarKey } from "@shared/config";
-
-const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
-  users: 0,
-  notices: 1,
-  guide: 2,
-  chat: 3,
-  "code-editor": 4,
-  whiteboard: 5,
-  "timer-stopwatch": 6,
-  participant: 7,
-  host: 8,
-  deskZone: 9,
-};
+import { SIDEBAR_KEY_ORDER, type SidebarKey } from "@shared/config";
 
 interface SidebarState {
   sidebarKeys: SidebarKey[];

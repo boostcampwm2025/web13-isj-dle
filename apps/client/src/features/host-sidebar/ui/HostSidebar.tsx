@@ -2,7 +2,7 @@ import { BreakoutPanel } from "./BreakoutPanel";
 import { MuteAllButton } from "./MuteAllButton";
 import { Blocks, Users } from "lucide-react";
 
-export const HostSidebar = () => {
+const HostSidebar = () => {
   return (
     <div className="flex h-full w-full flex-col gap-4">
       <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -25,3 +25,5 @@ export const HostSidebar = () => {
     </div>
   );
 };
+
+export default HostSidebar;

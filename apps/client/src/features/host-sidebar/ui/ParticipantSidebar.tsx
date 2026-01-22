@@ -5,7 +5,7 @@ import { useUserStore } from "@entities/user";
 import { useBreakoutJoin } from "@features/host-sidebar/model/use-breakout-join.ts";
 import { BreakoutRoomList } from "@features/host-sidebar/ui/BreakoutRoomList.tsx";
 
-export const ParticipantSidebar = () => {
+const ParticipantSidebar = () => {
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
   const user = useUserStore((state) => state.user);
   const { joinRoom, currentBreakoutRoomId } = useBreakoutJoin();
@@ -43,3 +43,5 @@ export const ParticipantSidebar = () => {
     </div>
   );
 };
+
+export default ParticipantSidebar;
