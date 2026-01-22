@@ -439,42 +439,85 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleBreakoutCreate(
     client: Socket,
     payload: {
-      roomId: RoomType;
+      hostRoomId: RoomType;
       config: BreakoutConfig;
       userIds: string[];
     },
   ) {
-    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+    const isHost = this.lecternService.isHost(payload.hostRoomId, client.id);
+
+    if (!isHost) {
+      this.logger.warn(`[Breakout] Not a host - rejecting`);
       client.emit("error", { message: "You're not a host" });
       return;
     }
 
-    const state = this.lecternService.createBreakout(payload.roomId, client.id, payload.config, payload.userIds);
+    const state = this.lecternService.createBreakout(payload.hostRoomId, client.id, payload.config, payload.userIds);
 
     if (!state) {
+      this.logger.warn(`[Breakout] createBreakout failed`);
       client.emit("error", { message: "Breakout cannot be executed" });
       return;
     }
 
-    this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
-      roomId: payload.roomId,
+    this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+      hostRoomId: payload.hostRoomId,
       state,
     });
   }
 
   @SubscribeMessage(LecternEventType.BREAKOUT_END)
-  handleBreakoutEnd(client: Socket, payload: { roomId: RoomType }) {
-    if (!this.lecternService.isHost(payload.roomId, client.id)) {
+  handleBreakoutEnd(client: Socket, payload: { hostRoomId: RoomType }) {
+    if (!this.lecternService.isHost(payload.hostRoomId, client.id)) {
       client.emit("error", { message: "You're not a host" });
       return;
     }
 
-    this.lecternService.endBreakout(payload.roomId);
+    this.lecternService.endBreakout(payload.hostRoomId);
 
-    this.server.to(payload.roomId).emit(LecternEventType.BREAKOUT_UPDATE, {
-      roomId: payload.roomId,
+    this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+      hostRoomId: payload.hostRoomId,
       state: null,
     });
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_JOIN)
+  handleBreakoutJoin(client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+    const breakoutState = this.lecternService.getBreakoutState(payload.hostRoomId);
+
+    if (!breakoutState) {
+      client.emit("error", { message: "진행 중인 소회의실이 없습니다." });
+      return;
+    }
+
+    const isHost = this.lecternService.isHost(payload.hostRoomId, client.id);
+    const isRandom = breakoutState.config.isRandom;
+
+    if (!isHost && isRandom) {
+      client.emit("error", { message: "랜덤 배정 모드에서는 방 이동이 불가능합니다." });
+      return;
+    }
+
+    const state = this.lecternService.joinBreakoutRoom(payload.hostRoomId, payload.userId, payload.targetRoomId);
+
+    if (state) {
+      this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+        hostRoomId: payload.hostRoomId,
+        state,
+      });
+    }
+  }
+
+  @SubscribeMessage(LecternEventType.BREAKOUT_LEAVE)
+  handleBreakoutLeave(_client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+    const state = this.lecternService.leaveBreakoutRoom(payload.hostRoomId, payload.userId);
+
+    if (state) {
+      this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
+        hostRoomId: payload.hostRoomId,
+        state,
+      });
+    }
   }
 
   @SubscribeMessage(KnockEventType.KNOCK_SEND)

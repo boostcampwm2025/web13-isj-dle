@@ -136,9 +136,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       }
     };
 
-    const handleBreakoutUpdate = (data: { roomId: RoomType; state: BreakoutState | null }) => {
+    const handleBreakoutUpdate = (data: { hostRoomId: RoomType; state: BreakoutState | null }) => {
       useBreakoutStore.getState().setBreakoutState(data.state);
     };
+
+    socketInstance.on("error", (error: { message: string }) => {
+      console.error("[Socket] Error received:", error);
+    });
 
     socketInstance.on("connect", handleConnect);
     socketInstance.on("disconnect", handleDisconnect);

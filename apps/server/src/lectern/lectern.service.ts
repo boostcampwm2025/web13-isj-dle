@@ -78,7 +78,7 @@ export class LecternService {
     userIds: string[],
   ): BreakoutState | null {
     if (this.breakoutStates.has(hostRoomId)) {
-      return null;
+      this.breakoutStates.delete(hostRoomId);
     }
 
     const { roomCount, isRandom } = config;
@@ -117,6 +117,7 @@ export class LecternService {
       hostRoomId,
       rooms,
       hostId,
+      config,
     };
 
     this.breakoutStates.set(hostRoomId, state);
@@ -129,5 +130,32 @@ export class LecternService {
 
   endBreakout(roomId: RoomType): void {
     this.breakoutStates.delete(roomId);
+  }
+
+  joinBreakoutRoom(hostRoomId: RoomType, userId: string, targetRoomId: string): BreakoutState | null {
+    const state = this.breakoutStates.get(hostRoomId);
+    if (!state?.isActive) return null;
+
+    state.rooms.forEach((room) => {
+      room.userIds = room.userIds.filter((id) => id !== userId);
+    });
+
+    const targetRoom = state.rooms.find((room) => room.roomId === targetRoomId);
+    if (targetRoom) {
+      targetRoom.userIds.push(userId);
+    }
+
+    return state;
+  }
+
+  leaveBreakoutRoom(hostRoomId: RoomType, userId: string): BreakoutState | null {
+    const state = this.breakoutStates.get(hostRoomId);
+    if (!state?.isActive) return null;
+
+    state.rooms.forEach((room) => {
+      room.userIds = room.userIds.filter((id) => id !== userId);
+    });
+
+    return state;
   }
 }

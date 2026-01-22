@@ -16,23 +16,28 @@ export const useBreakout = () => {
     .filter((u) => u.id !== user?.id);
 
   const createBreakout = (roomCount: number, isRandom: boolean) => {
-    if (!socket || !user) return;
+    if (!socket || !user) {
+      return;
+    }
 
-    socket.emit(LecternEventType.BREAKOUT_CREATE, {
-      roomId: user.avatar.currentRoomId,
+    const targetHostRoomId = breakoutState?.hostRoomId || user.avatar.currentRoomId;
+
+    const payload = {
+      hostRoomId: targetHostRoomId,
       config: {
         roomCount,
         isRandom,
       },
       userIds: currentRoomUsers.map((u) => u.id),
-    });
+    };
+    socket.emit(LecternEventType.BREAKOUT_CREATE, payload);
   };
 
   const endBreakout = () => {
-    if (!socket || !user) return;
+    if (!socket || !user || !breakoutState) return;
 
     socket.emit(LecternEventType.BREAKOUT_END, {
-      roomId: user.avatar.currentRoomId,
+      hostRoomId: breakoutState.hostRoomId,
     });
   };
 

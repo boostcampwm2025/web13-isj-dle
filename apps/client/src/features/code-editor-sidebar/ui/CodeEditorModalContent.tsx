@@ -10,6 +10,7 @@ import RemoteCursors from "./RemoteCursors";
 import { Files } from "lucide-react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
+import { useBreakoutStore } from "@entities/lectern/breakout.store";
 import { useUserStore } from "@entities/user";
 import Editor from "@monaco-editor/react";
 import { CollaborationModal } from "@shared/ui";
@@ -17,7 +18,22 @@ import { CollaborationModal } from "@shared/ui";
 const CodeEditorModalContent = () => {
   const closeTool = useCollaborationToolStore((state) => state.closeTool);
   const user = useUserStore((state) => state.user);
-  const roomId = user?.avatar.currentRoomId || "default";
+  const breakoutState = useBreakoutStore((state) => state.breakoutState);
+
+  const myBreakoutRoomId =
+    breakoutState?.isActive && user?.id
+      ? (breakoutState.rooms.find((room) => room.userIds.includes(user.id))?.roomId ?? null)
+      : null;
+  const roomId = myBreakoutRoomId || user?.avatar.currentRoomId || "default";
+
+  console.log("[CodeEditor] roomId calculation", {
+    myBreakoutRoomId,
+    currentRoomId: user?.avatar.currentRoomId,
+    finalRoomId: roomId,
+    breakoutActive: breakoutState?.isActive,
+    userId: user?.id,
+    breakoutRooms: breakoutState?.rooms,
+  });
 
   const { monaco, theme, setTheme, availableLanguages, showExplorer, setShowExplorer } = useCodeEditor();
   const { ydocRef, providerRef, awarenessRef, isConnected, isInitialized } = useYjs(roomId);

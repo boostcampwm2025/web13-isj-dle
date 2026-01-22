@@ -1,11 +1,15 @@
 import { MAX_ROOM_COUNT, MIN_ROOM_COUNT } from "../model/breakout.constants";
 import { useBreakout } from "../model/use-breakout";
+import { useBreakoutJoin } from "../model/use-breakout-join";
 import { Blocks, Minus, Plus, Shuffle, Users, X } from "lucide-react";
 
 import { useState } from "react";
 
+import { BreakoutRoomList } from "@features/host-sidebar/ui/BreakoutRoomList.tsx";
+
 export const BreakoutPanel = () => {
   const { breakoutState, isBreakoutActive, currentRoomUsers, createBreakout, endBreakout } = useBreakout();
+  const { joinRoom, currentBreakoutRoomId } = useBreakoutJoin();
 
   const [roomCount, setRoomCount] = useState(2);
   const [isRandom, setIsRandom] = useState(true);
@@ -58,24 +62,14 @@ export const BreakoutPanel = () => {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {breakoutState.rooms.map((room, index) => {
-            const roomUserCount = room.userIds.length;
-            return (
-              <div key={room.roomId} className="rounded-lg border border-gray-300 bg-white px-3.5 py-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-9 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-700">
-                      {index + 1}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Users className="h-3.5 w-3.5" />
-                    <span className="font-medium text-gray-700">{roomUserCount}명</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          <BreakoutRoomList
+            rooms={breakoutState.rooms}
+            showJoinButton={true}
+            onJoinRoom={joinRoom}
+            currentRoomId={currentBreakoutRoomId}
+            isHost={true}
+            isRandom={breakoutState.config?.isRandom ?? false}
+          />
         </div>
 
         <button
