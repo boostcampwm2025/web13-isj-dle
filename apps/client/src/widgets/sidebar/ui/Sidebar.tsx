@@ -3,18 +3,25 @@ import useSidebarState from "../model/use-sidebar-state";
 import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 import { useBindChat } from "@src/entities/chat";
+import { useUserStore } from "@src/entities/user";
 
 const MAX_BADGE_COUNT = 9;
 
 const Sidebar = () => {
-  useBindChat();
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const initialRoomName = useMemo(() => {
+    if (!currentRoomId) return "알 수 없는";
+    return currentRoomId === "lobby" ? "" : currentRoomId;
+  }, [currentRoomId]);
+  useBindChat(initialRoomName);
+
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
