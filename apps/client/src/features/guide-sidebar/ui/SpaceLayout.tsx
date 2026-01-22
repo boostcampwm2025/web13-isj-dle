@@ -20,7 +20,7 @@ const SpaceLayout = () => {
             </div>
             {currentSpace === key && (
               <>
-                <div className="my-1 text-sm text-gray-500">{description}</div>
+                <div className="my-1 text-sm font-bold text-gray-700">{description}</div>
                 <img src={url} alt={`${title} 배치도`} className="w-full rounded-lg border" />
                 <ul className={`mt-3 ${STYLES.list}`}>
                   {items.map((it, idx) => (
