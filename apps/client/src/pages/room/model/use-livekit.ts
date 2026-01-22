@@ -80,16 +80,13 @@ export const useLivekit = (): UseLivekitState => {
       setLivekitState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
-        if (!livekitState.isOpen) {
-          throw new Error("Livekit room is not open");
-        }
+        if (!livekitState.isOpen) return;
         const data = await requestLivekitToken(config, controller.signal);
 
         setLivekitState((prev) => ({ ...prev, token: data.token, serverUrl: data.url, isLoading: false, error: null }));
       } catch (error) {
         if (controller.signal.aborted) return;
 
-        console.error("[useLivekit] Token request failed:", error);
         setLivekitState((prev) => ({
           ...prev,
           token: null,

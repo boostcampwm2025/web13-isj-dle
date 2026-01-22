@@ -41,7 +41,6 @@ export const useEditorBinding = (
 
     const item = fileSystem[selectedFileId];
     if (!item) {
-      console.warn(`File with id ${selectedFileId} not found in file system`);
       if (bindingRef.current) {
         bindingRef.current.destroy();
         bindingRef.current = null;

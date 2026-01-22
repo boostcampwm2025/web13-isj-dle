@@ -68,7 +68,6 @@ export const useFileSystem = (
 
       if (type === "file") {
         selectFile(id);
-        console.log("File created with id:", id);
       }
     },
     [monaco, ydocRef, selectFile],

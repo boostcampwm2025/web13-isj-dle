@@ -139,7 +139,7 @@ export class GameScene extends Phaser.Scene {
       this.isReady = true;
       this.events.emit("scene:ready");
     } catch (error) {
-      console.error("Error loading tilesets:", error);
+      console.error("Error loading Phaser:", error);
     }
   }
 

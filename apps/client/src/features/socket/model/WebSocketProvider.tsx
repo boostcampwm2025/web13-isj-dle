@@ -164,7 +164,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     return () => {
       if (socketRef.current) {
-        console.log("[WebSocket] Cleaning up connection");
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;

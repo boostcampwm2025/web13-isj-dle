@@ -23,10 +23,7 @@ export async function loadTilesets(scene: Phaser.Scene, tmjUrl: string): Promise
   const tmj = await res.json();
 
   for (const ts of tmj.tilesets) {
-    if (!ts.image) {
-      console.warn(`Tileset ${ts.name} has no image, skipping load.`);
-      continue;
-    }
+    if (!ts.image) continue;
 
     const base = new URL(tmjUrl, window.location.origin);
     scene.load.image(ts.name, new URL(ts.image, base).pathname);

@@ -26,15 +26,6 @@ const CodeEditorModalContent = () => {
       : null;
   const roomId = myBreakoutRoomId || user?.avatar.currentRoomId || "default";
 
-  console.log("[CodeEditor] roomId calculation", {
-    myBreakoutRoomId,
-    currentRoomId: user?.avatar.currentRoomId,
-    finalRoomId: roomId,
-    breakoutActive: breakoutState?.isActive,
-    userId: user?.id,
-    breakoutRooms: breakoutState?.rooms,
-  });
-
   const { monaco, theme, setTheme, availableLanguages, showExplorer, setShowExplorer } = useCodeEditor();
   const { ydocRef, providerRef, awarenessRef, isConnected, isInitialized } = useYjs(roomId);
   const { fileSystem, createItem, deleteItem, renameItem, selectedFileId, selectFile, language, setLanguage } =

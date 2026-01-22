@@ -31,10 +31,7 @@ export class RoomEntranceManager {
     if (!this.map) return;
 
     const objectLayer = this.map.getObjectLayer("ObjectLayer-Area");
-    if (!objectLayer) {
-      console.warn("[RoomEntranceManager] ObjectLayer-Area not found");
-      return;
-    }
+    if (!objectLayer) return;
 
     let targetRoomId = "lobby";
 
@@ -66,19 +63,11 @@ export class RoomEntranceManager {
       this.currentRoomId = targetRoomId;
 
       const joinRoom = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.JOIN_ROOM);
-      if (joinRoom) {
-        joinRoom(targetRoomId);
-      } else {
-        console.warn(`[RoomEntranceManager] ${GAME_REGISTRY_KEYS.JOIN_ROOM} function not found in registry`);
-      }
+      joinRoom?.(targetRoomId);
 
       if (isMeetingRoomRange(targetRoomId)) {
         const openRoomSelector = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR);
-        if (openRoomSelector) {
-          openRoomSelector(targetRoomId);
-        } else {
-          console.warn(`[RoomEntranceManager] ${GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR} function not found in registry`);
-        }
+        openRoomSelector?.(targetRoomId);
       }
 
       if (targetRoomId === "desk zone") {

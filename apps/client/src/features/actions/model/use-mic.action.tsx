@@ -31,11 +31,7 @@ export const useMicAction: ActionHook = () => {
 
   const toggleMic = async () => {
     const newState = !isMicOn;
-    if (localParticipant) {
-      await localParticipant.setMicrophoneEnabled(newState);
-    } else {
-      console.warn("Local participant is not available to toggle microphone.");
-    }
+    await localParticipant?.setMicrophoneEnabled(newState);
     if (userId) {
       updateUser({ id: userId, micOn: newState });
     }

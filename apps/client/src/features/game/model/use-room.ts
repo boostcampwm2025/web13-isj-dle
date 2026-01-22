@@ -10,10 +10,7 @@ export const useRoom = () => {
 
   const joinRoom = useCallback(
     (roomId: string) => {
-      if (!socket || !isConnected) {
-        console.warn("[useRoom] Socket not connected");
-        return;
-      }
+      if (!socket || !isConnected) return;
 
       socket.emit(RoomEventType.ROOM_JOIN, { roomId });
     },
