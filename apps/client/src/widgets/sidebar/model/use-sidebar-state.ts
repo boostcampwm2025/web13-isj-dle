@@ -13,12 +13,18 @@ const useSidebarState = () => {
   const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
   const openSidebarWithLastKey = useSidebarStore((s) => s.openSidebarWithLastKey);
 
+  const lastOpenedKey = useSidebarStore((s) => s.lastOpenedKey);
+
   const validCurrentKey = useMemo(() => {
     if (currentKey && sidebarKeys.includes(currentKey)) {
       return currentKey;
     }
+
+    if (lastOpenedKey && sidebarKeys.includes(lastOpenedKey)) {
+      return lastOpenedKey;
+    }
     return sidebarKeys[0] || null;
-  }, [currentKey, sidebarKeys]);
+  }, [currentKey, sidebarKeys, lastOpenedKey]);
 
   const setIsOpen = useSidebarStore((s) => s.setIsOpen);
 

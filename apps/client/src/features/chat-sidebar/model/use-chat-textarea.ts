@@ -1,10 +1,7 @@
 import { type KeyboardEvent, useEffect, useRef } from "react";
 
-import type { ReceivedChatMessage } from "@livekit/components-react";
-
-export const useChatTextarea = (send: (message: string) => Promise<ReceivedChatMessage>) => {
+export const useChatTextarea = (send: (message: string) => Promise<void>) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
   const MAX_ROWS = 3;
   const LINE_HEIGHT = 20;
 

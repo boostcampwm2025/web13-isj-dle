@@ -1,4 +1,6 @@
-import { BookOpen, Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Users } from "lucide-react";
+import { BookOpen, Briefcase, Code, Crown, Megaphone, MessageCircleMore, PenTool, Timer, Users } from "lucide-react";
+
+import { lazy } from "react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
 import { CodeEditorSidebar } from "@features/code-editor-sidebar";
@@ -9,6 +11,10 @@ import { NoticeSidebar } from "@features/notice-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
+
+const TimerStopwatchSidebar = lazy(() =>
+  import("@features/timer-stopwatch-sidebar").then((m) => ({ default: m.TimerStopwatchSidebar })),
+);
 
 export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
   users: {
@@ -35,6 +41,11 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "코드 에디터",
     Icon: Code,
     Panel: CodeEditorSidebar,
+  },
+  "timer-stopwatch": {
+    title: "타이머/스톱워치",
+    Icon: Timer,
+    Panel: TimerStopwatchSidebar,
   },
   chat: {
     title: "채팅",

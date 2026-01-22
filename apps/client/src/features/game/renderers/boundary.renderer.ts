@@ -1,11 +1,12 @@
 import { BOUNDARY_DASH, BOUNDARY_OFFSET } from "../model/game.constants";
 import Phaser from "phaser";
 
+import { positionStore } from "@entities/user";
 import { MINIMUM_NUMBER_OF_MEMBERS, type User } from "@shared/types";
 
 export class BoundaryRenderer {
   private graphics?: Phaser.GameObjects.Graphics;
-  private scene: Phaser.Scene;
+  private readonly scene: Phaser.Scene;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -18,12 +19,7 @@ export class BoundaryRenderer {
     this.graphics.setDepth(depth);
   }
 
-  render(
-    users: User[],
-    currentUser: User | null | undefined,
-    currentAvatarPosition?: { x: number; y: number },
-    currentAvatarState?: string,
-  ): void {
+  render(users: User[], currentUser: User | null | undefined, currentAvatarPosition?: { x: number; y: number }): void {
     if (this.graphics) {
       this.graphics.clear();
     }
@@ -33,7 +29,7 @@ export class BoundaryRenderer {
     const contactGroups = new Map<string, Array<{ x: number; y: number }>>();
 
     for (const user of users) {
-      if (!user.contactId || user.avatar.currentRoomId !== "lobby" || user.avatar.state !== "idle") continue;
+      if (!user.contactId || user.avatar.currentRoomId !== "lobby") continue;
 
       let group = contactGroups.get(user.contactId);
       if (!group) {
@@ -41,10 +37,11 @@ export class BoundaryRenderer {
         contactGroups.set(user.contactId, group);
       }
 
-      group.push({ x: user.avatar.x, y: user.avatar.y });
+      const pos = positionStore.get(user.id);
+      group.push({ x: pos?.x ?? user.avatar.x, y: pos?.y ?? user.avatar.y });
     }
 
-    if (currentUser?.contactId && currentAvatarState === "idle" && currentAvatarPosition) {
+    if (currentUser?.contactId && currentAvatarPosition) {
       let group = contactGroups.get(currentUser.contactId);
       if (!group) {
         group = [];
@@ -52,6 +49,16 @@ export class BoundaryRenderer {
       }
 
       group.push({ x: currentAvatarPosition.x, y: currentAvatarPosition.y });
+    } else if (currentUser?.contactId) {
+      const pos = positionStore.get(currentUser.id);
+      if (pos) {
+        let group = contactGroups.get(currentUser.contactId);
+        if (!group) {
+          group = [];
+          contactGroups.set(currentUser.contactId, group);
+        }
+        group.push({ x: pos.x, y: pos.y });
+      }
     }
 
     for (const [, points] of contactGroups) {
