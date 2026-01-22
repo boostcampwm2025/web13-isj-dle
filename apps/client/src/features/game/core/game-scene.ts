@@ -1,4 +1,5 @@
 import { AvatarAnimationManager, InputManager, NetworkSyncManager, RoomEntranceManager } from "../managers";
+import { NicknameManager } from "../managers/nickname.manager";
 import {
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
@@ -6,7 +7,6 @@ import {
   GAME_SCENE_KEY,
   IDLE_FRAME,
   MAP_NAME,
-  NICKNAME_OFFSET_Y,
   TMJ_URL,
 } from "../model/game.constants";
 import type { AvatarEntity, MapObj } from "../model/game.types";
@@ -31,7 +31,7 @@ export class GameScene extends Phaser.Scene {
 
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
-  private avatarNickname?: Phaser.GameObjects.DOMElement;
+  private nicknameManager!: NicknameManager;
 
   private inputManager!: InputManager;
   private animationManager!: AvatarAnimationManager;
@@ -69,6 +69,10 @@ export class GameScene extends Phaser.Scene {
 
   get deskSeatPoints() {
     return getSeatPoints(this.mapObj.map, "DeskZone");
+  }
+
+  get nickname(): NicknameManager {
+    return this.nicknameManager;
   }
 
   movePlayer(x: number, y: number, direction: AvatarDirection, state: AvatarState): void {
@@ -140,14 +144,18 @@ export class GameScene extends Phaser.Scene {
     this.animationManager = new AvatarAnimationManager(this);
     this.animationManager.createAllAvatarAnimations();
 
-    this.roomEntranceManager = new RoomEntranceManager(this, this.mapObj.map);
-
     this.networkSyncManager = new NetworkSyncManager();
+    this.networkSyncManager.setOnDeskStatusChange((status) => {
+      this.nicknameManager.updateIndicator(status);
+    });
+
+    this.roomEntranceManager = new RoomEntranceManager(this, this.mapObj.map);
+    this.roomEntranceManager.setNetworkSyncManager(this.networkSyncManager);
 
     this.avatarRenderer = new AvatarRenderer(this);
 
     this.boundaryRenderer = new BoundaryRenderer(this);
-    this.boundaryRenderer.initialize(this.mapObj.depthCount - 1);
+    this.nicknameManager = new NicknameManager(this);
   }
 
   update() {
@@ -161,9 +169,7 @@ export class GameScene extends Phaser.Scene {
       UserEventType.PLAYER_MOVE,
     );
 
-    if (this.avatarNickname) {
-      this.avatarNickname.setPosition(this.avatar.sprite.x, this.avatar.sprite.y - NICKNAME_OFFSET_Y);
-    }
+    this.nicknameManager.updatePosition(this.avatar.sprite.x, this.avatar.sprite.y);
 
     const inputDirection = this.inputManager.getNextDirection();
 
@@ -251,9 +257,8 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
-
-    this.avatarNickname = this.createNicknameText(spawn.x, spawn.y - NICKNAME_OFFSET_Y, user.nickname);
-    this.avatarNickname.setDepth(Number.MAX_SAFE_INTEGER);
+    this.nicknameManager.createNickname(spawn.x, spawn.y, user.nickname, user.deskStatus);
+    this.nicknameManager.setDepth(Number.MAX_SAFE_INTEGER);
 
     this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
     this.cameras.main.startFollow(sprite, false, 1, 1);
@@ -269,18 +274,6 @@ export class GameScene extends Phaser.Scene {
       currentUser,
       this.avatar ? { x: this.avatar.sprite.x, y: this.avatar.sprite.y } : undefined,
     );
-  }
-
-  private createNicknameText(x: number, y: number, nickname: string): Phaser.GameObjects.DOMElement {
-    const div = document.createElement("div");
-    div.textContent = nickname;
-    div.className =
-      "text-[5px] text-white bg-black/66 px-1 py-0.5 rounded whitespace-nowrap pointer-events-none select-none";
-
-    const domElement = this.add.dom(x, y, div);
-    domElement.setOrigin(0.5, 1);
-
-    return domElement;
   }
 
   setSocket(socket: Socket): void {

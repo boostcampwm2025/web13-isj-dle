@@ -5,13 +5,17 @@ import { PanelLeft, PanelLeftClose } from "lucide-react";
 
 import { Suspense } from "react";
 
+import { useKnockStore } from "@entities/knock";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 import { useBindChat } from "@src/entities/chat";
 
+const MAX_MESSAGE_LENGTH = 9;
+
 const Sidebar = () => {
   useBindChat();
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
+  const knockCount = useKnockStore((s) => s.receivedKnocks.length);
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -59,36 +63,57 @@ const Sidebar = () => {
 
         <div className="mb-2 h-0.5 w-full bg-gray-400" />
 
-        <div className="scrollbar-hide flex flex-col gap-4 overflow-y-auto">
-          {sidebarKeys.map((key) => {
-            const sidebarItem = SIDEBAR_MAP[key];
-            if (!sidebarItem) return null;
+        <div className="relative flex-1">
+          <div className="scrollbar-hide flex h-full flex-col gap-4 overflow-y-auto">
+            {sidebarKeys.map((key) => {
+              const sidebarItem = SIDEBAR_MAP[key];
+              if (!sidebarItem) return null;
 
-            const isActive = isOpen && validCurrentKey === key;
+              const isActive = isOpen && validCurrentKey === key;
 
-            if (key === "timer-stopwatch") {
+              if (key === "timer-stopwatch") {
+                return (
+                  <TimerProgressButton
+                    key={key}
+                    sidebarItem={sidebarItem}
+                    isActive={isActive}
+                    onClick={() => handleTabClick(key)}
+                  />
+                );
+              }
+
+              const IconComponent = sidebarItem.Icon;
               return (
-                <TimerProgressButton
+                <button
                   key={key}
-                  sidebarItem={sidebarItem}
-                  isActive={isActive}
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                    isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
+                  }`}
                   onClick={() => handleTabClick(key)}
-                />
+                  title={sidebarItem.title}
+                >
+                  <IconComponent className="h-6 w-6" size={ICON_SIZE} />
+                </button>
               );
-            }
+            })}
+          </div>
 
-            const IconComponent = sidebarItem.Icon;
+          {/* 배지를 overflow 컨테이너 밖에 별도로 렌더링 */}
+          {sidebarKeys.map((key, index) => {
+            const showBadge = key === "deskZone" && knockCount > 0;
+            if (!showBadge) return null;
+
             return (
-              <button
-                key={key}
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                  isOpen && validCurrentKey === key ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
-                }`}
-                onClick={() => handleTabClick(key)}
-                title={sidebarItem.title}
+              <span
+                key={`badge-${key}`}
+                className="pointer-events-none absolute flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
+                style={{
+                  top: `${index * (48 + 16)}px`,
+                  right: "-4px",
+                }}
               >
-                <IconComponent className="h-6 w-6" size={ICON_SIZE} />
-              </button>
+                {knockCount > MAX_MESSAGE_LENGTH ? `${MAX_MESSAGE_LENGTH}+` : knockCount}
+              </span>
             );
           })}
         </div>

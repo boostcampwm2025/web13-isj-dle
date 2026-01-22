@@ -123,10 +123,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const previousRoomId = user?.avatar.currentRoomId;
       this.endTalkIfNeeded(client.id, user?.nickname ?? "알 수 없음", "disconnected");
 
-      const { sentTo } = this.knockService.removeAllKnocksForUser(client.id);
+      const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(client.id);
       for (const targetUserId of sentTo) {
         this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {
           fromUserId: client.id,
+        });
+      }
+      for (const fromUserId of receivedFrom) {
+        this.server.to(fromUserId).emit(KnockEventType.KNOCK_CANCELLED, {
+          targetUserId: client.id,
         });
       }
 
@@ -194,10 +199,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (previousRoomId === "desk zone" && payload.roomId !== "desk zone") {
         this.endTalkIfNeeded(client.id, user.nickname, "left_deskzone");
 
-        const { sentTo } = this.knockService.removeAllKnocksForUser(client.id);
+        const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(client.id);
         for (const targetUserId of sentTo) {
           this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {
             fromUserId: client.id,
+          });
+        }
+        for (const fromUserId of receivedFrom) {
+          this.server.to(fromUserId).emit(KnockEventType.KNOCK_CANCELLED, {
+            targetUserId: client.id,
           });
         }
 

@@ -2,11 +2,14 @@ import { useLivekit } from "../model/use-livekit";
 import { useVideoConference } from "../model/use-video-conference";
 import NoiseFilter from "./NoiseFilter";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
+import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
 import {
+  GAME_SCENE_KEY,
+  type GameScene,
   useAvatarLoader,
   useAvatarRenderer,
   useGameInitialization,
@@ -22,6 +25,7 @@ import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import type { DeskStatus } from "@shared/types";
 import { LecternEventType } from "@shared/types";
 import { BottomNav } from "@widgets/bottom-nav";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
@@ -31,6 +35,8 @@ const RoomPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
+  const user = useUserStore((state) => state.user);
+  const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   const { game } = useGameInitialization(containerRef);
@@ -54,12 +60,39 @@ const RoomPage = () => {
     [socket],
   );
 
+  const updateMyDeskStatus = useCallback(
+    (status: DeskStatus | null) => {
+      if (!game) return;
+      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+      if (scene?.isReady) {
+        scene.nickname.updateIndicator(status);
+      }
+    },
+    [game],
+  );
+
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
+  useGameRegistry(
+    game,
+    joinRoom ?? null,
+    openRoomSelector,
+    lecternEnter,
+    lecternLeave,
+    updateMyDeskStatus,
+    clearAllKnocks,
+  );
   useAvatarRenderer(game);
 
   useKnockSocket();
+
+  useEffect(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.nickname.updateIndicator(user?.deskStatus ?? null);
+    }
+  }, [game, user?.deskStatus]);
 
   const { getHookByKey } = useAction();
   const { isOn: isMicOn } = getHookByKey("mic");

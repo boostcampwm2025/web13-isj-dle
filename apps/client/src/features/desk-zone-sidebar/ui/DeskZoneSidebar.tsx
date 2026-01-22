@@ -93,7 +93,11 @@ const DeskZoneSidebar = () => {
                     {isMe ? (
                       <div>
                         <p className="mb-1 text-xs font-medium text-gray-500">내 상태 변경</p>
-                        <MyStatusSelector currentStatus={user?.deskStatus ?? null} onStatusChange={updateDeskStatus} />
+                        <MyStatusSelector
+                          currentStatus={user?.deskStatus ?? null}
+                          onStatusChange={updateDeskStatus}
+                          isTalking={isTalking}
+                        />
                       </div>
                     ) : (
                       <KnockButton
@@ -117,9 +121,6 @@ const DeskZoneSidebar = () => {
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-600">
             <Bell size={ICON_SIZE} />
             <span>노크 요청</span>
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
-              {receivedKnocks.length}
-            </span>
           </div>
 
           <div className="flex max-h-48 flex-col gap-2 overflow-y-auto">

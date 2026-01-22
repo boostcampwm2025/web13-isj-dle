@@ -65,7 +65,17 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
 
       const currentRoomChanged = state.user?.avatar.currentRoomId !== prevState.user?.avatar.currentRoomId;
 
-      if (usersStructureChanged || currentRoomChanged) {
+      const otherUserRoomChanged = state.users.some((user, index) => {
+        const prevUser = prevState.users[index];
+        return prevUser && user.avatar.currentRoomId !== prevUser.avatar.currentRoomId;
+      });
+
+      const deskStatusChanged = state.users.some((user, index) => {
+        const prevUser = prevState.users[index];
+        return prevUser && user.deskStatus !== prevUser.deskStatus;
+      });
+
+      if (usersStructureChanged || currentRoomChanged || otherUserRoomChanged || deskStatusChanged) {
         renderAvatars();
       }
     });

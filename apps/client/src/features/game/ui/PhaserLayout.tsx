@@ -1,3 +1,5 @@
+import type { GameScene } from "../core/game-scene";
+import { GAME_SCENE_KEY } from "../model/game.constants";
 import { useAvatarLoader } from "../model/use-avatar-loader";
 import { useAvatarRenderer } from "../model/use-avatar-renderer";
 import { useGameInitialization } from "../model/use-game-initialization";
@@ -6,10 +8,12 @@ import { useGameSocket } from "../model/use-game-socket";
 import { usePhaserGame } from "../model/use-phaser-game";
 import { useRoomSelector } from "../model/use-room-selector";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
+import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
+import type { DeskStatus } from "@shared/types";
 import { LecternEventType } from "@shared/types";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
 
@@ -21,6 +25,8 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
+  const user = useUserStore((state) => state.user);
+  const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   const { game } = useGameInitialization(containerRef);
@@ -44,10 +50,35 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     [socket],
   );
 
+  const updateMyDeskStatus = useCallback(
+    (status: DeskStatus | null) => {
+      if (!game) return;
+      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+      scene?.nickname.updateIndicator(status);
+    },
+    [game],
+  );
+
   useGameSocket(game, socket, isConnected);
   useAvatarLoader(game);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave);
+  useGameRegistry(
+    game,
+    joinRoom ?? null,
+    openRoomSelector,
+    lecternEnter,
+    lecternLeave,
+    updateMyDeskStatus,
+    clearAllKnocks,
+  );
   useAvatarRenderer(game);
+
+  useEffect(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.nickname.updateIndicator(user?.deskStatus ?? null);
+    }
+  }, [game, user?.deskStatus]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">

@@ -1,4 +1,5 @@
 import { GAME_REGISTRY_KEYS, getRegistryFunction } from "../model/game-registry.constants";
+import { NetworkSyncManager } from "./network-sync.manager";
 import Phaser from "phaser";
 
 import { isMeetingRoomRange } from "@shared/config";
@@ -7,10 +8,15 @@ export class RoomEntranceManager {
   private scene: Phaser.Scene;
   private currentRoomId: string = "lobby";
   private map: Phaser.Tilemaps.Tilemap | null = null;
+  private networkSyncManager: NetworkSyncManager | null = null;
 
   constructor(scene: Phaser.Scene, map: Phaser.Tilemaps.Tilemap | null) {
     this.scene = scene;
     this.map = map;
+  }
+
+  setNetworkSyncManager(networkSyncManager: NetworkSyncManager): void {
+    this.networkSyncManager = networkSyncManager;
   }
 
   setMap(map: Phaser.Tilemaps.Tilemap | null): void {
@@ -56,6 +62,7 @@ export class RoomEntranceManager {
     }
 
     if (targetRoomId !== this.currentRoomId) {
+      const previousRoomId = this.currentRoomId;
       this.currentRoomId = targetRoomId;
 
       const joinRoom = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.JOIN_ROOM);
@@ -72,6 +79,14 @@ export class RoomEntranceManager {
         } else {
           console.warn(`[RoomEntranceManager] ${GAME_REGISTRY_KEYS.OPEN_ROOM_SELECTOR} function not found in registry`);
         }
+      }
+
+      if (targetRoomId === "desk zone") {
+        this.networkSyncManager?.emitDeskStatusUpdate("available");
+      } else if (previousRoomId === "desk zone") {
+        this.networkSyncManager?.emitDeskStatusUpdate(null);
+        const clearKnocks = getRegistryFunction(this.scene.game, GAME_REGISTRY_KEYS.CLEAR_KNOCKS);
+        clearKnocks?.();
       }
     }
   }
