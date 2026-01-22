@@ -115,21 +115,6 @@ export const useFileSystem = (
     [ydocRef],
   );
 
-  useEffect(() => {
-    if (!isInitialized || !ydocRef.current) return;
-    const ydoc = ydocRef.current;
-
-    const init = () => {
-      const fsMap = ydoc.getMap<FileSystemItem>("file-system");
-      const items = fsMap.toJSON();
-      if (Object.keys(items).length === 0) {
-        createItem("README.md", "file", null);
-      }
-    };
-
-    init();
-  }, [isInitialized, createItem, ydocRef]);
-
   return {
     fileSystem,
     createItem,

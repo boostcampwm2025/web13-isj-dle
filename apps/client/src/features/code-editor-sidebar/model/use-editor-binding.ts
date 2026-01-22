@@ -28,17 +28,6 @@ export const useEditorBinding = (
 
   const handleEditorDidMount = useCallback((editor: Monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
-    const container = editor.getContainerDomNode();
-    const ro = new ResizeObserver(() => {
-      editor.layout({
-        width: Math.ceil(container.clientWidth),
-        height: Math.ceil(container.clientHeight),
-      });
-    });
-
-    ro.observe(container);
-
-    editor.onDidDispose(() => ro.disconnect());
   }, []);
 
   useEffect(() => {
