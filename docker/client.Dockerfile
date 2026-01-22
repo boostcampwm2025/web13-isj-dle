@@ -15,6 +15,7 @@ COPY packages ./packages
 
 RUN pnpm build:shared
 RUN echo "VITE_SERVER_URL=https://www.moyo.asia" > ./apps/client/.env
+RUN echo "VITE_TLDRAW_LICENSE_KEY=tldraw-2026-05-02/WyJZSkZsc2pjcSIsWyIqIl0sMTYsIjIwMjYtMDUtMDIiXQ.mM+cQXrh4f5n/gDi7LGdUOgc+7EN+NaSaVS0vAxB19qcatvaf9oCNuHR01VLucuSK3cgCs/kMEyNOjpTDSVcag" >> ./apps/client/.env
 RUN pnpm build:client
 
 FROM nginx:alpine

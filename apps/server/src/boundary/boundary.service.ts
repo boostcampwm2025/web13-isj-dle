@@ -21,7 +21,7 @@ export class BoundaryService {
   }
 
   findConnectedGroups(users: User[]): Map<string, string[]> {
-    const eligibleUsers = users.filter((user) => user.avatar.state === "idle");
+    const eligibleUsers = users.filter((user) => user.avatar.state === "idle" || user.contactId !== null);
     const visited = new Set<string>();
     const groups = new Map<string, string[]>();
 

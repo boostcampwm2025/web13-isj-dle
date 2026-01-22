@@ -16,11 +16,12 @@ const MAX_BADGE_COUNT = 9;
 
 const Sidebar = () => {
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const contactId = useUserStore((state) => state.user?.contactId);
   const initialRoomName = useMemo(() => {
     if (!currentRoomId) return "알 수 없는";
     return currentRoomId === "lobby" ? "" : currentRoomId;
   }, [currentRoomId]);
-  useBindChat(initialRoomName);
+  useBindChat(initialRoomName, currentRoomId === "lobby" ? (contactId ?? null) : null);
 
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
