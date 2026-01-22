@@ -19,7 +19,10 @@ export const useAvatarRenderer = (game: Phaser.Game | null, users: User[], curre
 
   const sameRoomSig = useMemo(() => {
     const usersSig = sameRoomUsers
-      .map((u) => `${u.id}:${u.avatar.x}:${u.avatar.y}:${u.avatar.direction}:${u.avatar.state}:${u.contactId}`)
+      .map(
+        (u) =>
+          `${u.id}:${u.avatar.x}:${u.avatar.y}:${u.avatar.direction}:${u.avatar.state}:${u.contactId}:${u.deskStatus}`,
+      )
       .sort()
       .join("|");
     return `${usersSig}|me:${currentUser?.contactId}`;
