@@ -4,6 +4,7 @@ import {
   Briefcase,
   Code,
   Crown,
+  Images,
   Megaphone,
   MessageCircleMore,
   PenTool,
@@ -19,6 +20,7 @@ import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
 import { GuideSidebar } from "@features/guide-sidebar";
 import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
+import { RestaurantSidebar } from "@features/restaurant-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
@@ -77,5 +79,9 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "조별 활동",
     Icon: Blocks,
     Panel: ParticipantSidebar,
+  restaurant: {
+    title: "식당",
+    Icon: Images,
+    Panel: RestaurantSidebar,
   },
 };

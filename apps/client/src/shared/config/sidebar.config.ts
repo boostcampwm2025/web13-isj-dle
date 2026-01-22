@@ -13,6 +13,7 @@ export type SidebarKey =
   | "deskZone"
   | "host"
   | "participant";
+  | "restaurant";
 
 export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   users: 0,
