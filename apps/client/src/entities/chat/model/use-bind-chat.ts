@@ -2,9 +2,10 @@ import { JOIN_SUFFIX, LEAVE_SUFFIX } from "./chat.constants";
 import { useChatStore } from "./chat.store";
 import { Participant, RoomEvent } from "livekit-client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { type ReceivedChatMessage, useChat, useRoomContext } from "@livekit/components-react";
+import { useSidebarStore } from "@widgets/sidebar";
 
 export const useBindChat = () => {
   const room = useRoomContext();
@@ -14,6 +15,13 @@ export const useBindChat = () => {
   const reset = useChatStore((s) => s.reset);
   const addSystemMessage = useChatStore((s) => s.addSystemMessage);
   const setChatMessages = useChatStore((s) => s.setChatMessages);
+  const incrementUnreadCount = useChatStore((s) => s.incrementUnreadCount);
+
+  const isOpen = useSidebarStore((s) => s.isOpen);
+  const currentKey = useSidebarStore((s) => s.currentKey);
+  const isChatOpen = isOpen && currentKey === "chat";
+
+  const prevMessageCountRef = useRef(0);
 
   const systemFrom = useMemo(
     () =>
@@ -71,7 +79,18 @@ export const useBindChat = () => {
 
   useEffect(() => {
     setChatMessages(chatMessages);
-  }, [chatMessages, setChatMessages]);
+
+    const newMessageCount = chatMessages.length - prevMessageCountRef.current;
+    if (newMessageCount > 0 && !isChatOpen) {
+      for (let i = 0; i < newMessageCount; i++) {
+        const msg = chatMessages[prevMessageCountRef.current + i];
+        if (msg && !msg.from?.isLocal) {
+          incrementUnreadCount();
+        }
+      }
+    }
+    prevMessageCountRef.current = chatMessages.length;
+  }, [chatMessages, setChatMessages, isChatOpen, incrementUnreadCount]);
 
   return null;
 };

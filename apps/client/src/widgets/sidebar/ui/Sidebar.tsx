@@ -5,17 +5,19 @@ import { PanelLeft, PanelLeftClose } from "lucide-react";
 
 import { Suspense } from "react";
 
+import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 import { useBindChat } from "@src/entities/chat";
 
-const MAX_MESSAGE_LENGTH = 9;
+const MAX_BADGE_COUNT = 9;
 
 const Sidebar = () => {
   useBindChat();
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
+  const chatUnreadCount = useChatStore((s) => s.unreadCount);
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -100,8 +102,14 @@ const Sidebar = () => {
 
           {/* 배지를 overflow 컨테이너 밖에 별도로 렌더링 */}
           {sidebarKeys.map((key, index) => {
-            const showBadge = key === "deskZone" && knockCount > 0;
-            if (!showBadge) return null;
+            let badgeCount = 0;
+            if (key === "deskZone" && knockCount > 0) {
+              badgeCount = knockCount;
+            } else if (key === "chat" && chatUnreadCount > 0) {
+              badgeCount = chatUnreadCount;
+            }
+
+            if (badgeCount === 0) return null;
 
             return (
               <span
@@ -112,7 +120,7 @@ const Sidebar = () => {
                   right: "-4px",
                 }}
               >
-                {knockCount > MAX_MESSAGE_LENGTH ? `${MAX_MESSAGE_LENGTH}+` : knockCount}
+                {badgeCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : badgeCount}
               </span>
             );
           })}
