@@ -1,6 +1,6 @@
 import { requestLivekitToken } from "../api/livekit.api";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useBreakoutStore } from "@entities/lectern/breakout.store";
 import { useLecternStore } from "@entities/lectern/lectern.store";
@@ -27,10 +27,10 @@ export const useLivekit = (): UseLivekitState => {
   const hostId = useLecternStore((state) => state.hostId);
   const isHost = userId === hostId;
 
-  const myBreakoutRoomId =
-    breakoutState?.isActive && userId
-      ? (breakoutState.rooms.find((room) => room.userIds.includes(userId))?.roomId ?? null)
-      : null;
+  const myBreakoutRoomId = useMemo(() => {
+    if (!breakoutState?.isActive || !userId) return null;
+    return breakoutState.rooms.find((room) => room.userIds.includes(userId))?.roomId ?? null;
+  }, [breakoutState, userId]);
 
   const [livekitState, setLivekitState] = useState<UseLivekitState>({
     token: null,
@@ -45,13 +45,6 @@ export const useLivekit = (): UseLivekitState => {
     if (!currentRoomId || !userId || !nickname) return;
 
     const effectiveRoomId = myBreakoutRoomId ? myBreakoutRoomId : getEffectiveRoomId(currentRoomId, contactId);
-
-    console.log("[useLivekit] effectiveRoomId calculation", {
-      isHost,
-      myBreakoutRoomId,
-      currentRoomId,
-      effectiveRoomId,
-    });
 
     setConfig({
       roomId: effectiveRoomId,
@@ -83,23 +76,14 @@ export const useLivekit = (): UseLivekitState => {
     if (!config) return;
     const controller = new AbortController();
 
-    console.log("[useLivekit] Token request starting", {
-      config,
-      isOpen: livekitState.isOpen,
-    });
-
     (async () => {
       setLivekitState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
         if (!livekitState.isOpen) {
-          console.log("[useLivekit] Token request blocked - room not open");
           throw new Error("Livekit room is not open");
         }
-
-        console.log("[useLivekit] Requesting token for room:", config.roomId);
         const data = await requestLivekitToken(config, controller.signal);
-        console.log("[useLivekit] Token received successfully");
 
         setLivekitState((prev) => ({ ...prev, token: data.token, serverUrl: data.url, isLoading: false, error: null }));
       } catch (error) {
