@@ -156,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.avatarRenderer = new AvatarRenderer(this);
 
     this.boundaryRenderer = new BoundaryRenderer(this);
+    this.boundaryRenderer.initialize(this.mapObj.depthCount - 1);
     this.nicknameManager = new NicknameManager(this);
   }
 
