@@ -5,12 +5,14 @@ import type { SidebarKey } from "@shared/config";
 const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   users: 0,
   notices: 1,
-  chat: 2,
-  "code-editor": 3,
-  whiteboard: 4,
-  participant: 5,
-  host: 6,
-  deskZone: 7,
+  guide: 2,
+  chat: 3,
+  "code-editor": 4,
+  whiteboard: 5,
+  "timer-stopwatch": 6,
+  participant: 7,
+  host: 8,
+  deskZone: 9,
 };
 
 interface SidebarState {
@@ -29,9 +31,9 @@ interface SidebarState {
 }
 
 export const useSidebarStore = create<SidebarState>((set, get) => ({
-  sidebarKeys: ["users", "notices"],
+  sidebarKeys: ["users", "notices", "guide"],
   isOpen: true,
-  currentKey: "users",
+  currentKey: "guide",
   lastOpenedKey: "users",
 
   addKey: (key) =>

@@ -10,11 +10,10 @@ import { UserEventType } from "@shared/types";
 
 export const useCameraAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
-  const user = useUserStore((state) => state.user);
+  const userId = useUserStore((state) => state.user?.id);
+  const isCameraOn = useUserStore((state) => state.user?.cameraOn ?? false);
   const updateUser = useUserStore((state) => state.updateUser);
   const { socket } = useWebSocket();
-
-  const isCameraOn = user?.cameraOn ?? false;
 
   const toggleCamera = async () => {
     const newState = !isCameraOn;
@@ -23,8 +22,8 @@ export const useCameraAction: ActionHook = () => {
     } else {
       console.warn("Local participant is not available to toggle camera.");
     }
-    if (user) {
-      updateUser({ id: user.id, cameraOn: newState });
+    if (userId) {
+      updateUser({ id: userId, cameraOn: newState });
     }
     socket?.emit(UserEventType.USER_UPDATE, { cameraOn: newState });
   };

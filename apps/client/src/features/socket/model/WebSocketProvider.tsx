@@ -105,7 +105,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       state: AvatarState;
       force?: boolean;
     }) => {
-      const isMe = updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
+      const currentUser = useUserStore.getState().user;
+      const isMe = currentUser?.id === data.userId;
+
+      updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
       if (isMe && game && data.force) {
         const scene = game.scene.getScene("GameScene") as GameScene;
         scene.movePlayer(data.x, data.y, data.direction, data.state);

@@ -5,9 +5,11 @@ import type { ComponentType } from "react";
 export type SidebarKey =
   | "users"
   | "notices"
-  | "chat"
+  | "guide"
   | "whiteboard"
   | "code-editor"
+  | "timer-stopwatch"
+  | "chat"
   | "deskZone"
   | "host"
   | "participant";
