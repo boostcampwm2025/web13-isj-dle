@@ -3,7 +3,7 @@ import { useRoom } from "./use-room";
 
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
-import { useWebSocket } from "@src/features/socket";
+import { useWebSocket } from "@features/socket";
 
 interface PhaserProviderProps {
   children?: ReactNode;

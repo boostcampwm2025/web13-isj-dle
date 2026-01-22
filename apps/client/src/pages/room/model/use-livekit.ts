@@ -2,8 +2,8 @@ import { requestLivekitToken } from "../api/livekit.api";
 
 import { useEffect, useMemo, useState } from "react";
 
-import { useBreakoutStore } from "@entities/lectern/breakout.store";
-import { useLecternStore } from "@entities/lectern/lectern.store";
+import { useBreakoutStore } from "@entities/lectern";
+import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import type { LivekitRoomConfig } from "@shared/types";
 
@@ -80,16 +80,13 @@ export const useLivekit = (): UseLivekitState => {
       setLivekitState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
-        if (!livekitState.isOpen) {
-          throw new Error("Livekit room is not open");
-        }
+        if (!livekitState.isOpen) return;
         const data = await requestLivekitToken(config, controller.signal);
 
         setLivekitState((prev) => ({ ...prev, token: data.token, serverUrl: data.url, isLoading: false, error: null }));
       } catch (error) {
         if (controller.signal.aborted) return;
 
-        console.error("[useLivekit] Token request failed:", error);
         setLivekitState((prev) => ({
           ...prev,
           token: null,
@@ -101,8 +98,7 @@ export const useLivekit = (): UseLivekitState => {
     })();
 
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
+  }, [config, livekitState.isOpen]);
 
   return livekitState;
 };

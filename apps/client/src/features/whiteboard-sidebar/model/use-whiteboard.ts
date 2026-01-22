@@ -3,7 +3,7 @@ import { CURSOR_COLORS } from "./whiteboard.constants";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
-import { useBreakoutStore } from "@entities/lectern/breakout.store";
+import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import { useSync } from "@tldraw/sync";

@@ -5,7 +5,7 @@ import { Blocks, Minus, Plus, Shuffle, Users, X } from "lucide-react";
 
 import { useState } from "react";
 
-import { BreakoutRoomList } from "@features/host-sidebar/ui/BreakoutRoomList.tsx";
+import { BreakoutRoomList } from "@features/host-sidebar";
 
 export const BreakoutPanel = () => {
   const { breakoutState, isBreakoutActive, currentRoomUsers, createBreakout, endBreakout } = useBreakout();

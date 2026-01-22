@@ -3,8 +3,8 @@ import { useLivekit } from "./use-livekit";
 import { useEffect, useRef, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS, TIMER_STOPWATCH_SIDEBAR_KEY } from "@entities/collaboration-tool";
-import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
-import { useLecternStore } from "@entities/lectern/lectern.store.ts";
+import { useBreakoutStore } from "@entities/lectern";
+import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { type ActionKey, useAction } from "@features/actions";
 import { useTimerStopwatchStore } from "@features/timer-stopwatch-sidebar";
@@ -107,26 +107,29 @@ export const useVideoConference = () => {
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
 
-    if (
-      ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
-      isMeetingRoomRange(currentRoomId)
-    ) {
-      if (mode !== null) setMode(null);
-      removeSidebarKey("chat");
-    } else {
-      if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
-        setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+    const setup = () => {
+      if (
+        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
+        isMeetingRoomRange(currentRoomId)
+      ) {
+        if (mode !== null) setMode(null);
+        removeSidebarKey("chat");
+      } else {
+        if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
+          setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+        }
+        addSidebarKey("chat");
       }
-      addSidebarKey("chat");
-    }
 
-    if (currentRoomId === "desk zone") {
-      addSidebarKey("deskZone");
-    } else {
-      removeSidebarKey("deskZone");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey]);
+      if (currentRoomId === "desk zone") {
+        addSidebarKey("deskZone");
+      } else {
+        removeSidebarKey("deskZone");
+      }
+    };
+
+    setup();
+  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey, mode]);
 
   useEffect(() => {
     if (isSeminarRoom && isHost) {

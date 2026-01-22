@@ -19,12 +19,7 @@ export const useNoiseFilter = (room: Room | undefined) => {
 
         processor = KrispNoiseFilter();
 
-        if (audioTrack?.track) {
-          await audioTrack.track.setProcessor(processor as TrackProcessor<Track.Kind, ProcessorOptions<Track.Kind>>);
-          console.log("Krisp noise filter initialized successfully");
-        } else {
-          console.warn("No local microphone track found to apply noise filter");
-        }
+        await audioTrack?.track?.setProcessor(processor as TrackProcessor<Track.Kind, ProcessorOptions<Track.Kind>>);
       } catch (error) {
         console.error("Failed to initialize Krisp noise filter:", error);
       }
@@ -36,14 +31,10 @@ export const useNoiseFilter = (room: Room | undefined) => {
 
     return () => {
       const cleanup = async () => {
-        try {
-          if (processor) {
-            await processor.destroy();
-            audioTrack?.track?.stopProcessor();
-            processor = null;
-          }
-        } catch (error) {
-          console.error("Failed to destroy Krisp noise filter:", error);
+        if (processor) {
+          await processor.destroy();
+          audioTrack?.track?.stopProcessor();
+          processor = null;
         }
       };
       void cleanup();

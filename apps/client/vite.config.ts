@@ -7,14 +7,22 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react(), tailwindcss(), tsconfigPaths()],
   build: {
-    chunkSizeWarningLimit: 1500,
+    chunkSizeWarningLimit: 7000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          phaser: ["phaser"],
-          livekit: ["livekit-client", "@livekit/components-react"],
-          socket: ["socket.io-client"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (id.includes("phaser")) return "phaser";
+          if (id.includes("@livekit/krisp-noise-filter")) return "livekit-krisp";
+          if (id.includes("@livekit/components-react")) return "livekit-component";
+          if (id.includes("livekit-client")) return "livekit-client";
+          if (id.includes("monaco-editor")) return "monaco-editor";
+          if (id.includes("tldraw")) return "tldraw";
+          if (id.includes("socket.io-client")) return "socket";
+          if (id.includes("react")) return "react-vendor";
+
+          return "vendor";
         },
       },
     },

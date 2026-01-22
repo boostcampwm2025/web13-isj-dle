@@ -2,7 +2,7 @@ import type { ActionHook } from "./action.types";
 import type { LocalParticipant } from "livekit-client";
 import { Video, VideoOff } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
@@ -15,13 +15,23 @@ export const useCameraAction: ActionHook = () => {
   const updateUser = useUserStore((state) => state.updateUser);
   const { socket } = useWebSocket();
 
+  useEffect(() => {
+    if (!localParticipant) return;
+
+    if (localParticipant.isCameraEnabled !== isCameraOn) {
+      (async () => {
+        try {
+          await localParticipant.setCameraEnabled(isCameraOn);
+        } catch (err) {
+          console.error("Failed to sync camera state", err);
+        }
+      })();
+    }
+  }, [isCameraOn, localParticipant]);
+
   const toggleCamera = async () => {
     const newState = !isCameraOn;
-    if (localParticipant) {
-      await localParticipant.setCameraEnabled(newState);
-    } else {
-      console.warn("Local participant is not available to toggle camera.");
-    }
+    await localParticipant?.setCameraEnabled(newState);
     if (userId) {
       updateUser({ id: userId, cameraOn: newState });
     }

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { type ReceivedChatMessage, useChat, useRoomContext } from "@livekit/components-react";
 import { useSidebarStore } from "@widgets/sidebar";
 
-export const useBindChat = () => {
+export const useBindChat = (initialRoomName: string) => {
   const room = useRoomContext();
   const { chatMessages } = useChat();
 
@@ -40,12 +40,12 @@ export const useBindChat = () => {
 
     const systemWelcome: ReceivedChatMessage = {
       id: `system-welcome-${room.name ?? "unknown"}`,
-      message: `환영합니다! 채팅에 참여해보세요.\n${room.name || "알 수 없는"} 방에 참가했습니다.`,
+      message: `환영합니다! 채팅에 참여해보세요.\n${initialRoomName ? `${initialRoomName} 방에 참가했습니다.` : ""}`,
       timestamp: Date.now(),
       from: systemFrom,
     };
     addSystemMessage(systemWelcome);
-  }, [room.name, roomName, reset, addSystemMessage, systemFrom]);
+  }, [room.name, roomName, reset, addSystemMessage, systemFrom, initialRoomName]);
 
   useEffect(() => {
     if (!room) return;

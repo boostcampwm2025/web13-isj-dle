@@ -1,6 +1,6 @@
 import { useWhiteboard } from "../model/use-whiteboard";
 
-import { CollaborationModal } from "@src/shared/ui";
+import { CollaborationModal } from "@shared/ui";
 import { Tldraw } from "@tldraw/tldraw";
 
 const WhiteboardModalContent = () => {

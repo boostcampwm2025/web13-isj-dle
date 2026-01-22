@@ -7,11 +7,7 @@ export const useViewModeAction: ActionHook = () => {
   const triggerRef = useRef<(() => void) | null>(null);
 
   const toggleViewMode = () => {
-    if (triggerRef.current) {
-      triggerRef.current();
-    } else {
-      console.warn("No trigger function set for view mode action.");
-    }
+    triggerRef.current?.();
   };
 
   const setTrigger = useCallback((fn: (() => void) | null) => {

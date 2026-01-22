@@ -1,5 +1,11 @@
-import { AvatarAnimationManager, InputManager, NetworkSyncManager, RoomEntranceManager } from "../managers";
-import { NicknameManager } from "../managers/nickname.manager";
+import {
+  AvatarAnimationManager,
+  InputManager,
+  LecternManager,
+  NetworkSyncManager,
+  NicknameManager,
+  RoomEntranceManager,
+} from "../managers";
 import {
   AVATAR_FRAME_HEIGHT,
   AVATAR_FRAME_WIDTH,
@@ -15,7 +21,6 @@ import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTil
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
-import { LecternManager } from "@features/game/managers/lectern.manager.ts";
 import {
   AVATAR_ASSETS,
   type AvatarAssetKey,
@@ -111,6 +116,7 @@ export class GameScene extends Phaser.Scene {
 
         layer.setDepth(this.mapObj.depthCount++);
         if (name.includes("Collision")) {
+          layer.setVisible(false);
           layer.setCollisionByProperty({ collides: true });
         }
       });
@@ -133,7 +139,7 @@ export class GameScene extends Phaser.Scene {
       this.isReady = true;
       this.events.emit("scene:ready");
     } catch (error) {
-      console.error("Error loading tilesets:", error);
+      console.error("Error loading Phaser:", error);
     }
   }
 
@@ -155,6 +161,7 @@ export class GameScene extends Phaser.Scene {
     this.avatarRenderer = new AvatarRenderer(this);
 
     this.boundaryRenderer = new BoundaryRenderer(this);
+    this.boundaryRenderer.initialize(this.mapObj.depthCount - 1);
     this.nicknameManager = new NicknameManager(this);
   }
 

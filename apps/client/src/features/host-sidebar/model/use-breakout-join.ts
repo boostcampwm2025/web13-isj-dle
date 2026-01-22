@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 
-import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
+import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
 import { LecternEventType } from "@shared/types";

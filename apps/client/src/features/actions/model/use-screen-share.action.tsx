@@ -28,11 +28,8 @@ export const useScreenShareAction: ActionHook = () => {
   }, [localParticipant]);
 
   const toggleScreenShare = async () => {
-    if (localParticipant) {
-      await localParticipant.setScreenShareEnabled(!isScreenShareOn);
-    } else {
-      console.warn("Local participant is not available to toggle screen share.");
-    }
+    const newState = !isScreenShareOn;
+    await localParticipant?.setScreenShareEnabled(newState);
   };
 
   return {
