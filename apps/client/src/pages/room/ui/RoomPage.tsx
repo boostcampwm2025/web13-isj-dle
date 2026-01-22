@@ -64,7 +64,7 @@ const RoomPage = () => {
       if (!game) return;
       const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
       if (scene?.isReady) {
-        scene.updateMyNicknameIndicator(status);
+        scene.nickname.updateIndicator(status);
       }
     },
     [game],
@@ -89,7 +89,7 @@ const RoomPage = () => {
     if (!game) return;
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
     if (scene?.isReady) {
-      scene.updateMyNicknameIndicator(user?.deskStatus ?? null);
+      scene.nickname.updateIndicator(user?.deskStatus ?? null);
     }
   }, [game, user?.deskStatus]);
 
