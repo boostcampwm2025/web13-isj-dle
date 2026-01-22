@@ -236,10 +236,8 @@ export class KnockGateway {
 
   @OnEvent("user.disconnecting")
   handleUserDisconnecting({ clientId, nickname }: { clientId: string; nickname: string }) {
-    // 대화 종료 처리
     this.endTalkIfNeeded(clientId, nickname, "disconnected");
 
-    // 모든 노크 제거
     const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(clientId);
     for (const targetUserId of sentTo) {
       this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {

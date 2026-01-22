@@ -107,26 +107,29 @@ export const useVideoConference = () => {
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
 
-    if (
-      ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
-      isMeetingRoomRange(currentRoomId)
-    ) {
-      if (mode !== null) setMode(null);
-      removeSidebarKey("chat");
-    } else {
-      if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
-        setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+    const setup = () => {
+      if (
+        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
+        isMeetingRoomRange(currentRoomId)
+      ) {
+        if (mode !== null) setMode(null);
+        removeSidebarKey("chat");
+      } else {
+        if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
+          setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+        }
+        addSidebarKey("chat");
       }
-      addSidebarKey("chat");
-    }
 
-    if (currentRoomId === "desk zone") {
-      addSidebarKey("deskZone");
-    } else {
-      removeSidebarKey("deskZone");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey]);
+      if (currentRoomId === "desk zone") {
+        addSidebarKey("deskZone");
+      } else {
+        removeSidebarKey("deskZone");
+      }
+    };
+
+    setup();
+  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey, mode]);
 
   useEffect(() => {
     if (isSeminarRoom && isHost) {

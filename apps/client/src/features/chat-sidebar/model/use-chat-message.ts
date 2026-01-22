@@ -20,22 +20,18 @@ export const useChatMessage = () => {
   const { isSending, send } = useChat();
 
   const parseMessage = (msg: ReceivedChatMessage): BoundaryChatMessage => {
-    try {
-      const parsed: unknown = JSON.parse(msg.message);
+    const parsed: unknown = JSON.parse(msg.message);
 
-      if (typeof parsed === "object" && parsed !== null && "text" in parsed) {
-        const payload = parsed as Record<string, unknown>;
+    if (typeof parsed === "object" && parsed !== null && "text" in parsed) {
+      const payload = parsed as Record<string, unknown>;
 
-        if (typeof payload.text === "string") {
-          return {
-            ...msg,
-            message: payload.text,
-            contactId: typeof payload.contactId === "string" ? payload.contactId : null,
-          };
-        }
+      if (typeof payload.text === "string") {
+        return {
+          ...msg,
+          message: payload.text,
+          contactId: typeof payload.contactId === "string" ? payload.contactId : null,
+        };
       }
-    } catch {
-      // json 아님(console 대신 작성)
     }
 
     return {

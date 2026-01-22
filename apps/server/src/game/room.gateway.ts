@@ -46,7 +46,6 @@ export class RoomGateway {
 
       const previousRoomId = user.avatar.currentRoomId;
 
-      // desk zone을 떠날 때 대화 종료 및 노크 정리
       if (previousRoomId === "desk zone" && payload.roomId !== "desk zone") {
         this.endTalkIfNeeded(client.id, user.nickname, "left_desk_zone");
 
@@ -74,9 +73,7 @@ export class RoomGateway {
 
       this.userManager.updateSessionContactId(client.id, null);
 
-      // 로비를 떠날 때 boundary 추적 정리
       if (previousRoomId === "lobby") {
-        // BoundaryTracker 정리는 이벤트로 알림
         this.server.emit("internal:boundary-clear", { userId: client.id });
         this.userManager.updateSessionContactId(client.id, null);
       }
@@ -84,7 +81,6 @@ export class RoomGateway {
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
 
-      // 이전 방의 타이머 정리
       this.cleanupTimerAfterLeave(previousRoomId);
 
       const updatedUser = this.userManager.getSession(client.id);
@@ -100,7 +96,6 @@ export class RoomGateway {
         users: this.userManager.getAllSessions(),
       });
 
-      // desk zone 입장 시 상태 초기화
       if (payload.roomId === "desk zone") {
         this.userManager.updateSessionDeskStatus(client.id, "available");
 

@@ -98,8 +98,7 @@ export const useLivekit = (): UseLivekitState => {
     })();
 
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
+  }, [config, livekitState.isOpen]);
 
   return livekitState;
 };
