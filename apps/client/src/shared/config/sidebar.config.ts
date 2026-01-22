@@ -12,7 +12,7 @@ export type SidebarKey =
   | "chat"
   | "deskZone"
   | "host"
-  | "participant";
+  | "participant"
   | "restaurant";
 
 export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
@@ -26,6 +26,7 @@ export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   participant: 7,
   host: 8,
   deskZone: 9,
+  restaurant: 10,
 };
 export type SidebarItem = {
   title: string;
