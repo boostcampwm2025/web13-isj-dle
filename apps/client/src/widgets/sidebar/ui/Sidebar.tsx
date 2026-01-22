@@ -5,12 +5,12 @@ import { PanelLeft, PanelLeftClose } from "lucide-react";
 
 import { Suspense, useMemo } from "react";
 
+import { useBindChat } from "@entities/chat";
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
+import { useUserStore } from "@entities/user";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
-import { useBindChat } from "@src/entities/chat";
-import { useUserStore } from "@src/entities/user";
 
 const MAX_BADGE_COUNT = 9;
 

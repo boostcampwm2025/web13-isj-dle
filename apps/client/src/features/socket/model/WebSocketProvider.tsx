@@ -4,9 +4,10 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { useBreakoutStore } from "@entities/lectern/breakout.store.ts";
-import { useLecternStore } from "@entities/lectern/lectern.store.ts";
+import { useBreakoutStore } from "@entities/lectern";
+import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
+import type { GameScene } from "@features/game";
 import { SERVER_URL } from "@shared/config";
 import {
   type AvatarDirection,
@@ -17,7 +18,6 @@ import {
   type User,
   UserEventType,
 } from "@shared/types";
-import type { GameScene } from "@src/features/game";
 
 interface WebSocketProviderProps {
   children: ReactNode;
@@ -164,6 +164,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
     return () => {
       if (socketRef.current) {
+        console.log("[WebSocket] Cleaning up connection");
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;

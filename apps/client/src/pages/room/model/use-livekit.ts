@@ -2,8 +2,8 @@ import { requestLivekitToken } from "../api/livekit.api";
 
 import { useEffect, useMemo, useState } from "react";
 
-import { useBreakoutStore } from "@entities/lectern/breakout.store";
-import { useLecternStore } from "@entities/lectern/lectern.store";
+import { useBreakoutStore } from "@entities/lectern";
+import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import type { LivekitRoomConfig } from "@shared/types";
 

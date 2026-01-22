@@ -8,4 +8,5 @@ export { useGameInitialization } from "./model/use-game-initialization";
 export { useGameRegistry } from "./model/use-game-registry";
 export { useGameSocket } from "./model/use-game-socket";
 export { useRoomSelector } from "./model/use-room-selector";
+export { GAME_REGISTRY_KEYS, getRegistryFunction } from "./model/game-registry.constants";
 export * from "./utils";

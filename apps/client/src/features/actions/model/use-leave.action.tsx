@@ -1,8 +1,8 @@
 import type { ActionHook } from "./action.types";
 import { LogOut } from "lucide-react";
 
-import { useBreakoutStore } from "@entities/lectern/breakout.store";
-import { useBreakoutJoin } from "@features/host-sidebar/model/use-breakout-join.ts";
+import { useBreakoutStore } from "@entities/lectern";
+import { useBreakoutJoin } from "@features/host-sidebar";
 
 export const useLeaveAction: ActionHook = () => {
   const { currentBreakoutRoomId, leaveToMainRoom } = useBreakoutJoin();

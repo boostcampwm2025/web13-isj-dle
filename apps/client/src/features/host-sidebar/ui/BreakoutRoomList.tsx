@@ -11,7 +11,7 @@ interface BreakoutRoomListProps {
   isRandom?: boolean;
 }
 
-export const BreakoutRoomList = ({
+const BreakoutRoomList = ({
   rooms,
   showJoinButton = false,
   onJoinRoom,
@@ -36,3 +36,5 @@ export const BreakoutRoomList = ({
     </div>
   );
 };
+
+export default BreakoutRoomList;

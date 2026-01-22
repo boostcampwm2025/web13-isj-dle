@@ -7,8 +7,8 @@ import { useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { GAME_SCENE_KEY, GameScene, isSameTileAtWorld } from "@features/game";
+import { emitAck } from "@features/socket";
 import { type AvatarState, RoomEventType, type RoomType, UserEventType } from "@shared/types";
-import { emitAck } from "@src/features/socket";
 
 export const useDeskZoneAction: ActionHook = () => {
   const user = useUserStore((state) => state.user);

@@ -10,7 +10,7 @@ import RemoteCursors from "./RemoteCursors";
 import { Files } from "lucide-react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
-import { useBreakoutStore } from "@entities/lectern/breakout.store";
+import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import Editor from "@monaco-editor/react";
 import { CollaborationModal } from "@shared/ui";

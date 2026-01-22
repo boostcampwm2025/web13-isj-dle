@@ -1,5 +1,5 @@
-import { GAME_REGISTRY_KEYS, getRegistryFunction } from "@features/game/model/game-registry.constants.ts";
-import { isLecternAtPosition } from "@features/game/utils/tile-utils.ts";
+import { GAME_REGISTRY_KEYS, getRegistryFunction } from "@features/game";
+import { isLecternAtPosition } from "@features/game";
 
 export class LecternManager {
   private scene: Phaser.Scene;
