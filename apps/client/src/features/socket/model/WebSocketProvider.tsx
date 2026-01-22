@@ -136,8 +136,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       }
     };
 
-    const handleBreakoutUpdate = (data: { roomId: RoomType; state: BreakoutState | null }) => {
-      console.log("[Breakout] BREAKOUT_UPDATE received", data);
+    const handleBreakoutUpdate = (data: { hostRoomId: RoomType; state: BreakoutState | null }) => {
       useBreakoutStore.getState().setBreakoutState(data.state);
     };
 

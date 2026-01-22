@@ -19,7 +19,7 @@ export const useBreakoutJoin = () => {
 
   const joinRoom = useCallback(
     (targetRoomId: string) => {
-      if (!socket || !user || !breakoutState) return;
+      if (!socket || !user || !breakoutState?.hostRoomId) return;
 
       socket.emit(LecternEventType.BREAKOUT_JOIN, {
         hostRoomId: breakoutState.hostRoomId,
@@ -31,7 +31,7 @@ export const useBreakoutJoin = () => {
   );
 
   const leaveToMainRoom = useCallback(() => {
-    if (!socket || !user || !breakoutState) return;
+    if (!socket || !user || !breakoutState?.hostRoomId) return;
 
     socket.emit(LecternEventType.BREAKOUT_LEAVE, {
       hostRoomId: breakoutState.hostRoomId,

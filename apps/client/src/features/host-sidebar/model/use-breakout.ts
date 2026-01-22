@@ -16,23 +16,20 @@ export const useBreakout = () => {
     .filter((u) => u.id !== user?.id);
 
   const createBreakout = (roomCount: number, isRandom: boolean) => {
-    console.log("[Breakout] createBreakout called", { socket: !!socket, user: !!user });
     if (!socket || !user) {
-      console.log("[Breakout] Early return - socket or user missing");
       return;
     }
 
-    const hostRoomId = breakoutState?.hostRoomId || user.avatar.currentRoomId;
+    const targetHostRoomId = breakoutState?.hostRoomId || user.avatar.currentRoomId;
 
     const payload = {
-      roomId: hostRoomId,
+      hostRoomId: targetHostRoomId,
       config: {
         roomCount,
         isRandom,
       },
       userIds: currentRoomUsers.map((u) => u.id),
     };
-    console.log("[Breakout] Emitting BREAKOUT_CREATE", payload);
     socket.emit(LecternEventType.BREAKOUT_CREATE, payload);
   };
 
@@ -40,7 +37,7 @@ export const useBreakout = () => {
     if (!socket || !user || !breakoutState) return;
 
     socket.emit(LecternEventType.BREAKOUT_END, {
-      roomId: breakoutState.hostRoomId,
+      hostRoomId: breakoutState.hostRoomId,
     });
   };
 
