@@ -1,7 +1,9 @@
+import ImageUploadButton from "./ImageUploadButton";
+
 const RestaurantSidebar = () => {
   return (
-    <div className="scrollbar-hide h-full space-y-10 overflow-y-auto">
-      <div>레스토랑</div>
+    <div className="scrollbar-hide flex h-full w-full flex-col gap-4 overflow-y-auto">
+      <ImageUploadButton />
     </div>
   );
 };
