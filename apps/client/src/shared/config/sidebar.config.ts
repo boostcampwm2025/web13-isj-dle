@@ -9,6 +9,7 @@ export type SidebarKey =
   | "whiteboard"
   | "code-editor"
   | "timer-stopwatch"
+  | "chat"
   | "deskZone"
   | "host";
 
