@@ -1,5 +1,6 @@
 import { useLivekit } from "../model/use-livekit";
 import { useVideoConference } from "../model/use-video-conference";
+import NoiseFilter from "./NoiseFilter";
 
 import { useCallback, useRef } from "react";
 
@@ -81,6 +82,7 @@ const RoomPage = () => {
           video={isCameraOn}
           audio={isMicOn}
         >
+          <NoiseFilter />
           {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
           {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && (
             <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />
