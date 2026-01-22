@@ -49,6 +49,8 @@ interface UserState {
   updateUser: (updated: UserUpdate) => void;
   updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
   updateUserDeskStatus: (userId: string, status: DeskStatus | null) => void;
+
+  resetUsersDeskStatus: () => void;
 }
 
 export const useUserStore = create(
@@ -162,5 +164,15 @@ export const useUserStore = create(
         users: state.users.map((u) => (u.id === userId ? { ...u, deskStatus: status } : u)),
         user: state.user?.id === userId ? { ...state.user, deskStatus: status } : state.user,
       })),
+    resetUsersDeskStatus: () => {
+      const myRoomId = get().user?.avatar.currentRoomId;
+      if (myRoomId === "desk zone") {
+        return;
+      }
+      set((state) => ({
+        users: state.users.map((u) => ({ ...u, deskStatus: null })),
+        user: state.user ? { ...state.user, deskStatus: null } : null,
+      }));
+    },
   })),
 );
