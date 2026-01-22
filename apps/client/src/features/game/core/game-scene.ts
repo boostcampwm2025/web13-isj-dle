@@ -111,6 +111,7 @@ export class GameScene extends Phaser.Scene {
 
         layer.setDepth(this.mapObj.depthCount++);
         if (name.includes("Collision")) {
+          layer.setVisible(false);
           layer.setCollisionByProperty({ collides: true });
         }
       });
