@@ -52,7 +52,8 @@ export interface Knock {
 }
 
 export interface KnockCancelledPayload {
-  fromUserId: string;
+  fromUserId?: string;
+  targetUserId?: string;
 }
 
 export interface KnockAcceptSuccessPayload {

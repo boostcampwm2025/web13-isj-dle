@@ -54,7 +54,12 @@ export const useKnockSocket = () => {
     };
 
     const handleKnockCancelled = (payload: KnockCancelledPayload) => {
-      removeReceivedKnock(payload.fromUserId);
+      if (payload.fromUserId) {
+        removeReceivedKnock(payload.fromUserId);
+      }
+      if (payload.targetUserId) {
+        removeSentKnock(payload.targetUserId);
+      }
     };
 
     const handleKnockAcceptSuccess = (payload: KnockAcceptSuccessPayload) => {
