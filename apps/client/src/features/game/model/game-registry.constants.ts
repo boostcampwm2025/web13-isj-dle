@@ -6,6 +6,7 @@ export const GAME_REGISTRY_KEYS = {
   LECTERN_ENTER: "lecternEnter",
   LECTERN_LEAVE: "lecternLeave",
   UPDATE_MY_DESK_STATUS: "updateMyDeskStatus",
+  CLEAR_KNOCKS: "clearKnocks",
 } as const;
 
 export interface GameRegistryFunctions {
@@ -14,6 +15,7 @@ export interface GameRegistryFunctions {
   [GAME_REGISTRY_KEYS.LECTERN_ENTER]: (roomId: string) => void;
   [GAME_REGISTRY_KEYS.LECTERN_LEAVE]: (roomId: string) => void;
   [GAME_REGISTRY_KEYS.UPDATE_MY_DESK_STATUS]: (status: DeskStatus | null) => void;
+  [GAME_REGISTRY_KEYS.CLEAR_KNOCKS]: () => void;
 }
 
 export const getRegistryFunction = <K extends keyof GameRegistryFunctions>(

@@ -14,7 +14,7 @@ import {
   WARNING_SECONDS,
 } from "../model/timer.constants";
 import { useStopwatch } from "../model/use-stopwatch";
-import { useSyncTimer } from "../model/use-sync-timer";
+import { useTimerActions } from "../model/use-sync-timer";
 import { useTimer } from "../model/use-timer";
 import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
@@ -30,7 +30,7 @@ export const TimerStopwatchSidebar = () => {
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
-  const { syncStart, syncPause, syncReset, syncAddTime } = useSyncTimer({ roomId, isMeetingRoom });
+  const { syncStart, syncPause, syncReset, syncAddTime } = useTimerActions({ roomId, isMeetingRoom });
 
   const isTimerMode = mode === "timer";
   const activeControl = isTimerMode ? timer : stopwatch;

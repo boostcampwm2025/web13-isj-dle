@@ -7,19 +7,12 @@ import { useCallback, useEffect } from "react";
 import { useWebSocket } from "@features/socket";
 import { type RoomType, TimerEventType, type TimerStatePayload } from "@shared/types";
 
-interface UseSyncTimerProps {
+interface UseTimerSyncProps {
   roomId: RoomType | null;
   isMeetingRoom: boolean;
 }
 
-interface UseSyncTimerReturn {
-  syncStart: (initialTimeSec: number, startedAt: number) => void;
-  syncPause: (pausedTimeSec: number) => void;
-  syncReset: () => void;
-  syncAddTime: (additionalSec: number) => void;
-}
-
-export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseSyncTimerReturn => {
+export const useSyncTimer = ({ roomId, isMeetingRoom }: UseTimerSyncProps): void => {
   const { socket } = useWebSocket();
   const setTimer = useTimerStopwatchStore((state) => state.setTimer);
   const resetTimer = useTimerStopwatchStore((state) => state.resetTimer);
@@ -57,6 +50,22 @@ export const useSyncTimer = ({ roomId, isMeetingRoom }: UseSyncTimerProps): UseS
       socket.off(TimerEventType.TIMER_STATE, handleTimerState);
     };
   }, [socket, roomId, isMeetingRoom, resetTimer, setTimer]);
+};
+
+interface UseTimerActionsProps {
+  roomId: RoomType | null;
+  isMeetingRoom: boolean;
+}
+
+interface UseTimerActionsReturn {
+  syncStart: (initialTimeSec: number, startedAt: number) => void;
+  syncPause: (pausedTimeSec: number) => void;
+  syncReset: () => void;
+  syncAddTime: (additionalSec: number) => void;
+}
+
+export const useTimerActions = ({ roomId, isMeetingRoom }: UseTimerActionsProps): UseTimerActionsReturn => {
+  const { socket } = useWebSocket();
 
   const syncStart = useCallback(
     (initialTimeSec: number, startedAt: number) => {

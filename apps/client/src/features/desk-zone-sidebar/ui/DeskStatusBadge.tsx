@@ -14,7 +14,7 @@ export const DeskStatusBadge = ({ status }: DeskStatusBadgeProps) => {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${colors.bg} ${colors.text}`}
+      className={`inline-flex min-w-[20px] items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium ${colors.bg} ${colors.text}`}
     >
       {label}
     </span>

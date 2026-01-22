@@ -3,6 +3,7 @@ import { useVideoConference } from "../model/use-video-conference";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
 import {
@@ -34,13 +35,14 @@ const RoomPage = () => {
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
   const user = useUserStore((state) => state.user);
-  const users = useUserStore((state) => state.users);
+  const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   const { game } = useGameInitialization(containerRef);
 
   const { roomSelectorOpen, selectedRoomRange, openRoomSelector, handleCloseModal, handleRoomSelect } = useRoomSelector(
     joinRoom,
-    user?.avatar.currentRoomId,
+    currentRoomId,
   );
 
   const lecternEnter = useCallback(
@@ -69,9 +71,17 @@ const RoomPage = () => {
   );
 
   useGameSocket(game, socket, isConnected);
-  useAvatarLoader(game, user);
-  useGameRegistry(game, joinRoom ?? null, openRoomSelector, lecternEnter, lecternLeave, updateMyDeskStatus);
-  useAvatarRenderer(game, users, user);
+  useAvatarLoader(game);
+  useGameRegistry(
+    game,
+    joinRoom ?? null,
+    openRoomSelector,
+    lecternEnter,
+    lecternLeave,
+    updateMyDeskStatus,
+    clearAllKnocks,
+  );
+  useAvatarRenderer(game);
 
   useKnockSocket();
 

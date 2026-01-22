@@ -201,10 +201,6 @@ export class GameScene extends Phaser.Scene {
       }
 
       if (!inputDirection) return;
-
-      if (this.roomEntranceManager.getCurrentRoomId() === "desk zone") {
-        this.networkSyncManager.emitDeskStatusUpdate("available");
-      }
     }
 
     if (this.inputManager.isSitKeyPressed()) {
@@ -214,10 +210,6 @@ export class GameScene extends Phaser.Scene {
         this.avatar.direction = seatDirection;
         this.avatar.sprite.setVelocity(0, 0);
         this.animationManager.toSit(this.avatar.sprite, seatDirection);
-
-        if (this.roomEntranceManager.getCurrentRoomId() === "desk zone") {
-          this.networkSyncManager.emitDeskStatusUpdate("focusing");
-        }
         return;
       }
     }
@@ -281,7 +273,6 @@ export class GameScene extends Phaser.Scene {
       users,
       currentUser,
       this.avatar ? { x: this.avatar.sprite.x, y: this.avatar.sprite.y } : undefined,
-      this.avatar?.state,
     );
   }
 
