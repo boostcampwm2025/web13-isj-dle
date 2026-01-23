@@ -1,4 +1,4 @@
-export const DEFAULT_INFO_MESSAGE = "사진을 미리 확인한 뒤 직접 업로드할 수 있어요.";
+export const DEFAULT_INFO_MESSAGE = "사진을 미리 확인하고 직접 업로드할 수 있어요.";
 
 export const INVALID_TYPE_MESSAGE = "이미지 파일(JPG, PNG)만 업로드할 수 있어요.";
 

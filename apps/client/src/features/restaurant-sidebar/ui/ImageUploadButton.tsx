@@ -7,17 +7,22 @@ import {
 import { useImageAttachment } from "../model/use-image-attachment";
 import { Camera } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-type UploadError = string | null;
+import { uploadRestaurantImage, useRestaurantImagePreviewStore } from "@entities/restaurant-image";
 
-const ImageUploadButton = () => {
+type ImageUploadProps = {
+  onOptimisticPreview: (url: string) => void;
+  onUploadSuccess: () => void;
+};
+
+const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUploadProps) => {
   const {
     accept,
     inputRef,
     file,
     previewUrl,
-    error: attachError,
+    error,
     openFileDialog,
     handleFileChange,
     handleDrop,
@@ -25,14 +30,23 @@ const ImageUploadButton = () => {
     clear,
   } = useImageAttachment();
 
-  const [uploadError, setUploadError] = useState<UploadError>(null);
+  const { isUploadRequested, clearUploadRequest } = useRestaurantImagePreviewStore();
+
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  useEffect(() => {
+    if (isUploadRequested) {
+      openFileDialog();
+      clearUploadRequest();
+    }
+  }, [isUploadRequested, openFileDialog, clearUploadRequest]);
+
   const message = (() => {
-    if (attachError === "INVALID_TYPE") {
+    if (error === "INVALID_TYPE") {
       return { type: "error" as const, text: INVALID_TYPE_MESSAGE };
     }
-    if (attachError === "INVALID_SIZE") {
+    if (error === "INVALID_SIZE") {
       return { type: "error" as const, text: INVALID_SIZE_MESSAGE };
     }
     if (uploadError) {
@@ -45,20 +59,17 @@ const ImageUploadButton = () => {
   })();
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file || !previewUrl) return;
+
+    onOptimisticPreview(previewUrl);
 
     try {
-      // TODO: 실제 업로드 API
-      // await uploadImage(file);
-
+      await uploadRestaurantImage(file);
+      onUploadSuccess();
+    } catch {
+      setUploadError(UPLOAD_ERROR_MESSAGE);
+    } finally {
       clear();
-      setUploadError(null);
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        setUploadError(e.message);
-      } else {
-        setUploadError(UPLOAD_ERROR_MESSAGE);
-      }
     }
   };
 
@@ -88,7 +99,7 @@ const ImageUploadButton = () => {
           isDragging
             ? "border-orange-500 bg-orange-100 text-orange-600"
             : "border-orange-300 bg-white text-gray-700 hover:bg-orange-100"
-        } `}
+        }`}
       >
         <span className="font-semibold">{isDragging ? "Drop to upload" : "Drag or Click"}</span>
         <span className="text-xs text-gray-500">JPG, PNG · 최대 7MB</span>
@@ -96,12 +107,11 @@ const ImageUploadButton = () => {
 
       {previewUrl && (
         <div className="mt-3 flex flex-col gap-2">
-          <img src={previewUrl} alt="선택한 음식 사진 미리보기" className="h-30 w-full rounded-xl object-cover" />
-
+          <img src={previewUrl} alt="선택한 음식 사진 미리보기" className="h-32 w-full rounded-xl object-cover" />
           <button
             type="button"
             onClick={handleUpload}
-            className="rounded-full bg-orange-500 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+            className="rounded-full bg-orange-500 py-2 text-sm font-semibold text-white hover:bg-orange-600"
           >
             게시하기
           </button>
@@ -110,9 +120,7 @@ const ImageUploadButton = () => {
 
       {message && (
         <p
-          className={`mt-3 text-xs leading-relaxed whitespace-pre-line ${
-            message.type === "error" ? "text-red-500" : "text-gray-600"
-          }`}
+          className={`mt-3 text-xs whitespace-pre-line ${message.type === "error" ? "text-red-500" : "text-gray-600"}`}
         >
           {message.text}
         </p>
