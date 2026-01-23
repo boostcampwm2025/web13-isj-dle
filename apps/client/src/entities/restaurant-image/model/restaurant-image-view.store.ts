@@ -1,32 +1,32 @@
 import { create } from "zustand";
 
-export type RestaurantImagePreviewState = {
+export type RestaurantImageViewState = {
   targetUserId: string | null;
   imageUrl: string | null;
   isOpen: boolean;
   isUploadRequested: boolean;
 
-  openPreview: (params: { userId?: string | null; imageUrl: string }) => void;
-  closePreview: () => void;
+  openViewer: (params: { userId?: string | null; imageUrl: string }) => void;
+  closeViewer: () => void;
   requestUpload: (userId: string) => void;
   clearUploadRequest: () => void;
 };
 
-export const useRestaurantImagePreviewStore = create<RestaurantImagePreviewState>((set) => ({
+export const useRestaurantImageViewStore = create<RestaurantImageViewState>((set) => ({
   targetUserId: null,
   imageUrl: null,
   isOpen: false,
   isUploadRequested: false,
 
-  openPreview: ({ userId, imageUrl }) =>
+  openViewer: ({ userId, imageUrl }) =>
     set({
       targetUserId: userId ?? null,
-      imageUrl,
+      imageUrl: imageUrl,
       isOpen: true,
       isUploadRequested: false,
     }),
 
-  closePreview: () =>
+  closeViewer: () =>
     set({
       targetUserId: null,
       imageUrl: null,

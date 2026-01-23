@@ -1,7 +1,7 @@
 import { NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y } from "../model/game.constants";
 import Phaser from "phaser";
 
-import { useRestaurantImageEntityStore, useRestaurantImagePreviewStore } from "@entities/restaurant-image";
+import { useRestaurantImageEntityStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 
 export class RestaurantImageManager {
   private readonly scene: Phaser.Scene;
@@ -37,14 +37,15 @@ export class RestaurantImageManager {
     const button = document.createElement("button");
     button.type = "button";
     button.className =
-      "w-[10px] h-[10px] rounded-[2px] bg-white/90 border border-black/30 text-gray-500 flex items-center justify-center cursor-pointer p-0";
+      "w-[10px] h-[10px] rounded-[2px] bg-white/90 border border-black/30 flex items-center justify-center cursor-pointer p-0";
 
     const img = document.createElement("img");
     img.className = "thumbnail-img hidden w-full h-full rounded-[2px] object-cover";
     img.alt = "";
 
     const text = document.createElement("span");
-    text.className = "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold";
+    text.className =
+      "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold text-gray-500";
     button.append(img, text);
 
     this.updateThumbnailButtonNode(button, userId);
@@ -52,13 +53,13 @@ export class RestaurantImageManager {
       e.stopPropagation();
 
       const entity = useRestaurantImageEntityStore.getState();
-      const preview = useRestaurantImagePreviewStore.getState();
+      const restaurantImage = useRestaurantImageViewStore.getState();
 
       const url = entity.getThumbnailUrlByUserId(userId);
       if (!url) {
-        preview.requestUpload(userId);
+        restaurantImage.requestUpload(userId);
       } else {
-        preview.openPreview({ userId, imageUrl: url });
+        restaurantImage.openViewer({ userId, imageUrl: url });
       }
     };
 

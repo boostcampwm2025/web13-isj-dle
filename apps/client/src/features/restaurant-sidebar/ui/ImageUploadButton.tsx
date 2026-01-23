@@ -7,9 +7,10 @@ import {
 import { useImageAttachment } from "../model/use-image-attachment";
 import { Camera } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { uploadRestaurantImage, useRestaurantImagePreviewStore } from "@entities/restaurant-image";
+import { uploadRestaurantImage, useRestaurantImageViewStore } from "@entities/restaurant-image";
+import { useUserStore } from "@entities/user";
 
 type ImageUploadProps = {
   onOptimisticPreview: (url: string) => void;
@@ -17,6 +18,8 @@ type ImageUploadProps = {
 };
 
 const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUploadProps) => {
+  const userId = useUserStore((state) => state.user?.id);
+
   const {
     accept,
     inputRef,
@@ -30,16 +33,19 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUpload
     clear,
   } = useImageAttachment();
 
-  const { isUploadRequested, clearUploadRequest } = useRestaurantImagePreviewStore();
+  const { isUploadRequested, clearUploadRequest } = useRestaurantImageViewStore();
 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const prevIsUploadRequestedRef = useRef(false);
+
   useEffect(() => {
-    if (isUploadRequested) {
-      openFileDialog();
+    if (isUploadRequested && !prevIsUploadRequestedRef.current) {
       clearUploadRequest();
+      openFileDialog();
     }
+    prevIsUploadRequestedRef.current = isUploadRequested;
   }, [isUploadRequested, openFileDialog, clearUploadRequest]);
 
   const message = (() => {
@@ -59,12 +65,12 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUpload
   })();
 
   const handleUpload = async () => {
-    if (!file || !previewUrl) return;
+    if (!file || !previewUrl || !userId) return;
 
     onOptimisticPreview(previewUrl);
 
     try {
-      await uploadRestaurantImage(file);
+      await uploadRestaurantImage(userId, file);
       onUploadSuccess();
     } catch {
       setUploadError(UPLOAD_ERROR_MESSAGE);
@@ -80,7 +86,14 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUpload
         <div className="text-sm font-semibold text-gray-800">음식 사진 업로드</div>
       </div>
 
-      <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleFileChange} />
+      <input
+        id="restaurant-image-upload-input"
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       <button
         type="button"

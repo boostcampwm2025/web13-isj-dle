@@ -1,9 +1,8 @@
 import { IDLE_FRAME, NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y, SIT_FRAME } from "../model/game.constants";
 import Phaser from "phaser";
 
-import { useRestaurantImageEntityStore, useRestaurantImagePreviewStore } from "@entities/restaurant-image";
+import { useRestaurantImageEntityStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 import type { AvatarDirection, DeskStatus, User } from "@shared/types";
-import { useSidebarStore } from "@widgets/sidebar";
 
 const DESK_STATUS_INDICATOR_COLORS: Record<DeskStatus, string> = {
   available: "#10b981",
@@ -186,17 +185,13 @@ export class AvatarRenderer {
     button.onclick = (e) => {
       e.stopPropagation();
 
-      const sidebar = useSidebarStore.getState();
-      sidebar.setCurrentKey("restaurant");
-      sidebar.setIsOpen(true);
-
       const entity = useRestaurantImageEntityStore.getState();
-      const preview = useRestaurantImagePreviewStore.getState();
+      const restaurantImage = useRestaurantImageViewStore.getState();
       const url = entity.getThumbnailUrlByUserId(userId);
       if (!url) {
-        if (isMe) preview.requestUpload(userId);
+        if (isMe) restaurantImage.requestUpload(userId);
       } else {
-        preview.openPreview({ userId, imageUrl: url });
+        restaurantImage.openViewer({ userId, imageUrl: url });
       }
     };
 
@@ -232,7 +227,7 @@ export class AvatarRenderer {
       img.classList.toggle("hidden", !hasThumbnail);
     }
     if (text) {
-      text.textContent = hasThumbnail ? "" : "+";
+      text.textContent = hasThumbnail ? "" : isMe ? "+" : "?";
       text.classList.toggle("hidden", hasThumbnail);
     }
 
@@ -240,6 +235,7 @@ export class AvatarRenderer {
     button.disabled = disabled;
     button.classList.toggle("cursor-not-allowed", disabled);
     button.classList.toggle("opacity-50", disabled);
+    button.classList.toggle("cursor-pointer", !disabled);
   }
 
   private removeThumbnailButton(userId: string): void {
