@@ -2,9 +2,19 @@ import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "reac
 
 export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE";
 
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
-const DEFAULT_MAX_SIZE_MB = 7;
-const DEFAULT_ACCEPT = ALLOWED_IMAGE_TYPES.join(",");
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
+export const DEFAULT_MAX_SIZE_MB = 7;
+export const DEFAULT_ACCEPT = ALLOWED_IMAGE_TYPES.join(",");
+
+export const validateImageFile = (file: File, maxSizeMB: number = DEFAULT_MAX_SIZE_MB): ImageAttachError | null => {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return "INVALID_TYPE";
+  }
+  if (file.size > maxSizeMB * 1024 * 1024) {
+    return "INVALID_SIZE";
+  }
+  return null;
+};
 
 type UseImageAttachmentOptions = {
   accept?: string;
@@ -44,13 +54,10 @@ export const useImageAttachment = (options: UseImageAttachmentOptions = {}) => {
     (nextFile: File | null) => {
       if (!nextFile) return;
 
-      if (!ALLOWED_IMAGE_TYPES.includes(nextFile.type)) {
-        setError("INVALID_TYPE");
-        return;
-      }
-
-      if (nextFile.size > maxSizeMB * 1024 * 1024) {
-        setError("INVALID_SIZE");
+      const validationError = validateImageFile(nextFile, maxSizeMB);
+      if (validationError) {
+        clear();
+        setError(validationError);
         return;
       }
 

@@ -13,11 +13,12 @@ import { uploadRestaurantImage, useRestaurantImageViewStore } from "@entities/re
 import { useUserStore } from "@entities/user";
 
 type ImageUploadProps = {
-  onOptimisticPreview: (url: string) => void;
-  onUploadSuccess: () => void;
+  onOptimisticPreview: (previewUrl: string) => void;
+  onUploadComplete: (serverUrl: string) => void;
+  onUploadError?: () => void | Promise<void>;
 };
 
-const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUploadProps) => {
+const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadError }: ImageUploadProps) => {
   const userId = useUserStore((state) => state.user?.id);
 
   const {
@@ -70,10 +71,13 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadSuccess }: ImageUpload
     onOptimisticPreview(previewUrl);
 
     try {
-      await uploadRestaurantImage(userId, file);
-      onUploadSuccess();
+      const serverUrl = await uploadRestaurantImage(userId, file);
+      onUploadComplete(serverUrl);
     } catch {
       setUploadError(UPLOAD_ERROR_MESSAGE);
+      if (onUploadError) {
+        await Promise.resolve(onUploadError()).catch(() => undefined);
+      }
     } finally {
       clear();
     }
