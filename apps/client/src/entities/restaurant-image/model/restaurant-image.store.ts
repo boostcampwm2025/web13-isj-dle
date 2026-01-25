@@ -1,25 +1,22 @@
 import { create } from "zustand";
 
-export type RestaurantImage = {
-  id: string;
-  userId: string;
-  url: string;
-};
+import type { RestaurantImage } from "@shared/types";
 
-type RestaurantImageEntityState = {
-  imagesById: Record<string, RestaurantImage>;
+type RestaurantImageState = {
+  imagesById: Record<string, Omit<RestaurantImage, "nickname" | "createdAt">>;
   latestImageIdByUserId: Record<string, string | null>;
 
-  setUserThumbnail: (userId: string, url: string) => void;
+  setThumbnail: (userId: string, url: string) => void;
+  clearThumbnail: (userId: string) => void;
   hasThumbnail: (userId: string) => boolean;
   getThumbnailUrlByUserId: (userId: string) => string | null;
 };
 
-export const useRestaurantImageEntityStore = create<RestaurantImageEntityState>((set, get) => ({
+export const useRestaurantImageStore = create<RestaurantImageState>((set, get) => ({
   imagesById: {},
   latestImageIdByUserId: {},
 
-  setUserThumbnail: (userId, url) =>
+  setThumbnail: (userId, url) =>
     set((state) => ({
       imagesById: {
         ...state.imagesById,
@@ -28,6 +25,14 @@ export const useRestaurantImageEntityStore = create<RestaurantImageEntityState>(
       latestImageIdByUserId: {
         ...state.latestImageIdByUserId,
         [userId]: url,
+      },
+    })),
+
+  clearThumbnail: (userId) =>
+    set((state) => ({
+      latestImageIdByUserId: {
+        ...state.latestImageIdByUserId,
+        [userId]: null,
       },
     })),
 
