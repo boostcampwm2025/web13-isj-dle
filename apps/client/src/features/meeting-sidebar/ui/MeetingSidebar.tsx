@@ -32,11 +32,14 @@ const MeetingSidebar = () => {
       </div>
 
       {MODES.map((modeItem) => {
-        if (modeItem !== mode) return null;
-
         const PanelComponent = MODE_LABELS[modeItem].Panel;
+
         return (
-          <div key={modeItem} className="scrollbar-hide flex-1 overflow-y-auto">
+          <div
+            key={modeItem}
+            className="scrollbar-hide flex-1 overflow-y-auto"
+            style={{ display: mode === modeItem ? "block" : "none" }}
+          >
             <PanelComponent />
           </div>
         );
