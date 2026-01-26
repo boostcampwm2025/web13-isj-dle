@@ -44,6 +44,11 @@ export const MONACO_EDITOR_OPTIONS = {
   padding: { top: 16, bottom: 16 },
 } as const;
 
+export const VALID_FILENAME_REGEX = /^[A-Za-z0-9_.-]+$/;
+export const VALID_FILENAME_MESSAGE = `이름은 다음 조건을 충족해야 합니다.
+- 영문자, 숫자, 밑줄(_), 대시(-), 점(.)만 포함할 수 있습니다.
+- 공백은 허용되지 않습니다.`;
+
 interface ThemeColors {
   bg: string;
   border: string;
