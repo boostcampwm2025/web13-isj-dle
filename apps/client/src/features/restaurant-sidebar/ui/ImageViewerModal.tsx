@@ -5,11 +5,18 @@ import { Pencil, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { deleteRestaurantImage, uploadRestaurantImage, useRestaurantImageViewStore } from "@entities/restaurant-image";
+import {
+  restaurantImageKeys,
+  useDeleteRestaurantImageMutation,
+  useReplaceRestaurantImageMutation,
+  useRestaurantImageViewStore,
+} from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
 import { ICON_SIZE, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSidebarStore } from "@widgets/sidebar";
 
+const VIEWR_ICON_SIZE = ICON_SIZE - 4;
 type ImageViewerModalProps = {
   onDelete: (deletedUrl: string) => void;
   onUpdate: (oldUrl: string, newUrl: string) => void;
@@ -19,9 +26,14 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
   const { targetUserId, imageUrl, isOpen, closeViewer } = useRestaurantImageViewStore();
   const userId = useUserStore((state) => state.user?.id);
   const isSidebarOpen = useSidebarStore((s) => s.isOpen);
+  const queryClient = useQueryClient();
 
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const deleteMutation = useDeleteRestaurantImageMutation(userId ?? null);
+  const replaceMutation = useReplaceRestaurantImageMutation(userId ?? null);
 
   const isOwner = useMemo(() => targetUserId !== null && targetUserId === userId, [targetUserId, userId]);
 
@@ -31,6 +43,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
     const handleEscKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         closeViewer();
+        if (userId) queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
       }
     };
 
@@ -41,7 +54,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
       document.removeEventListener("keydown", handleEscKey);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, closeViewer]);
+  }, [isOpen, closeViewer, queryClient, userId]);
 
   const handleDelete = useCallback(async () => {
     if (!userId || !imageUrl) return;
@@ -51,7 +64,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
 
     setIsDeleting(true);
     try {
-      await deleteRestaurantImage(userId, imageUrl);
+      await deleteMutation.mutateAsync(imageUrl);
       onDelete(imageUrl);
       closeViewer();
     } catch {
@@ -59,7 +72,9 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
     } finally {
       setIsDeleting(false);
     }
-  }, [userId, imageUrl, closeViewer, onDelete]);
+
+    queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
+  }, [userId, imageUrl, closeViewer, onDelete, queryClient, deleteMutation]);
 
   const handleEdit = useCallback(() => {
     fileInputRef.current?.click();
@@ -68,7 +83,8 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (!file || !userId || !imageUrl) return;
+      e.target.value = "";
+      if (!file || !userId || !imageUrl || isDeleting || isUpdating) return;
 
       const validationError = validateImageFile(file);
       if (validationError) {
@@ -77,16 +93,18 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
         return;
       }
 
+      setIsUpdating(true);
       try {
-        await deleteRestaurantImage(userId, imageUrl);
-        const newUrl = await uploadRestaurantImage(userId, file);
+        const newUrl = await replaceMutation.mutateAsync({ imageUrl, file });
         onUpdate(imageUrl, newUrl);
         closeViewer();
       } catch {
         alert("이미지 수정에 실패했습니다.");
+      } finally {
+        setIsUpdating(false);
       }
     },
-    [userId, imageUrl, closeViewer, onUpdate],
+    [userId, imageUrl, closeViewer, onUpdate, isDeleting, isUpdating, replaceMutation],
   );
 
   if (!isOpen || !imageUrl) {
@@ -108,19 +126,19 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
             <>
               <button
                 onClick={handleEdit}
-                disabled={isDeleting}
+                disabled={isDeleting || isUpdating}
                 className="rounded-lg bg-white/90 p-2 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-blue-600"
                 aria-label="수정"
               >
-                <Pencil size={ICON_SIZE - 4} />
+                <Pencil size={VIEWR_ICON_SIZE} />
               </button>
               <button
                 onClick={handleDelete}
-                disabled={isDeleting}
+                disabled={isDeleting || isUpdating}
                 className="rounded-lg bg-white/90 p-2 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-red-600"
                 aria-label="삭제"
               >
-                <Trash2 size={ICON_SIZE - 4} />
+                <Trash2 size={VIEWR_ICON_SIZE} />
               </button>
             </>
           )}
@@ -129,7 +147,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
             className="rounded-lg bg-white/90 p-2 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-gray-800"
             aria-label="닫기"
           >
-            <X size={ICON_SIZE - 4} />
+            <X size={VIEWR_ICON_SIZE} />
           </button>
         </div>
 

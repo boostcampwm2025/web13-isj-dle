@@ -9,17 +9,18 @@ import { Camera } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
 
-import { uploadRestaurantImage, useRestaurantImageViewStore } from "@entities/restaurant-image";
+import { useRestaurantImageViewStore, useUploadRestaurantImageMutation } from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
 
 type ImageUploadProps = {
-  onOptimisticPreview: (previewUrl: string) => void;
-  onUploadComplete: (serverUrl: string) => void;
-  onUploadError?: () => void | Promise<void>;
+  onOptimisticPreview: (params: { previewUrl: string; uploadId: string }) => void;
+  onUploadComplete: (params: { serverUrl: string; uploadId: string }) => void;
+  onUploadError?: (uploadId: string) => void | Promise<void>;
 };
 
 const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadError }: ImageUploadProps) => {
-  const userId = useUserStore((state) => state.user?.id);
+  const userId = useUserStore((state) => state.user?.id ?? null);
+  const uploadMutation = useUploadRestaurantImageMutation(userId);
 
   const {
     accept,
@@ -38,8 +39,13 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const prevIsUploadRequestedRef = useRef(false);
+
+  useEffect(() => {
+    if (previewUrl) setUploadError(null);
+  }, [previewUrl]);
 
   useEffect(() => {
     if (isUploadRequested && !prevIsUploadRequestedRef.current) {
@@ -66,19 +72,22 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
   })();
 
   const handleUpload = async () => {
-    if (!file || !previewUrl || !userId) return;
+    if (!file || !previewUrl || !userId || isUploading) return;
+    const uploadId = crypto.randomUUID();
 
-    onOptimisticPreview(previewUrl);
+    setIsUploading(true);
+    onOptimisticPreview({ previewUrl, uploadId });
 
     try {
-      const serverUrl = await uploadRestaurantImage(userId, file);
-      onUploadComplete(serverUrl);
+      const serverUrl = await uploadMutation.mutateAsync(file);
+      onUploadComplete({ serverUrl, uploadId });
     } catch {
       setUploadError(UPLOAD_ERROR_MESSAGE);
       if (onUploadError) {
-        await Promise.resolve(onUploadError()).catch(() => undefined);
+        await Promise.resolve(onUploadError(uploadId)).catch(() => undefined);
       }
     } finally {
+      setIsUploading(false);
       clear();
     }
   };
@@ -119,7 +128,7 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
         }`}
       >
         <span className="font-semibold">{isDragging ? "Drop to upload" : "Drag or Click"}</span>
-        <span className="text-xs text-gray-500">JPG, PNG · 최대 7MB</span>
+        <span className="text-xs text-gray-500">JPEG(JPG), PNG · 최대 7MB</span>
       </button>
 
       {previewUrl && (
@@ -128,7 +137,8 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
           <button
             type="button"
             onClick={handleUpload}
-            className="rounded-full bg-orange-500 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+            disabled={isUploading}
+            className="rounded-full bg-orange-500 py-2 text-sm font-semibold text-white enabled:hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             게시하기
           </button>

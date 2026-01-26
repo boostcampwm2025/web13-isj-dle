@@ -1,7 +1,7 @@
 import { NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y } from "../model/game.constants";
 import Phaser from "phaser";
 
-import { useRestaurantImageEntityStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
+import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 
 export class RestaurantImageManager {
   private readonly scene: Phaser.Scene;
@@ -52,7 +52,7 @@ export class RestaurantImageManager {
     button.onclick = (e) => {
       e.stopPropagation();
 
-      const entity = useRestaurantImageEntityStore.getState();
+      const entity = useRestaurantImageStore.getState();
       const restaurantImage = useRestaurantImageViewStore.getState();
 
       const url = entity.getThumbnailUrlByUserId(userId);
@@ -69,7 +69,7 @@ export class RestaurantImageManager {
   }
 
   private updateThumbnailButtonNode(button: HTMLButtonElement, userId: string): void {
-    const entity = useRestaurantImageEntityStore.getState();
+    const entity = useRestaurantImageStore.getState();
     const url = entity.getThumbnailUrlByUserId(userId);
     const hasThumbnail = Boolean(url);
 
