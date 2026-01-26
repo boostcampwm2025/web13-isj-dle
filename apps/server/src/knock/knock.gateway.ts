@@ -99,6 +99,14 @@ export class KnockGateway {
 
     this.knockService.removePendingKnock(payload.fromUserId, client.id);
 
+    const hasPairKnock = this.knockService.hasPendingKnock(client.id, payload.fromUserId);
+    if (hasPairKnock) {
+      this.knockService.removePendingKnock(client.id, payload.fromUserId);
+      this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_CANCELLED, {
+        fromUserId: client.id,
+      });
+    }
+
     this.userManager.updateSessionDeskStatus(client.id, "talking");
     this.userManager.updateSessionDeskStatus(payload.fromUserId, "talking");
 
