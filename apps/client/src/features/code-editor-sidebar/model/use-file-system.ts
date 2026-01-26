@@ -64,16 +64,19 @@ export const useFileSystem = (
         }
       }
 
-      const id = crypto.randomUUID();
       const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
+      const items = fsMap.toJSON();
+      const isDuplicate = Object.values(items).some((item) => item.name === finalName && item.parentId === parentId);
+      if (isDuplicate) {
+        alert(`같은 이름의 항목이 이미 존재합니다.\n다른 이름을 사용해주세요. (${finalName})`);
+        return;
+      }
+
+      const id = crypto.randomUUID();
       const item: FileSystemItem = { id, name: finalName, type, parentId };
       fsMap.set(id, item);
-
-      if (type === "file") {
-        selectFile(id);
-      }
     },
-    [monaco, ydocRef, selectFile],
+    [monaco, ydocRef],
   );
 
   const deleteItem = useCallback(
@@ -115,9 +118,17 @@ export const useFileSystem = (
       }
 
       const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
-      const item = fsMap.get(id);
-      if (item) {
-        fsMap.set(id, { ...item, name: newName });
+      const renameItem = fsMap.get(id);
+      if (renameItem) {
+        const items = fsMap.toJSON();
+        const isDuplicate = Object.values(items).some(
+          (item) => item.name === newName && item.parentId === renameItem.parentId && item.id !== id,
+        );
+        if (isDuplicate) {
+          alert("같은 이름의 항목이 이미 존재합니다. 다른 이름을 사용해주세요.");
+          return;
+        }
+        fsMap.set(id, { ...renameItem, name: newName });
       }
     },
     [ydocRef],
