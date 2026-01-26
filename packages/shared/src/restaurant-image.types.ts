@@ -10,3 +10,7 @@ export type RestaurantImageResponse = {
   latestImage: RestaurantImage | null;
   images: RestaurantImage[];
 };
+
+export type RestaurantImageFeedResponse = {
+  images: RestaurantImage[];
+};
