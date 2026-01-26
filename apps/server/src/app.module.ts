@@ -1,11 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ScheduleModule } from "@nestjs/schedule";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { AppController } from "./app.controller";
 import { GameModule } from "./game/game.module";
 import { LecternModule } from "./lectern/lectern.module";
 import { LivekitModule } from "./livekit/livekit.module";
+import { RestaurantModule } from "./restaurant/restaurant.module";
 import { TldrawModule } from "./tldraw/tldraw.module";
 import { UserModule } from "./user/user.module";
 import { YjsModule } from "./yjs/yjs.module";
@@ -16,6 +18,7 @@ import { YjsModule } from "./yjs/yjs.module";
       isGlobal: true,
       envFilePath: ".env",
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -36,6 +39,7 @@ import { YjsModule } from "./yjs/yjs.module";
     LecternModule,
     YjsModule,
     TldrawModule,
+    RestaurantModule,
   ],
   controllers: [AppController],
 })
