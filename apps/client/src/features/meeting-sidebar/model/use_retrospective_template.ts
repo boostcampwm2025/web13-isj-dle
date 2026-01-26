@@ -13,7 +13,6 @@ export const useRetrospectiveTemplate = () => {
 
   const handleTemplate = async () => {
     setError(null);
-    setTemplate(null);
     try {
       if (!socket) throw new Error("Socket is not connected");
       if (!roomId) throw new Error("User is not in a room");
@@ -24,8 +23,14 @@ export const useRetrospectiveTemplate = () => {
   };
 
   const resetTemplate = () => {
-    setTemplate(null);
     setError(null);
+    try {
+      if (!socket) throw new Error("Socket is not connected");
+      if (!roomId) throw new Error("User is not in a room");
+      socket.emit(MeetingEventType.RETROSPECTIVE_TEMPLATE_RESET, { roomId: roomId });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    }
   };
 
   const handleCopy = () => {
@@ -42,9 +47,16 @@ export const useRetrospectiveTemplate = () => {
       setTemplate(data.template);
     };
 
+    const handleRetrospectiveReset = () => {
+      setTemplate(null);
+      setError(null);
+    };
+
     socket.on(MeetingEventType.RETROSPECTIVE_TEMPLATE_SYNC, handleRetrospectiveSync);
+    socket.on(MeetingEventType.RETROSPECTIVE_TEMPLATE_RESET, handleRetrospectiveReset);
     return () => {
       socket.off(MeetingEventType.RETROSPECTIVE_TEMPLATE_SYNC, handleRetrospectiveSync);
+      socket.off(MeetingEventType.RETROSPECTIVE_TEMPLATE_RESET, handleRetrospectiveReset);
     };
   }, [isConnected, socket]);
 

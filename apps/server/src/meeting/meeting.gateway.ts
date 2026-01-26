@@ -67,4 +67,24 @@ export class MeetingGateway {
       client.emit("error", { message: "Failed to get retrospective template" });
     }
   }
+
+  @SubscribeMessage(MeetingEventType.DAILY_SCRUM_QUESTION_RESET)
+  resetDailyScrumQuestions(client: Socket, payload: { roomId: string }) {
+    if (!payload || !payload.roomId) {
+      this.logger.warn(`⚠️ DAILY_SCRUM_QUESTION_RESET called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    this.server.to(payload.roomId).emit(MeetingEventType.DAILY_SCRUM_QUESTION_RESET);
+  }
+
+  @SubscribeMessage(MeetingEventType.RETROSPECTIVE_TEMPLATE_RESET)
+  resetRetrospectiveTemplate(client: Socket, payload: { roomId: string }) {
+    if (!payload || !payload.roomId) {
+      this.logger.warn(`⚠️ RETROSPECTIVE_TEMPLATE_RESET called without roomId from client: ${client.id}`);
+      return;
+    }
+
+    this.server.to(payload.roomId).emit(MeetingEventType.RETROSPECTIVE_TEMPLATE_RESET);
+  }
 }

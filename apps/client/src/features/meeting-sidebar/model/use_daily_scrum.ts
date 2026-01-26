@@ -13,7 +13,6 @@ export const useDailyScrum = () => {
 
   const handleQuestions = async (): Promise<void> => {
     setError(null);
-    setQuestions([]);
     try {
       if (!socket) throw new Error("Socket is not connected");
       if (!roomId) throw new Error("User is not in a room");
@@ -24,8 +23,14 @@ export const useDailyScrum = () => {
   };
 
   const resetQuestions = () => {
-    setQuestions([]);
     setError(null);
+    try {
+      if (!socket) throw new Error("Socket is not connected");
+      if (!roomId) throw new Error("User is not in a room");
+      socket.emit(MeetingEventType.DAILY_SCRUM_QUESTION_RESET, { roomId });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    }
   };
 
   useEffect(() => {
@@ -35,9 +40,16 @@ export const useDailyScrum = () => {
       setQuestions(data.questions);
     };
 
+    const handleDailyScrumReset = () => {
+      setQuestions([]);
+      setError(null);
+    };
+
     socket.on(MeetingEventType.DAILY_SCRUM_QUESTION_SYNC, handleDailyScrumSync);
+    socket.on(MeetingEventType.DAILY_SCRUM_QUESTION_RESET, handleDailyScrumReset);
     return () => {
       socket.off(MeetingEventType.DAILY_SCRUM_QUESTION_SYNC, handleDailyScrumSync);
+      socket.off(MeetingEventType.DAILY_SCRUM_QUESTION_RESET, handleDailyScrumReset);
     };
   }, [isConnected, socket]);
 
