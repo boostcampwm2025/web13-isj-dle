@@ -5,7 +5,8 @@ export const formatTime = (hours: number, minutes: number, seconds: number): str
   return `${h}:${m}:${s}`;
 };
 
-export const truncateNickname = (nickname: string, maxLength: number = 7): string => {
+const NICKNAME_MAX_LENGTH = 7;
+export const truncateNickname = (nickname: string, maxLength: number = NICKNAME_MAX_LENGTH): string => {
   if (nickname.length <= maxLength) return nickname;
   return `${nickname.slice(0, maxLength)}...`;
 };
