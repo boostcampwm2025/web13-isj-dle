@@ -21,7 +21,7 @@ const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export const TimerProgressButton = ({ sidebarItem, isActive, onClick }: TimerProgressButtonProps) => {
-  const { mode, timer } = useTimerStopwatchStore();
+  const { timer } = useTimerStopwatchStore();
   const { initialTimeSec, isRunning, startedAt } = timer;
 
   const [timeSec, setTimeSec] = useState(() => calculateTimerRemainingSeconds(startedAt, initialTimeSec, 0));
@@ -40,8 +40,7 @@ export const TimerProgressButton = ({ sidebarItem, isActive, onClick }: TimerPro
     return () => clearInterval(intervalId);
   }, [isRunning]);
 
-  const isTimerMode = mode === "timer";
-  const showProgress = isTimerMode && isRunning && initialTimeSec > 0;
+  const showProgress = isRunning && initialTimeSec > 0;
 
   const progress = showProgress ? calculateTimerProgressRatio(timeSec, initialTimeSec) : 0;
   const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
