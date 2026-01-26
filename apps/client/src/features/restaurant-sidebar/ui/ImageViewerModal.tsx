@@ -16,7 +16,7 @@ import { ICON_SIZE, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSidebarStore } from "@widgets/sidebar";
 
-const VIEWR_ICON_SIZE = ICON_SIZE - 4;
+const VIEWER_ICON_SIZE = ICON_SIZE - 4;
 type ImageViewerModalProps = {
   onDelete: (deletedUrl: string) => void;
   onUpdate: (oldUrl: string, newUrl: string) => void;
@@ -130,7 +130,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
                 className="rounded-lg bg-white/90 p-2 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-blue-600"
                 aria-label="수정"
               >
-                <Pencil size={VIEWR_ICON_SIZE} />
+                <Pencil size={VIEWER_ICON_SIZE} />
               </button>
               <button
                 onClick={handleDelete}
@@ -138,7 +138,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
                 className="rounded-lg bg-white/90 p-2 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-red-600"
                 aria-label="삭제"
               >
-                <Trash2 size={VIEWR_ICON_SIZE} />
+                <Trash2 size={VIEWER_ICON_SIZE} />
               </button>
             </>
           )}
@@ -147,7 +147,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
             className="rounded-lg bg-white/90 p-2 text-gray-600 shadow-md transition-colors hover:bg-white hover:text-gray-800"
             aria-label="닫기"
           >
-            <X size={VIEWR_ICON_SIZE} />
+            <X size={VIEWER_ICON_SIZE} />
           </button>
         </div>
 

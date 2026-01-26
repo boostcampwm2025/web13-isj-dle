@@ -12,26 +12,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-type PutPresignParams = {
-  key: string;
-  expiresInSeconds?: number;
-};
-
-type GetPresignParams = {
-  key: string;
-  expiresInSeconds?: number;
-};
-
-type PutObjectParams = {
-  key: string;
-  body: Buffer;
-  contentType: string;
-};
-
-type CopyObjectParams = {
-  sourceKey: string;
-  destinationKey: string;
-};
+import type { CopyObjectParams, GetPresignParams, PutObjectParams, PutPresignParams } from "./storage.types";
 
 @Injectable()
 export class S3Service {
@@ -104,7 +85,6 @@ export class S3Service {
     if (Buffer.isBuffer(body)) return body;
 
     const chunks: Buffer[] = [];
-    // In Node.js, AWS SDK v3 returns a Readable stream.
     for await (const chunk of body as unknown as AsyncIterable<Buffer | Uint8Array | string>) {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     }
