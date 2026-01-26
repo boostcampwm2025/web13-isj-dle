@@ -37,6 +37,7 @@ export const MONACO_EDITOR_OPTIONS = {
   lineHeight: 21,
   minimap: { enabled: true },
   scrollBeyondLastLine: false,
+  fixedOverflowWidgets: true,
   automaticLayout: true,
   tabSize: 2,
   wordWrap: "on" as const,
