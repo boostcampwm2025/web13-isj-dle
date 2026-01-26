@@ -4,7 +4,7 @@ import {
   VALID_FILENAME_MESSAGE,
   VALID_FILENAME_REGEX,
 } from "./code-editor.constants";
-import { type FileSystemItem } from "./file-explorer.utils";
+import { type FileSystemItem, getLanguageFromFileName } from "./file-explorer.utils";
 import type * as Monaco from "monaco-editor";
 import type * as Y from "yjs";
 
@@ -129,9 +129,15 @@ export const useFileSystem = (
           return;
         }
         fsMap.set(id, { ...renameItem, name: newName });
+        if (selectedFileId === id) {
+          const language = getLanguageFromFileName(newName, monaco);
+          if (language) {
+            setLanguage(language);
+          }
+        }
       }
     },
-    [ydocRef],
+    [ydocRef, selectedFileId, monaco, setLanguage],
   );
 
   return {
