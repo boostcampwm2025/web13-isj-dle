@@ -6,6 +6,7 @@ import {
   DeleteObjectsCommand,
   GetObjectCommand,
   type GetObjectCommandOutput,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
   type S3ClientConfig,
@@ -59,7 +60,7 @@ export class S3Service {
   }
 
   isTempKey(key: string): boolean {
-    return key.startsWith(this.tempPrefix);
+    return this.tempPrefix.length > 0 && key.startsWith(this.tempPrefix);
   }
 
   async createPutPresignedUrl({ key, expiresInSeconds = 300 }: PutPresignParams): Promise<string> {
@@ -170,6 +171,24 @@ export class S3Service {
     }
 
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  async objectExists(key: string): Promise<boolean> {
+    try {
+      await this.client.send(
+        new HeadObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        }),
+      );
+      return true;
+    } catch (e) {
+      const err = e as { name?: string };
+      if (err.name === "NotFound" || err.name === "NoSuchKey") {
+        return false;
+      }
+      throw e;
+    }
   }
 
   private normalizePrefix(prefix: string): string {

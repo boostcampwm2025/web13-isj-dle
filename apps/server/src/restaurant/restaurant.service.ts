@@ -187,25 +187,32 @@ export class RestaurantService {
   }
 
   async confirmTempImage(userId: string, key: string): Promise<string> {
-    if (!this.s3Service.isTempKey(key)) {
+    const tempPrefix = this.s3Service.getTempPrefix();
+    const hasTempPrefix = tempPrefix.length > 0 && key.startsWith(tempPrefix);
+
+    if (tempPrefix.length > 0 && !hasTempPrefix) {
       throw new BadRequestException("Only temp/ keys are allowed");
     }
 
     this.validateKeyOwnership(userId, key);
     await this.checkImageLimit(userId);
 
-    const tempPrefix = this.s3Service.getTempPrefix();
-    const finalKey = key.slice(tempPrefix.length);
+    const finalKey = hasTempPrefix ? key.slice(tempPrefix.length) : key;
 
     await this.validateTempObjectSignature(key, finalKey);
-    await this.s3Service.copyObject({ sourceKey: key, destinationKey: finalKey });
+
+    if (hasTempPrefix) {
+      await this.s3Service.copyObject({ sourceKey: key, destinationKey: finalKey });
+    }
 
     try {
       await this.saveImage(userId, finalKey);
     } catch (error) {
-      this.s3Service.deleteObjects([finalKey]).catch((e) => {
-        this.logger.warn(`Failed to cleanup orphan file after DB save failure: ${finalKey}`, e);
-      });
+      if (hasTempPrefix) {
+        this.s3Service.deleteObjects([finalKey]).catch((e) => {
+          this.logger.warn(`Failed to cleanup orphan file after DB save failure: ${finalKey}`, e);
+        });
+      }
       throw error;
     }
 
@@ -213,9 +220,11 @@ export class RestaurantService {
       this.logger.warn(`Failed to emit thumbnail update for ${userId}`, e),
     );
 
-    this.s3Service.deleteObjects([key]).catch((e) => {
-      this.logger.warn(`Failed to delete temp file: ${key}`, e);
-    });
+    if (hasTempPrefix) {
+      this.s3Service.deleteObjects([key]).catch((e) => {
+        this.logger.warn(`Failed to delete temp file: ${key}`, e);
+      });
+    }
 
     return this.resolveKeyForView(finalKey);
   }
