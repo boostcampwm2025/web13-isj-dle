@@ -1,6 +1,5 @@
 import type { ActionHook, ActionKey } from "./action.types";
 import { ActionContext } from "./use-action";
-import { useAiNoteAction } from "./use-ai-note.action";
 import { useCameraAction } from "./use-camera.action";
 import { useDeskZoneAction } from "./use-desk-zone.action";
 import { useLeaveAction } from "./use-leave.action";
@@ -16,7 +15,6 @@ interface ActionProviderProps {
 
 const ActionProvider = ({ children }: ActionProviderProps) => {
   const actions: Record<ActionKey, ReturnType<ActionHook>> = {
-    ai_note: useAiNoteAction(),
     camera: useCameraAction(),
     mic: useMicAction(),
     screen_share: useScreenShareAction(),

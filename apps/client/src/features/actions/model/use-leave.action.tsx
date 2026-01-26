@@ -10,18 +10,11 @@ export const useLeaveAction: ActionHook = () => {
   const isRandom = useBreakoutStore((state) => state.breakoutState?.config.isRandom);
 
   const handleLeave = () => {
-    if (isInBreakoutRoom) {
-      if (isRandom) {
-        const confirmed = window.confirm("정말 나가시겠습니까?\n메인 룸으로 이동하면 재입장이 불가능합니다.");
-        if (!confirmed) return;
-      }
-      leaveToMainRoom();
-    } else {
-      const confirmed = window.confirm("정말 나가시겠습니까?");
-      if (confirmed) {
-        window.close();
-      }
+    if (isInBreakoutRoom && isRandom) {
+      const confirmed = window.confirm("정말 나가시겠습니까?\n메인 룸으로 이동하면 재입장이 불가능합니다.");
+      if (!confirmed) return;
     }
+    leaveToMainRoom();
   };
 
   return {
