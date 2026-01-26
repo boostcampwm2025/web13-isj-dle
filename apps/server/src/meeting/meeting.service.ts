@@ -36,8 +36,8 @@ export class MeetingService implements OnModuleInit {
     this.logger.log("Retrospective templates seeded");
   }
 
-  getRandomDailyScrumQuestion(n: number): Promise<DailyScrumQuestionEntity[]> {
-    return this.dailyScrumQuestionRepository.createQueryBuilder("question").orderBy("RAND()").limit(n).getMany();
+  getRandomDailyScrumQuestion(num: number): Promise<DailyScrumQuestionEntity[]> {
+    return this.dailyScrumQuestionRepository.createQueryBuilder("question").orderBy("RAND()").limit(num).getMany();
   }
 
   getRandomRetrospectiveTemplate(): Promise<RetrospectiveTemplateEntity | null> {
