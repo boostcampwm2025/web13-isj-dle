@@ -3,7 +3,6 @@ import { requestLivekitToken } from "../api/livekit.api";
 import { useEffect, useMemo, useState } from "react";
 
 import { useBreakoutStore } from "@entities/lectern";
-import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import type { LivekitRoomConfig } from "@shared/types";
 
@@ -24,8 +23,6 @@ export const useLivekit = (): UseLivekitState => {
   const contactId = useUserStore((state) => state.user?.contactId);
 
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
-  const hostId = useLecternStore((state) => state.hostId);
-  const isHost = userId === hostId;
 
   const myBreakoutRoomId = useMemo(() => {
     if (!breakoutState?.isActive || !userId) return null;
@@ -46,31 +43,42 @@ export const useLivekit = (): UseLivekitState => {
 
     const effectiveRoomId = myBreakoutRoomId ? myBreakoutRoomId : getEffectiveRoomId(currentRoomId, contactId);
 
-    setConfig({
-      roomId: effectiveRoomId,
-      userId,
-      nickname,
+    setConfig((prev) => {
+      if (prev?.roomId === effectiveRoomId && prev?.userId === userId && prev?.nickname === nickname) {
+        return prev;
+      }
+      return {
+        roomId: effectiveRoomId,
+        userId,
+        nickname,
+      };
     });
 
     setLivekitState((prev) => {
-      if (prev.roomId !== effectiveRoomId) {
-        return { ...prev, roomId: effectiveRoomId, token: null, serverUrl: null };
+      if (prev.roomId === effectiveRoomId) {
+        return prev;
       }
-      return { ...prev, roomId: effectiveRoomId };
+      return { ...prev, roomId: effectiveRoomId, token: null, serverUrl: null };
     });
 
     const isBreakoutRoom = effectiveRoomId.startsWith("breakout-");
 
-    if (currentRoomId === "lobby" || currentRoomId === "desk zone") {
-      setLivekitState((prev) => ({ ...prev, isOpen: !!contactId }));
-    } else if (currentRoomId.startsWith("meeting (") && currentRoomId.includes("-")) {
-      setLivekitState((prev) => ({ ...prev, isOpen: false }));
-    } else if (isBreakoutRoom) {
-      setLivekitState((prev) => ({ ...prev, isOpen: true }));
-    } else {
-      setLivekitState((prev) => ({ ...prev, isOpen: true }));
-    }
-  }, [currentRoomId, userId, nickname, contactId, isHost, breakoutState?.isActive, myBreakoutRoomId]);
+    setLivekitState((prev) => {
+      let nextIsOpen = false;
+      if (currentRoomId === "lobby" || currentRoomId === "desk zone") {
+        nextIsOpen = !!contactId;
+      } else if (currentRoomId.startsWith("meeting (") && currentRoomId.includes("-")) {
+        nextIsOpen = false;
+      } else if (isBreakoutRoom) {
+        nextIsOpen = true;
+      } else {
+        nextIsOpen = true;
+      }
+
+      if (prev.isOpen === nextIsOpen) return prev;
+      return { ...prev, isOpen: nextIsOpen };
+    });
+  }, [currentRoomId, userId, nickname, contactId, myBreakoutRoomId]);
 
   useEffect(() => {
     if (!config) return;
