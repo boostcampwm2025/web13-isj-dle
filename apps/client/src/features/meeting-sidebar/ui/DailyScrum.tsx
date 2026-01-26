@@ -1,3 +1,4 @@
+import { MAX_QUESTIONS, MIN_QUESTIONS } from "../model/meeting.constants";
 import { useDailyScrum } from "../model/use_daily_scrum";
 
 const DailyScrum = () => {
@@ -11,9 +12,11 @@ const DailyScrum = () => {
           <input
             type="number"
             value={num}
-            min={1}
-            max={20}
-            onChange={(e) => setNum(Math.min(20, Math.max(1, Number(e.target.value) || 1)))}
+            min={MIN_QUESTIONS}
+            max={MAX_QUESTIONS}
+            onChange={(e) =>
+              setNum(Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, Number(e.target.value) || MIN_QUESTIONS)))
+            }
             className="flex-1 rounded-xl border-2 border-gray-300 bg-gray-50 px-3 py-1 text-sm outline-none focus:border-amber-400"
           />
         </div>
