@@ -14,10 +14,12 @@ import {
   WARNING_SECONDS,
 } from "../model/timer.constants";
 import { useStopwatch } from "../model/use-stopwatch";
+import { useSyncStopwatch, useTimeActions } from "../model/use-sync-stopwatch";
 import { useTimerActions } from "../model/use-sync-timer";
 import { useTimer } from "../model/use-timer";
 import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
+import { UserStopwatchList } from "./UserStopwatchList";
 import { Pause, Play, RotateCcw } from "lucide-react";
 
 import { useUserStore } from "@entities/user";
@@ -27,16 +29,39 @@ export const TimerStopwatchSidebar = () => {
   const user = useUserStore((state) => state.user);
   const roomId = user?.avatar.currentRoomId ?? null;
   const isMeetingRoom = roomId?.startsWith("meeting") ?? false;
+  const isMogakcoRoom = roomId === "mogakco";
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
   const { syncStart, syncPause, syncReset, syncAddTime } = useTimerActions({ roomId, isMeetingRoom });
+  const { syncTimeState } = useTimeActions({ roomId, isMogakcoRoom });
+  useSyncStopwatch({ roomId, isMogakcoRoom });
 
   const isTimerMode = mode === "timer";
   const activeControl = isTimerMode ? timer : stopwatch;
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
+  };
+
+  const syncCurrentState = () => {
+    if (!isMogakcoRoom) return;
+
+    const { timer: timerState, stopwatch: stopwatchState } = useTimerStopwatchStore.getState();
+
+    syncTimeState(
+      {
+        isRunning: stopwatchState.isRunning,
+        startedAt: stopwatchState.startedAt,
+        pausedTimeSec: stopwatchState.pausedTimeSec,
+      },
+      {
+        isRunning: timerState.isRunning,
+        initialTimeSec: timerState.initialTimeSec,
+        startedAt: timerState.startedAt,
+        pausedTimeSec: timerState.pausedTimeSec,
+      },
+    );
   };
 
   const handleStart = () => {
@@ -62,6 +87,7 @@ export const TimerStopwatchSidebar = () => {
     } else {
       stopwatch.start();
     }
+    syncCurrentState();
   };
 
   const handlePause = () => {
@@ -75,6 +101,8 @@ export const TimerStopwatchSidebar = () => {
     } else {
       stopwatch.pause();
     }
+
+    syncCurrentState();
   };
 
   const handleReset = () => {
@@ -86,6 +114,8 @@ export const TimerStopwatchSidebar = () => {
     } else {
       stopwatch.reset();
     }
+
+    syncCurrentState();
   };
 
   const handleAddTime = (sec: number) => {
@@ -93,6 +123,8 @@ export const TimerStopwatchSidebar = () => {
     if (isMeetingRoom) {
       syncAddTime(sec);
     }
+
+    syncCurrentState();
   };
 
   const isEditable = isTimerMode && !timer.isRunning;
@@ -102,7 +134,7 @@ export const TimerStopwatchSidebar = () => {
   const startStopButtonStyle = activeControl.isRunning ? TIMER_BUTTON_STYLES.running : TIMER_BUTTON_STYLES.stopped;
 
   return (
-    <div className="h-full w-full p-3">
+    <div className="h-full w-full overflow-y-auto p-3">
       <div className="mx-auto w-full max-w-sm">
         <div className="rounded-2xl">
           <ModeToggle mode={mode} onModeChange={handleModeChange} />
@@ -173,6 +205,8 @@ export const TimerStopwatchSidebar = () => {
               초기화
             </button>
           </div>
+
+          <UserStopwatchList />
         </div>
       </div>
     </div>
