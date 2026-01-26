@@ -9,64 +9,40 @@ import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useUserStore } from "@entities/user";
 import type { UserStopwatchState } from "@shared/types";
 
-const TimerDisplay = ({ user }: { user: UserStopwatchState }) => {
-  const [displayTime, setDisplayTime] = useState("--:--:--");
+const TimerDisplay = ({ user, now }: { user: UserStopwatchState; now: number }) => {
   const { timer } = user;
 
-  useEffect(() => {
-    const updateTime = () => {
-      const remaining = calculateTimerRemainingSeconds(timer.startedAt, timer.initialTimeSec, timer.pausedTimeSec);
-      const { hours, minutes, seconds } = secondsToHms(remaining);
-      setDisplayTime(formatTime(hours, minutes, seconds));
-    };
-
-    updateTime();
-
-    if (timer.isRunning) {
-      const intervalId = setInterval(updateTime, 1000);
-      return () => clearInterval(intervalId);
-    }
-  }, [timer.isRunning, timer.startedAt, timer.initialTimeSec, timer.pausedTimeSec]);
-
   const hasStarted = timer.initialTimeSec > 0 || timer.pausedTimeSec > 0;
-
   if (!hasStarted) {
     return <span className="font-mono text-xs text-gray-400">--:--:--</span>;
   }
 
+  const remaining = calculateTimerRemainingSeconds(timer.startedAt, timer.initialTimeSec, timer.pausedTimeSec, now);
+
+  const { hours, minutes, seconds } = secondsToHms(remaining);
+
   return (
-    <span className={`font-mono text-xs ${timer.isRunning ? "text-orange-500" : "text-gray-500"}`}>{displayTime}</span>
+    <span className={`font-mono text-xs ${timer.isRunning ? "text-orange-500" : "text-gray-500"}`}>
+      {formatTime(hours, minutes, seconds)}
+    </span>
   );
 };
 
-const StopwatchDisplay = ({ user }: { user: UserStopwatchState }) => {
-  const [displayTime, setDisplayTime] = useState("--:--:--");
+const StopwatchDisplay = ({ user, now }: { user: UserStopwatchState; now: number }) => {
   const { stopwatch } = user;
 
-  useEffect(() => {
-    const updateTime = () => {
-      const elapsed = calculateStopwatchElapsedSeconds(stopwatch.startedAt, stopwatch.pausedTimeSec);
-      const { hours, minutes, seconds } = secondsToHms(elapsed);
-      setDisplayTime(formatTime(hours, minutes, seconds));
-    };
-
-    updateTime();
-
-    if (stopwatch.isRunning) {
-      const intervalId = setInterval(updateTime, 1000);
-      return () => clearInterval(intervalId);
-    }
-  }, [stopwatch.isRunning, stopwatch.startedAt, stopwatch.pausedTimeSec]);
-
   const hasStarted = stopwatch.startedAt !== null || stopwatch.pausedTimeSec > 0;
-
   if (!hasStarted) {
     return <span className="font-mono text-xs text-gray-400">--:--:--</span>;
   }
 
+  const elapsed = calculateStopwatchElapsedSeconds(stopwatch.startedAt, stopwatch.pausedTimeSec, now);
+
+  const { hours, minutes, seconds } = secondsToHms(elapsed);
+
   return (
     <span className={`font-mono text-xs ${stopwatch.isRunning ? "text-green-600" : "text-gray-500"}`}>
-      {displayTime}
+      {formatTime(hours, minutes, seconds)}
     </span>
   );
 };
@@ -74,6 +50,16 @@ const StopwatchDisplay = ({ user }: { user: UserStopwatchState }) => {
 export const UserStopwatchList = () => {
   const userStopwatches = useStopwatchShareStore((state) => state.userStopwatches);
   const currentUser = useUserStore((state) => state.user);
+
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, []);
 
   if (userStopwatches.length === 0) {
     return (
@@ -112,7 +98,7 @@ export const UserStopwatchList = () => {
       <ul className="space-y-1">
         {sortedUsers.map((user) => {
           const isMe = user.userId === currentUser?.id;
-          const displayName = isMe ? `${truncateNickname(user.nickname)}` : truncateNickname(user.nickname);
+          const displayName = truncateNickname(user.nickname);
 
           return (
             <li
@@ -122,12 +108,13 @@ export const UserStopwatchList = () => {
               <span className={`text-xs ${isMe ? "font-medium text-blue-700" : "text-gray-700"}`} title={user.nickname}>
                 {displayName}
               </span>
+
               <div className="flex gap-2">
                 <div className="w-16 text-center">
-                  <TimerDisplay user={user} />
+                  <TimerDisplay user={user} now={now} />
                 </div>
                 <div className="w-16 text-center">
-                  <StopwatchDisplay user={user} />
+                  <StopwatchDisplay user={user} now={now} />
                 </div>
               </div>
             </li>
