@@ -28,8 +28,8 @@ export class UserManager {
     const nickname = generateUniqueNickname(isDuplicateNickname);
     const assetKey: AvatarAssetKey = generateRandomAvatar();
     const avatar: Avatar = {
-      x: 0,
-      y: 0,
+      x: 600,
+      y: 968,
       currentRoomId: "lobby",
       direction: "down",
       state: "idle",
