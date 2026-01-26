@@ -6,6 +6,7 @@ import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/
 export class RestaurantImageManager {
   private readonly scene: Phaser.Scene;
   private thumbnailButton?: Phaser.GameObjects.DOMElement;
+  private cachedThumbnailUrl: string | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -25,12 +26,19 @@ export class RestaurantImageManager {
     }
 
     this.thumbnailButton.setPosition(x, y - NICKNAME_OFFSET_Y - RESTAURANT_THUMBNAIL_OFFSET_Y);
-    this.updateThumbnailButtonNode(this.thumbnailButton.node as HTMLButtonElement, userId);
+
+    const entity = useRestaurantImageStore.getState();
+    const url = entity.getThumbnailUrlByUserId(userId);
+    if (this.cachedThumbnailUrl !== url) {
+      this.cachedThumbnailUrl = url;
+      this.updateThumbnailButtonNode(this.thumbnailButton.node as HTMLButtonElement, userId);
+    }
   }
 
   destroy(): void {
     this.thumbnailButton?.destroy();
     this.thumbnailButton = undefined;
+    this.cachedThumbnailUrl = null;
   }
 
   private createThumbnailButton(x: number, y: number, userId: string): Phaser.GameObjects.DOMElement {
@@ -45,7 +53,7 @@ export class RestaurantImageManager {
 
     const text = document.createElement("span");
     text.className =
-      "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold text-gray-500";
+      "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold text-gray-500 mt-[-1px]";
     button.append(img, text);
 
     this.updateThumbnailButtonNode(button, userId);

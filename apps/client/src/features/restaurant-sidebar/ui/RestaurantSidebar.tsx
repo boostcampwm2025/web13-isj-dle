@@ -1,4 +1,3 @@
-import { useSyncImage } from "../model/use-sync-image";
 import ImageList from "./ImageList";
 import ImageUploadButton from "./ImageUploadButton";
 import ImageViewerModal from "./ImageViewerModal";
@@ -16,8 +15,6 @@ import type { RestaurantImage, RestaurantImageFeedResponse } from "@shared/types
 import { useQueryClient } from "@tanstack/react-query";
 
 const RestaurantSidebar = () => {
-  useSyncImage();
-
   const userId = useUserStore((state) => state.user?.id ?? null);
   const nickname = useUserStore((state) => state.user?.nickname ?? "");
   const setUserThumbnail = useRestaurantImageStore((state) => state.setThumbnail);
@@ -122,7 +119,7 @@ const RestaurantSidebar = () => {
   );
 
   return (
-    <div className="scrollbar-hide flex h-full w-full flex-col gap-4 overflow-y-auto">
+    <div className="flex h-full w-full flex-col gap-4">
       <ImageUploadButton
         onOptimisticPreview={handleOptimisticPreview}
         onUploadComplete={handleUploadComplete}

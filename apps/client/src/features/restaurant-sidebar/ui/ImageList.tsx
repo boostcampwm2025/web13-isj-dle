@@ -22,8 +22,8 @@ const ImageList = memo(({ images }: ImageListProps) => {
   }
 
   return (
-    <>
-      <p className="font-semibold">오늘 먹은 음식</p>
+    <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+      <p className="font-semibold">오늘의 먹로그</p>
       <div className="grid grid-cols-2 gap-2">
         {images.map((image) => (
           <button
@@ -37,7 +37,7 @@ const ImageList = memo(({ images }: ImageListProps) => {
           </button>
         ))}
       </div>
-    </>
+    </div>
   );
 });
 

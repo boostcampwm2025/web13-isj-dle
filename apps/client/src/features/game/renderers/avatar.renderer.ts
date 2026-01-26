@@ -15,6 +15,7 @@ export class AvatarRenderer {
   private readonly avatars: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private readonly nicknameTexts: Map<string, Phaser.GameObjects.DOMElement> = new Map();
   private readonly thumbnailButtons: Map<string, Phaser.GameObjects.DOMElement> = new Map();
+  private readonly thumbnailUrlCache: Map<string, string | null> = new Map();
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -177,7 +178,8 @@ export class AvatarRenderer {
     img.alt = "";
 
     const text = document.createElement("span");
-    text.className = "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold";
+    text.className =
+      "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold mt-[-1px]";
     button.append(img, text);
 
     this.updateThumbnailButtonNode(button, userId, isMe);
@@ -210,6 +212,13 @@ export class AvatarRenderer {
     userId: string,
     isMe: boolean,
   ): void {
+    const entity = useRestaurantImageStore.getState();
+    const url = entity.getThumbnailUrlByUserId(userId);
+    const cachedUrl = this.thumbnailUrlCache.get(userId);
+
+    if (cachedUrl === url) return;
+
+    this.thumbnailUrlCache.set(userId, url);
     const button = domElement.node as HTMLButtonElement;
     this.updateThumbnailButtonNode(button, userId, isMe);
   }
@@ -243,6 +252,7 @@ export class AvatarRenderer {
     if (button) {
       button.destroy();
       this.thumbnailButtons.delete(userId);
+      this.thumbnailUrlCache.delete(userId);
     }
   }
 
@@ -268,5 +278,6 @@ export class AvatarRenderer {
     this.avatars.clear();
     this.nicknameTexts.clear();
     this.thumbnailButtons.clear();
+    this.thumbnailUrlCache.clear();
   }
 }

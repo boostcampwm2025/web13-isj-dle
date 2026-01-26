@@ -19,6 +19,7 @@ import {
   useRoomSelector,
 } from "@features/game";
 import { useKnockSocket } from "@features/knock";
+import { useSyncImage } from "@features/restaurant-sidebar/model";
 import { useWebSocket } from "@features/socket";
 import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
@@ -85,6 +86,7 @@ const RoomPage = () => {
   useAvatarRenderer(game);
 
   useKnockSocket();
+  useSyncImage();
 
   useEffect(() => {
     if (!game) return;
