@@ -18,6 +18,7 @@ import {
   usePhaserGame,
   useRoomSelector,
 } from "@features/game";
+import { MinimapOverlay } from "@features/game/ui/MinimapOverlay";
 import { useKnockSocket } from "@features/knock";
 import { useWebSocket } from "@features/socket";
 import { VideoFullGrid } from "@features/video-full-grid";
@@ -125,6 +126,7 @@ const RoomPage = () => {
         </LiveKitRoom>
       </div>
 
+      <MinimapOverlay game={game} />
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}
