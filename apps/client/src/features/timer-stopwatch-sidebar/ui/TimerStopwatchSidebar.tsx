@@ -206,7 +206,7 @@ export const TimerStopwatchSidebar = () => {
             </button>
           </div>
 
-          <UserStopwatchList />
+          {isMogakcoRoom && <UserStopwatchList />}
         </div>
       </div>
     </div>
