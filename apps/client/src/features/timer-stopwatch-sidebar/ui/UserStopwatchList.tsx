@@ -1,5 +1,6 @@
+import { formatTime, truncateNickname } from "../lib/format.utils";
 import { calculateStopwatchElapsedSeconds, calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
-import { TIMER_ICON_SIZE } from "../model";
+import { TIMER_ICON_SIZE } from "../model/timer.constants";
 import { Users } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -7,18 +8,6 @@ import { useEffect, useState } from "react";
 import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useUserStore } from "@entities/user";
 import type { UserStopwatchState } from "@shared/types";
-
-const formatTime = (hours: number, minutes: number, seconds: number): string => {
-  const h = String(hours).padStart(2, "0");
-  const m = String(minutes).padStart(2, "0");
-  const s = String(seconds).padStart(2, "0");
-  return `${h}:${m}:${s}`;
-};
-
-const truncateNickname = (nickname: string, maxLength: number = 7): string => {
-  if (nickname.length <= maxLength) return nickname;
-  return `${nickname.slice(0, maxLength)}...`;
-};
 
 const TimerDisplay = ({ user }: { user: UserStopwatchState }) => {
   const [displayTime, setDisplayTime] = useState("--:--:--");
