@@ -33,8 +33,12 @@ const CollaborationToolsSidebar = () => {
       <CollaborationToolSwitch className="mb-4" variant="panel" />
 
       <div className="min-h-0 flex-1">
-        {activeTab === COLLABORATION_TOOL.WHITEBOARD && <WhiteboardSidebar />}
-        {activeTab === COLLABORATION_TOOL.CODE_EDITOR && <CodeEditorSidebar />}
+        <div className={activeTab === COLLABORATION_TOOL.WHITEBOARD ? "h-full" : "hidden"}>
+          <WhiteboardSidebar />
+        </div>
+        <div className={activeTab === COLLABORATION_TOOL.CODE_EDITOR ? "h-full" : "hidden"}>
+          <CodeEditorSidebar />
+        </div>
       </div>
     </div>
   );
