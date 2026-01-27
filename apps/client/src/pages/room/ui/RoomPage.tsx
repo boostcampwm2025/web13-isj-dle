@@ -126,7 +126,7 @@ const RoomPage = () => {
         </LiveKitRoom>
       </div>
 
-      <MinimapOverlay game={game} />
+      <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID} />
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}

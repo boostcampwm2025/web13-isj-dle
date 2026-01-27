@@ -7,6 +7,7 @@ import { useUserStore } from "@entities/user";
 
 interface MinimapOverlayProps {
   game: Phaser.Game | null;
+  isHidden?: boolean;
 }
 
 const WIDTH = 200;
@@ -14,7 +15,7 @@ const HEIGHT = 140;
 const HEADER = 24;
 const MARGIN = 16;
 
-export const MinimapOverlay = ({ game }: MinimapOverlayProps) => {
+export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const mapCacheRef = useRef<HTMLCanvasElement | null>(null);
@@ -172,6 +173,7 @@ export const MinimapOverlay = ({ game }: MinimapOverlayProps) => {
         width: WIDTH,
         height: HEIGHT + HEADER,
         zIndex: 99999,
+        display: isHidden ? "none" : "block",
       }}
     >
       <div className="flex h-6 items-center justify-center border-b border-slate-700/50 bg-slate-800/80 text-[11px] font-medium text-slate-300">
