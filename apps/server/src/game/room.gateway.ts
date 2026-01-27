@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 
 import { KnockEventType, RoomEventType, type RoomJoinPayload, RoomType, UserEventType } from "@shared/types";
@@ -28,6 +28,7 @@ export class RoomGateway {
     private readonly knockService: KnockService,
     private readonly timerService: TimerService,
     private readonly stopwatchGateway: StopwatchGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
@@ -83,6 +84,8 @@ export class RoomGateway {
 
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
+
+      this.eventEmitter.emit("user.leaving-room", { roomId: previousRoomId });
 
       this.cleanupTimerAfterLeave(previousRoomId);
       this.cleanupStopwatchAfterLeave(previousRoomId, client.id);
