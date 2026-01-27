@@ -16,7 +16,7 @@ import { S3Service } from "../storage/s3.service";
 import { UserManager } from "../user/user-manager.service";
 import { RestaurantImageEntity } from "./restaurant-image.entity";
 
-const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_IMAGES_PER_USER = 50;
 
 @Injectable()
@@ -65,25 +65,46 @@ export class RestaurantService {
       return;
     }
 
+    if (ct === "image/webp") {
+      // WebP: RIFF....WEBP (bytes 0-3: "RIFF", bytes 8-11: "WEBP")
+      const ok =
+        buffer.length >= 12 &&
+        buffer[0] === 0x52 &&
+        buffer[1] === 0x49 &&
+        buffer[2] === 0x46 &&
+        buffer[3] === 0x46 &&
+        buffer[8] === 0x57 &&
+        buffer[9] === 0x45 &&
+        buffer[10] === 0x42 &&
+        buffer[11] === 0x50;
+      if (!ok) throw new BadRequestException("Invalid WebP file signature");
+      return;
+    }
+
     throw new BadRequestException(`Invalid content type: ${contentType}`);
   }
 
-  private extractExtensionFromKey(key: string): "jpg" | "png" | null {
+  private extractExtensionFromKey(key: string): "jpg" | "png" | "webp" | null {
     const ext = key.split(".").pop()?.toLowerCase();
     if (ext === "jpg") return "jpg";
     if (ext === "png") return "png";
+    if (ext === "webp") return "webp";
     return null;
   }
 
   private async validateTempObjectSignature(key: string, finalKey: string): Promise<void> {
     const ext = this.extractExtensionFromKey(finalKey);
     if (!ext) {
-      throw new BadRequestException("Invalid key extension (allowed: .jpg, .png)");
+      throw new BadRequestException("Invalid key extension (allowed: .jpg, .png, .webp)");
     }
 
     const prefix = await this.s3Service.getObjectPrefixBytes(key, 16);
-    const contentType = ext === "png" ? "image/png" : "image/jpeg";
-    this.validateImageMagicBytes(prefix, contentType);
+    const contentTypeMap: Record<string, string> = {
+      jpg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+    };
+    this.validateImageMagicBytes(prefix, contentTypeMap[ext]);
   }
 
   private validateKeyOwnership(userId: string, key: string): void {
@@ -402,6 +423,7 @@ export class RestaurantService {
     const byMime: Record<string, string> = {
       "image/jpeg": "jpg",
       "image/png": "png",
+      "image/webp": "webp",
     };
 
     const fromMime = byMime[this.normalizeContentType(contentType)];
