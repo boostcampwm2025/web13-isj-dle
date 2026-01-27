@@ -7,6 +7,7 @@ import {
   GetObjectCommand,
   type GetObjectCommandOutput,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
   type S3ClientConfig,
@@ -189,6 +190,32 @@ export class S3Service {
       }
       throw e;
     }
+  }
+
+  async listObjects(prefix: string, maxKeys = 1000): Promise<{ key: string; continuationToken?: string }[]> {
+    const result: { key: string }[] = [];
+    let continuationToken: string | undefined;
+
+    do {
+      const res = await this.client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          MaxKeys: Math.min(maxKeys - result.length, 1000),
+          ContinuationToken: continuationToken,
+        }),
+      );
+
+      for (const obj of res.Contents ?? []) {
+        if (obj.Key) {
+          result.push({ key: obj.Key });
+        }
+      }
+
+      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } while (continuationToken && result.length < maxKeys);
+
+    return result;
   }
 
   private normalizePrefix(prefix: string): string {

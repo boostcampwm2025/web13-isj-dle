@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 
@@ -295,17 +295,36 @@ export class RestaurantService {
 
     this.validateKeyOwnership(userId, key);
 
-    const row = await this.restaurantImageRepository.findOne({
-      where: { userId, key },
-      select: { id: true, key: true },
-    });
+    if (this.s3Service.isTempKey(key)) {
+      try {
+        await this.s3Service.deleteObjects([key]);
+      } catch (e) {
+        this.logger.warn(`Failed to delete temp S3 object: ${key}`, e);
+        throw new InternalServerErrorException("Failed to delete image");
+      }
+      return;
+    }
 
-    if (!row) return;
+    try {
+      await this.dataSource.transaction(async (manager) => {
+        const repo = manager.getRepository(RestaurantImageEntity);
 
-    await this.restaurantImageRepository.delete({ id: row.id });
+        const row = await repo.findOne({
+          where: { userId, key },
+          select: { id: true, key: true },
+        });
 
-    this.s3Service.deleteObjects([row.key]).catch((e) => {
-      this.logger.warn(`Failed to delete S3 object after DB deletion: ${row.key}`, e);
+        if (row) {
+          await repo.delete({ id: row.id });
+        }
+      });
+    } catch (e) {
+      this.logger.warn(`Failed to delete image from DB: key=${key}`, e);
+      throw new InternalServerErrorException("Failed to delete image");
+    }
+
+    this.s3Service.deleteObjects([key]).catch((e) => {
+      this.logger.warn(`Failed to delete S3 object after DB deletion: ${key}`, e);
     });
 
     this.emitThumbnailUpdated(userId).catch((e) =>
@@ -399,13 +418,22 @@ export class RestaurantService {
     const trimmed = imageUrl.trim();
     if (!trimmed) return null;
 
+    const cleanupKey = (k: string): string => {
+      const noQuery = k.split(/[?#]/)[0] ?? "";
+      const noLeadingSlash = noQuery.replace(/^\/+/, "");
+      const bucketPrefix = `${this.s3Service.getBucket()}/`;
+      const withoutBucket = noLeadingSlash.startsWith(bucketPrefix)
+        ? noLeadingSlash.slice(bucketPrefix.length)
+        : noLeadingSlash;
+      return withoutBucket.trim();
+    };
+
     try {
       const url = new URL(trimmed);
       const path = url.pathname.replace(/^\/+/, "");
-      const bucketPrefix = `${this.s3Service.getBucket()}/`;
-      return path.startsWith(bucketPrefix) ? path.slice(bucketPrefix.length) : path;
+      return cleanupKey(path);
     } catch {
-      return null;
+      return cleanupKey(trimmed);
     }
   }
 }
