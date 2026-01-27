@@ -10,10 +10,11 @@ interface MinimapOverlayProps {
   isHidden?: boolean;
 }
 
-const WIDTH = 200;
+const WIDTH = 160;
 const HEIGHT = 140;
 const HEADER = 24;
 const MARGIN = 16;
+const PADDING_Y = 8;
 
 export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -49,7 +50,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
         if (!ctx) return;
 
         const scaleX = WIDTH / newMapSize.width;
-        const scaleY = HEIGHT / newMapSize.height;
+        const scaleY = (HEIGHT - PADDING_Y * 2) / newMapSize.height;
         const scale = Math.min(scaleX, scaleY);
 
         const scaledWidth = newMapSize.width * scale;
@@ -116,7 +117,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
     let active = true;
 
     const scaleX = WIDTH / mapSize.width;
-    const scaleY = HEIGHT / mapSize.height;
+    const scaleY = (HEIGHT - PADDING_Y * 2) / mapSize.height;
     const scale = Math.min(scaleX, scaleY);
 
     const scaledWidth = mapSize.width * scale;
@@ -136,8 +137,11 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
         const playerX = cam.scrollX + cam.width / 2;
         const playerY = cam.scrollY + cam.height / 2;
 
-        const mx = offsetX + playerX * scale;
-        const my = offsetY + playerY * scale;
+        const dotRadius = 5;
+        const rawMx = offsetX + playerX * scale;
+        const rawMy = offsetY + playerY * scale;
+        const mx = Math.max(offsetX + dotRadius, Math.min(offsetX + scaledWidth - dotRadius, rawMx));
+        const my = Math.max(offsetY + dotRadius, Math.min(offsetY + scaledHeight - dotRadius, rawMy));
 
         ctx.beginPath();
         ctx.arc(mx + 1, my + 1, 4, 0, Math.PI * 2);
