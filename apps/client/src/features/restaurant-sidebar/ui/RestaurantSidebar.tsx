@@ -40,6 +40,8 @@ const RestaurantSidebar = () => {
         url: previewUrl,
         userId,
         nickname,
+        likes: 0,
+        likedByMe: false,
         createdAt: new Date().toISOString(),
       };
 

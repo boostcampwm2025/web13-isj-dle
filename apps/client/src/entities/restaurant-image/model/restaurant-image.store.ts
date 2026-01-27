@@ -1,10 +1,8 @@
 import { create } from "zustand";
 
-import type { RestaurantImage } from "@shared/types";
-
 type RestaurantImageState = {
-  imagesById: Record<string, Omit<RestaurantImage, "nickname" | "createdAt">>;
   latestImageIdByUserId: Record<string, string | null>;
+  imageUrlsById: Record<string, string>;
 
   setThumbnail: (userId: string, url: string) => void;
   clearThumbnail: (userId: string) => void;
@@ -13,14 +11,14 @@ type RestaurantImageState = {
 };
 
 export const useRestaurantImageStore = create<RestaurantImageState>((set, get) => ({
-  imagesById: {},
   latestImageIdByUserId: {},
+  imageUrlsById: {},
 
   setThumbnail: (userId, url) =>
     set((state) => ({
-      imagesById: {
-        ...state.imagesById,
-        [url]: { id: url, userId, url },
+      imageUrlsById: {
+        ...state.imageUrlsById,
+        [url]: url,
       },
       latestImageIdByUserId: {
         ...state.latestImageIdByUserId,
@@ -43,6 +41,6 @@ export const useRestaurantImageStore = create<RestaurantImageState>((set, get) =
   getThumbnailUrlByUserId: (userId) => {
     const imageId = get().latestImageIdByUserId[userId];
     if (!imageId) return null;
-    return get().imagesById[imageId]?.url ?? null;
+    return get().imageUrlsById[imageId] ?? null;
   },
 }));
