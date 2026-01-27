@@ -19,6 +19,7 @@ import {
   usePhaserGame,
   useRoomSelector,
 } from "@features/game";
+import { MinimapOverlay } from "@features/game/ui/MinimapOverlay";
 import { useKnockSocket } from "@features/knock";
 import { useSyncImage } from "@features/restaurant-sidebar/model";
 import { useWebSocket } from "@features/socket";
@@ -126,6 +127,8 @@ const RoomPage = () => {
           {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
         </LiveKitRoom>
       </div>
+
+      <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID} />
 
       <div className="pointer-events-none absolute inset-0 z-20">
         {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
