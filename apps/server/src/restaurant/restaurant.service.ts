@@ -95,9 +95,9 @@ export class RestaurantService {
     }
   }
 
-  async getImagesByUserId(userId: string): Promise<RestaurantImageResponse> {
+  async getImagesByUserId(requestUserId: string, targetUserId: string): Promise<RestaurantImageResponse> {
     const userImages = await this.restaurantImageRepository.find({
-      where: { userId },
+      where: { userId: targetUserId },
       order: { createdAt: "DESC" },
     });
 
@@ -107,6 +107,8 @@ export class RestaurantService {
         url: await this.resolveKeyForView(img.key),
         userId: img.userId,
         nickname: img.nickname,
+        likes: img.likes,
+        likedByMe: (Array.isArray(img.likedBy) ? img.likedBy : []).includes(requestUserId),
         createdAt: img.createdAt.toISOString(),
       })),
     );
@@ -117,7 +119,7 @@ export class RestaurantService {
     };
   }
 
-  async getRecentImages(limit = 50): Promise<RestaurantImageFeedResponse> {
+  async getRecentImages(requestUserId: string, limit = 50): Promise<RestaurantImageFeedResponse> {
     const rows = await this.restaurantImageRepository.find({
       order: { createdAt: "DESC" },
       take: limit,
@@ -129,11 +131,43 @@ export class RestaurantService {
         url: await this.resolveKeyForView(img.key),
         userId: img.userId,
         nickname: img.nickname,
+        likes: img.likes,
+        likedByMe: (Array.isArray(img.likedBy) ? img.likedBy : []).includes(requestUserId),
         createdAt: img.createdAt.toISOString(),
       })),
     );
 
     return { images };
+  }
+
+  async toggleImageLike(userId: string, imageId: number): Promise<{ likes: number; liked: boolean }> {
+    const result = await this.dataSource.transaction(async (manager) => {
+      const imageRepository = manager.getRepository(RestaurantImageEntity);
+
+      const image = await imageRepository.findOne({
+        where: { id: imageId },
+        select: { id: true, likes: true, likedBy: true },
+      });
+
+      if (!image) {
+        throw new BadRequestException("Image not found");
+      }
+
+      const likedBy = Array.isArray(image.likedBy) ? image.likedBy.filter(Boolean) : [];
+      const alreadyLiked = likedBy.includes(userId);
+      const newLikedBy = alreadyLiked ? likedBy.filter((id) => id !== userId) : [...likedBy, userId];
+      const newLikes = newLikedBy.length;
+
+      await imageRepository.update({ id: imageId }, { likes: newLikes, likedBy: newLikedBy });
+
+      return { likes: newLikes, liked: !alreadyLiked };
+    });
+
+    this.eventEmitter.emit(RestaurantImageEventType.IMAGE_LIKE_UPDATED, {
+      imageId: String(imageId),
+      likes: result.likes,
+    });
+    return result;
   }
 
   async getLatestThumbnailUrlByUserId(userId: string): Promise<string | null> {
@@ -160,6 +194,8 @@ export class RestaurantService {
       userId,
       key,
       nickname,
+      likes: 0,
+      likedBy: [],
     });
   }
 

@@ -14,6 +14,12 @@ export class RestaurantImageEntity {
   @Column()
   key: string;
 
+  @Column({ default: 0 })
+  likes: number;
+
+  @Column({ type: "simple-json", nullable: true })
+  likedBy: string[] | null;
+
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 }

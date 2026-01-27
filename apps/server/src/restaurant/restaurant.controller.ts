@@ -34,7 +34,7 @@ export class RestaurantController {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.getImagesByUserId(userId);
+    return this.restaurantService.getImagesByUserId(userId, userId);
   }
 
   @Get("images/user/:targetUserId")
@@ -43,7 +43,7 @@ export class RestaurantController {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.getImagesByUserId(targetUserId);
+    return this.restaurantService.getImagesByUserId(userId, targetUserId);
   }
 
   @Get("images/feed")
@@ -52,7 +52,7 @@ export class RestaurantController {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.getRecentImages();
+    return this.restaurantService.getRecentImages(userId);
   }
 
   @Post("images/presign")
@@ -136,5 +136,20 @@ export class RestaurantController {
     const imageUrl = await this.restaurantService.uploadTempImageFromFile(userId, file);
 
     return { success: true, imageUrl };
+  }
+
+  @Post("images/:imageId/like")
+  async likeImage(@Headers("x-user-id") userId: string, @Param("imageId") imageId: string) {
+    if (!userId) {
+      throw new BadRequestException("x-user-id header is required");
+    }
+
+    const id = parseInt(imageId, 10);
+    if (isNaN(id)) {
+      throw new BadRequestException("Invalid imageId");
+    }
+
+    const result = await this.restaurantService.toggleImageLike(userId, id);
+    return { likes: result.likes, liked: result.liked };
   }
 }

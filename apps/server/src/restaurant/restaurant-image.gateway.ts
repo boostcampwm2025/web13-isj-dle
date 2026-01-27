@@ -4,6 +4,9 @@ import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/web
 
 import {
   RestaurantImageEventType,
+  type RestaurantImageLikeToggleAck,
+  type RestaurantImageLikeTogglePayload,
+  type RestaurantImageLikeUpdatedPayload,
   type RestaurantThumbnailUpdatedPayload,
   type RestaurantThumbnailsStatePayload,
   type RestaurantThumbnailsSyncPayload,
@@ -20,6 +23,36 @@ export class RestaurantImageGateway {
   private readonly logger = new Logger(RestaurantImageGateway.name);
 
   constructor(private readonly restaurantService: RestaurantService) {}
+
+  @SubscribeMessage(RestaurantImageEventType.IMAGE_LIKE_TOGGLE)
+  async handleImageLikeToggle(
+    client: Socket,
+    payload: RestaurantImageLikeTogglePayload,
+    ack?: (res: RestaurantImageLikeToggleAck) => void,
+  ) {
+    try {
+      const imageIdRaw = String(payload?.imageId ?? "").trim();
+      const imageId = parseInt(imageIdRaw, 10);
+      const userId = String(payload?.userId ?? "").trim();
+
+      if (!imageIdRaw || Number.isNaN(imageId)) {
+        ack?.({ success: false, message: "Invalid imageId" });
+        return;
+      }
+
+      if (!userId) {
+        ack?.({ success: false, message: "Invalid userId" });
+        return;
+      }
+
+      const res = await this.restaurantService.toggleImageLike(userId, imageId);
+      ack?.({ success: true, likes: res.likes, liked: res.liked });
+    } catch (error) {
+      const trace = error instanceof Error ? error.stack : String(error);
+      this.logger.warn(`Failed to toggle image like for client ${client.id}`, trace);
+      ack?.({ success: false, message: "Like toggle failed" });
+    }
+  }
 
   @SubscribeMessage(RestaurantImageEventType.THUMBNAILS_SYNC)
   async handleThumbnailsSync(
@@ -52,5 +85,10 @@ export class RestaurantImageGateway {
   @OnEvent(RestaurantImageEventType.THUMBNAIL_UPDATED)
   handleThumbnailUpdated(payload: RestaurantThumbnailUpdatedPayload) {
     this.server.emit(RestaurantImageEventType.THUMBNAIL_UPDATED, payload);
+  }
+
+  @OnEvent(RestaurantImageEventType.IMAGE_LIKE_UPDATED)
+  handleImageLikeUpdated(payload: RestaurantImageLikeUpdatedPayload) {
+    this.server.emit(RestaurantImageEventType.IMAGE_LIKE_UPDATED, payload);
   }
 }
