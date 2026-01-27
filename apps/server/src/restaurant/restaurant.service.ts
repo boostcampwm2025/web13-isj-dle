@@ -95,11 +95,11 @@ export class RestaurantService {
     }
   }
 
-  private async mapEntityToImage(entity: RestaurantImageEntity, requestUserId: string): Promise<RestaurantImage> {
+  private mapEntityToImage(entity: RestaurantImageEntity, requestUserId: string): RestaurantImage {
     const likedBy = Array.isArray(entity.likedBy) ? entity.likedBy : [];
     return {
       id: String(entity.id),
-      url: await this.resolveKeyForView(entity.key),
+      url: this.resolveKeyForView(entity.key),
       userId: entity.userId,
       nickname: entity.nickname,
       likes: entity.likes,
@@ -114,7 +114,7 @@ export class RestaurantService {
       order: { createdAt: "DESC" },
     });
 
-    const images = await Promise.all(userImages.map((img) => this.mapEntityToImage(img, requestUserId)));
+    const images = userImages.map((img) => this.mapEntityToImage(img, requestUserId));
 
     return {
       latestImage: images[0] ?? null,
@@ -128,7 +128,7 @@ export class RestaurantService {
       take: limit,
     });
 
-    const images = await Promise.all(rows.map((img) => this.mapEntityToImage(img, requestUserId)));
+    const images = rows.map((img) => this.mapEntityToImage(img, requestUserId));
 
     return { images };
   }
@@ -203,9 +203,8 @@ export class RestaurantService {
       key,
     });
 
-    const viewUrl = await this.s3Service.createGetPresignedUrl({ key, expiresInSeconds: 300 });
-    const imageUrl = viewUrl;
-    return { key, uploadUrl, imageUrl, viewUrl };
+    const viewUrl = this.s3Service.getPublicUrl(key);
+    return { key, uploadUrl, imageUrl: viewUrl, viewUrl };
   }
 
   private async checkImageLimit(userId: string): Promise<void> {
@@ -392,9 +391,8 @@ export class RestaurantService {
     throw new BadRequestException(`Invalid content type: ${contentType}`);
   }
 
-  private async resolveKeyForView(key: string): Promise<string> {
-    const expiresInSeconds = this.s3Service.isTempKey(key) ? 300 : 60 * 60 * 24;
-    return this.s3Service.createGetPresignedUrl({ key, expiresInSeconds });
+  private resolveKeyForView(key: string): string {
+    return this.s3Service.getPublicUrl(key);
   }
 
   private extractKeyFromUrl(imageUrl: string): string | null {
