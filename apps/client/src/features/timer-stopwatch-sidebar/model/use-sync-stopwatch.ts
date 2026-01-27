@@ -1,8 +1,8 @@
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 
 import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useWebSocket } from "@features/socket";
-import { type RoomType, StopwatchEventType, type StopwatchStatePayload, type UserTimerState } from "@shared/types";
+import { type RoomType, StopwatchEventType, type StopwatchStatePayload } from "@shared/types";
 
 interface UseSyncStopwatchProps {
   roomId: RoomType | null;
@@ -48,37 +48,4 @@ export const useSyncStopwatch = ({ roomId, isMogakcoRoom }: UseSyncStopwatchProp
       clearUserStopwatches();
     };
   }, [socket, roomId, isMogakcoRoom, setUserStopwatches, clearUserStopwatches]);
-};
-
-interface UseTimeActionsProps {
-  roomId: RoomType | null;
-  isMogakcoRoom: boolean;
-}
-
-interface StopwatchState {
-  isRunning: boolean;
-  startedAt: number | null;
-  pausedTimeSec: number;
-}
-
-interface UseTimeActionsReturn {
-  syncTimeState: (stopwatch: StopwatchState, timer: UserTimerState) => void;
-}
-
-export const useTimeActions = ({ roomId, isMogakcoRoom }: UseTimeActionsProps): UseTimeActionsReturn => {
-  const { socket } = useWebSocket();
-
-  const syncTimeState = useCallback(
-    (stopwatch: StopwatchState, timer: UserTimerState) => {
-      if (!socket || !roomId || !isMogakcoRoom) return;
-      socket.emit(StopwatchEventType.STOPWATCH_UPDATE, {
-        roomId,
-        stopwatch,
-        timer,
-      });
-    },
-    [socket, roomId, isMogakcoRoom],
-  );
-
-  return { syncTimeState };
 };
