@@ -126,6 +126,18 @@ export const useVideoConference = () => {
       } else {
         removeSidebarKey("deskZone");
       }
+
+      if (currentRoomId === "restaurant") {
+        addSidebarKey("restaurant");
+      } else {
+        removeSidebarKey("restaurant");
+      }
+
+      if (currentRoomId.startsWith("meeting") && !isMeetingRoomRange(currentRoomId)) {
+        addSidebarKey("meeting");
+      } else {
+        removeSidebarKey("meeting");
+      }
     };
 
     setup();

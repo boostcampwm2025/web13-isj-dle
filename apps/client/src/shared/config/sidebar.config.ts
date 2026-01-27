@@ -11,7 +11,9 @@ export type SidebarKey =
   | "chat"
   | "deskZone"
   | "host"
-  | "participant";
+  | "participant"
+  | "restaurant"
+  | "meeting";
 
 export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   users: 0,
@@ -23,7 +25,10 @@ export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   participant: 6,
   host: 7,
   deskZone: 8,
+  restaurant: 9,
+  meeting: 10,
 };
+
 export type SidebarItem = {
   title: string;
   Icon: LucideIcon;
