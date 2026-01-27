@@ -6,9 +6,10 @@ export const GAME_SCENE_KEY = "GameScene";
 
 export const AVATAR_FRAME_WIDTH = 16;
 export const AVATAR_FRAME_HEIGHT = 32;
-export const AVATAR_MOVE_SPEED = 120;
+export const AVATAR_WALK_SPEED = 120;
+export const AVATAR_RUN_SPEED = 220;
 export const AVATAR_SNAP_SPEED = 0.25;
-export const AUTO_MOVE_DURATION = 80;
+export const AUTO_MOVE_DURATION = 70;
 export const NICKNAME_OFFSET_Y = 20;
 export const RESTAURANT_THUMBNAIL_OFFSET_Y = 10;
 
@@ -27,7 +28,7 @@ export const IDLE_FRAME: Record<AvatarDirection, number> = {
   up: 1,
 };
 
-export const WALK_FRAME: Record<AvatarDirection, number[]> = {
+export const MOVE_FRAME: Record<AvatarDirection, number[]> = {
   down: [66, 67, 68, 69, 70, 71],
   left: [60, 61, 62, 63, 64, 65],
   right: [48, 49, 50, 51, 52, 53],

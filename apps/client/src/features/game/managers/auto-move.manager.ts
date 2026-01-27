@@ -118,8 +118,8 @@ export class AutoMoveManager {
       const dir = getDirBetween(prev, next);
 
       this.scene.avatarEntity.direction = dir;
-      this.scene.avatarEntity.state = "walk";
-      this.scene.animation.toWalk(this.scene.avatarEntity.sprite, dir);
+      this.scene.avatarEntity.state = "run";
+      this.scene.animation.toRun(this.scene.avatarEntity.sprite, dir);
 
       const { x, y } = tileToWorld(next.x, next.y);
       i++;

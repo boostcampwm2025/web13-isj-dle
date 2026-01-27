@@ -257,9 +257,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (inputDirection) {
-      this.avatar.state = "walk";
+      this.avatar.state = this.inputManager.isShiftKeyPressed() ? "run" : "walk";
       this.avatar.direction = inputDirection;
-      this.animationManager.toWalk(this.avatar.sprite, inputDirection);
+      if (this.avatar.state === "run") {
+        this.animationManager.toRun(this.avatar.sprite, inputDirection);
+      } else {
+        this.animationManager.toWalk(this.avatar.sprite, inputDirection);
+      }
     } else {
       this.avatar.state = "idle";
       this.animationManager.toIdle(this.avatar.sprite, this.avatar.direction);
