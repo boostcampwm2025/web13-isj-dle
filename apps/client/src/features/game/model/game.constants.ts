@@ -9,6 +9,7 @@ export const AVATAR_FRAME_HEIGHT = 32;
 export const AVATAR_MOVE_SPEED = 120;
 export const AVATAR_SNAP_SPEED = 0.25;
 export const NICKNAME_OFFSET_Y = 20;
+export const RESTAURANT_THUMBNAIL_OFFSET_Y = 10;
 
 export const AVATAR_RADIUS = TILE_SIZE / 2;
 export const BOUNDARY_PADDING = 4;
