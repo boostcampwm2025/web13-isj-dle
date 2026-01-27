@@ -21,7 +21,7 @@ import { PresignImageDto } from "./dto/presign-image.dto";
 import { UpdateImageDto } from "./dto/update-image.dto";
 import { RestaurantService } from "./restaurant.service";
 
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 7 * 1024 * 1024;
 
 @Controller("restaurant")

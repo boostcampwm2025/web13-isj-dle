@@ -1,6 +1,6 @@
-const DEFAULT_MAX_WIDTH = 1200;
-const DEFAULT_MAX_HEIGHT = 1200;
-const DEFAULT_QUALITY = 0.85;
+const DEFAULT_MAX_WIDTH = 800;
+const DEFAULT_MAX_HEIGHT = 800;
+const DEFAULT_QUALITY = 0.75;
 
 type OptimizeImageOptions = {
   maxWidth?: number;

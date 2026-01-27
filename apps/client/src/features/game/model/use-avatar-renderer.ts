@@ -82,10 +82,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
     });
 
     const unsubscribeThumbnails = useRestaurantImageStore.subscribe((state, prevState) => {
-      if (
-        state.imagesById !== prevState.imagesById ||
-        state.latestImageIdByUserId !== prevState.latestImageIdByUserId
-      ) {
+      if (state.thumbnailUrlByUserId !== prevState.thumbnailUrlByUserId) {
         renderAvatars();
       }
     });
