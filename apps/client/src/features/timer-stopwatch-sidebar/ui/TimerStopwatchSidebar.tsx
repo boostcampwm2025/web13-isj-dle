@@ -14,8 +14,9 @@ import {
   WARNING_SECONDS,
 } from "../model/timer.constants";
 import { useStopwatch } from "../model/use-stopwatch";
-import { useSyncStopwatch, useTimeActions } from "../model/use-sync-stopwatch";
+import { useSyncStopwatch } from "../model/use-sync-stopwatch";
 import { useTimerActions } from "../model/use-sync-timer";
+import { useTimeActions } from "../model/use-time-actions";
 import { useTimer } from "../model/use-timer";
 import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
