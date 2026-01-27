@@ -6,14 +6,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
-  restaurantImageKeys,
   useDeleteRestaurantImageMutation,
   useReplaceRestaurantImageMutation,
   useRestaurantImageViewStore,
 } from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
 import { ICON_SIZE, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
-import { useQueryClient } from "@tanstack/react-query";
 import { useSidebarStore } from "@widgets/sidebar";
 
 const VIEWER_ICON_SIZE = ICON_SIZE - 4;
@@ -26,7 +24,6 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
   const { targetUserId, imageUrl, isOpen, closeViewer } = useRestaurantImageViewStore();
   const userId = useUserStore((state) => state.user?.id);
   const isSidebarOpen = useSidebarStore((s) => s.isOpen);
-  const queryClient = useQueryClient();
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -43,7 +40,6 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
     const handleEscKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         closeViewer();
-        if (userId) queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
       }
     };
 
@@ -54,7 +50,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
       document.removeEventListener("keydown", handleEscKey);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, closeViewer, queryClient, userId]);
+  }, [isOpen, closeViewer]);
 
   const handleDelete = useCallback(async () => {
     if (!userId || !imageUrl) return;
@@ -72,9 +68,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
     } finally {
       setIsDeleting(false);
     }
-
-    queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
-  }, [userId, imageUrl, closeViewer, onDelete, queryClient, deleteMutation]);
+  }, [userId, imageUrl, closeViewer, onDelete, deleteMutation]);
 
   const handleEdit = useCallback(() => {
     fileInputRef.current?.click();

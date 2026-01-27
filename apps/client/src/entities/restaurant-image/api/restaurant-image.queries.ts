@@ -1,3 +1,4 @@
+import { updateRestaurantImagesCache } from "../lib/restaurant-image-cache";
 import { fetchMyRestaurantImage, fetchRestaurantImagesFeed, fetchUserRestaurantImage } from "./restaurant-image.fetch";
 import {
   deleteRestaurantImage,
@@ -7,44 +8,13 @@ import {
 } from "./restaurant-image.mutation";
 import { putPresignedRestaurantImage, uploadPresignRestaurantImage } from "./restaurant-image.presign";
 
-import type { RestaurantImage, RestaurantImageFeedResponse, RestaurantImageResponse } from "@shared/types";
+import type { RestaurantImageFeedResponse, RestaurantImageResponse } from "@shared/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const restaurantImageKeys = {
   feed: () => ["restaurantImages", "feed"] as const,
   my: (userId: string) => ["restaurantImages", "me", userId] as const,
   user: (targetUserId: string) => ["restaurantImages", "user", targetUserId] as const,
-};
-
-const mapRestaurantImages = (images: RestaurantImage[], updater: (img: RestaurantImage) => RestaurantImage) => {
-  let changed = false;
-  const next = images.map((img) => {
-    const updated = updater(img);
-    if (updated !== img) changed = true;
-    return updated;
-  });
-  return changed ? next : images;
-};
-
-const updateRestaurantImagesData = (data: unknown, updater: (img: RestaurantImage) => RestaurantImage): unknown => {
-  if (!data || typeof data !== "object") return data;
-
-  if ("images" in data && Array.isArray((data as { images: unknown }).images)) {
-    const typed = data as RestaurantImageFeedResponse | RestaurantImageResponse;
-    const nextImages = mapRestaurantImages(typed.images, updater);
-
-    if ("latestImage" in typed) {
-      const nextLatest =
-        typed.latestImage && typeof typed.latestImage === "object" ? updater(typed.latestImage) : typed.latestImage;
-      if (nextImages === typed.images && nextLatest === typed.latestImage) return data;
-      return { ...typed, images: nextImages, latestImage: nextLatest } satisfies RestaurantImageResponse;
-    }
-
-    if (nextImages === typed.images) return data;
-    return { ...typed, images: nextImages } satisfies RestaurantImageFeedResponse;
-  }
-
-  return data;
 };
 
 export const useRestaurantImagesFeedQuery = (requestUserId: string | null) => {
@@ -147,7 +117,7 @@ export const useToggleRestaurantImageLikeMutation = (userId: string | null) => {
       const previous = queryClient.getQueriesData({ queryKey: ["restaurantImages"] });
 
       queryClient.setQueriesData({ queryKey: ["restaurantImages"] }, (old) =>
-        updateRestaurantImagesData(old, (img) => {
+        updateRestaurantImagesCache(old, (img) => {
           if (img.id !== imageId) return img;
           const liked = !img.likedByMe;
           const likes = Math.max(0, img.likes + (liked ? 1 : -1));
@@ -165,7 +135,7 @@ export const useToggleRestaurantImageLikeMutation = (userId: string | null) => {
     },
     onSuccess: (res, imageId) => {
       queryClient.setQueriesData({ queryKey: ["restaurantImages"] }, (old) =>
-        updateRestaurantImagesData(old, (img) => {
+        updateRestaurantImagesCache(old, (img) => {
           if (img.id !== imageId) return img;
           return { ...img, likedByMe: res.liked, likes: res.likes };
         }),

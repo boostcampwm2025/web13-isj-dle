@@ -95,26 +95,29 @@ export class RestaurantService {
     }
   }
 
+  private async mapEntityToImage(entity: RestaurantImageEntity, requestUserId: string): Promise<RestaurantImage> {
+    const likedBy = Array.isArray(entity.likedBy) ? entity.likedBy : [];
+    return {
+      id: String(entity.id),
+      url: await this.resolveKeyForView(entity.key),
+      userId: entity.userId,
+      nickname: entity.nickname,
+      likes: entity.likes,
+      likedByMe: likedBy.includes(requestUserId),
+      createdAt: entity.createdAt.toISOString(),
+    };
+  }
+
   async getImagesByUserId(requestUserId: string, targetUserId: string): Promise<RestaurantImageResponse> {
     const userImages = await this.restaurantImageRepository.find({
       where: { userId: targetUserId },
       order: { createdAt: "DESC" },
     });
 
-    const images: RestaurantImage[] = await Promise.all(
-      userImages.map(async (img) => ({
-        id: String(img.id),
-        url: await this.resolveKeyForView(img.key),
-        userId: img.userId,
-        nickname: img.nickname,
-        likes: img.likes,
-        likedByMe: (Array.isArray(img.likedBy) ? img.likedBy : []).includes(requestUserId),
-        createdAt: img.createdAt.toISOString(),
-      })),
-    );
+    const images = await Promise.all(userImages.map((img) => this.mapEntityToImage(img, requestUserId)));
 
     return {
-      latestImage: images[0] || null,
+      latestImage: images[0] ?? null,
       images,
     };
   }
@@ -125,17 +128,7 @@ export class RestaurantService {
       take: limit,
     });
 
-    const images: RestaurantImage[] = await Promise.all(
-      rows.map(async (img) => ({
-        id: String(img.id),
-        url: await this.resolveKeyForView(img.key),
-        userId: img.userId,
-        nickname: img.nickname,
-        likes: img.likes,
-        likedByMe: (Array.isArray(img.likedBy) ? img.likedBy : []).includes(requestUserId),
-        createdAt: img.createdAt.toISOString(),
-      })),
-    );
+    const images = await Promise.all(rows.map((img) => this.mapEntityToImage(img, requestUserId)));
 
     return { images };
   }

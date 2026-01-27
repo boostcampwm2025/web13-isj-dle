@@ -1,8 +1,7 @@
 import { create } from "zustand";
 
 type RestaurantImageState = {
-  latestImageIdByUserId: Record<string, string | null>;
-  imageUrlsById: Record<string, string>;
+  thumbnailUrlByUserId: Record<string, string | null>;
 
   setThumbnail: (userId: string, url: string) => void;
   clearThumbnail: (userId: string) => void;
@@ -11,25 +10,20 @@ type RestaurantImageState = {
 };
 
 export const useRestaurantImageStore = create<RestaurantImageState>((set, get) => ({
-  latestImageIdByUserId: {},
-  imageUrlsById: {},
+  thumbnailUrlByUserId: {},
 
   setThumbnail: (userId, url) =>
     set((state) => ({
-      imageUrlsById: {
-        ...state.imageUrlsById,
-        [url]: url,
-      },
-      latestImageIdByUserId: {
-        ...state.latestImageIdByUserId,
+      thumbnailUrlByUserId: {
+        ...state.thumbnailUrlByUserId,
         [userId]: url,
       },
     })),
 
   clearThumbnail: (userId) =>
     set((state) => ({
-      latestImageIdByUserId: {
-        ...state.latestImageIdByUserId,
+      thumbnailUrlByUserId: {
+        ...state.thumbnailUrlByUserId,
         [userId]: null,
       },
     })),
@@ -39,8 +33,6 @@ export const useRestaurantImageStore = create<RestaurantImageState>((set, get) =
   },
 
   getThumbnailUrlByUserId: (userId) => {
-    const imageId = get().latestImageIdByUserId[userId];
-    if (!imageId) return null;
-    return get().imageUrlsById[imageId] ?? null;
+    return get().thumbnailUrlByUserId[userId] ?? null;
   },
 }));

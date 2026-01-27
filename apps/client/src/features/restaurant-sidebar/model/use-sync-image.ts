@@ -1,51 +1,17 @@
 import { useEffect, useMemo, useRef } from "react";
 
-import { restaurantImageKeys, useRestaurantImageStore } from "@entities/restaurant-image";
+import { restaurantImageKeys, updateRestaurantImagesCache, useRestaurantImageStore } from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
 import { emitAck, useWebSocket } from "@features/socket";
 import {
-  type RestaurantImage,
   RestaurantImageEventType,
-  type RestaurantImageFeedResponse,
   type RestaurantImageLikeUpdatedPayload,
-  type RestaurantImageResponse,
   type RestaurantThumbnailUpdatedPayload,
   type RestaurantThumbnailsStatePayload,
 } from "@shared/types";
 import { useQueryClient } from "@tanstack/react-query";
 
 const MAX_SYNC_USERS = 200;
-
-const updateImages = (images: RestaurantImage[], updater: (img: RestaurantImage) => RestaurantImage) => {
-  let changed = false;
-  const next = images.map((img) => {
-    const updated = updater(img);
-    if (updated !== img) changed = true;
-    return updated;
-  });
-  return changed ? next : images;
-};
-
-const updateRestaurantImagesData = (data: unknown, updater: (img: RestaurantImage) => RestaurantImage): unknown => {
-  if (!data || typeof data !== "object") return data;
-
-  if ("images" in data && Array.isArray((data as { images: unknown }).images)) {
-    const typed = data as RestaurantImageFeedResponse | RestaurantImageResponse;
-    const nextImages = updateImages(typed.images, updater);
-
-    if ("latestImage" in typed) {
-      const nextLatest =
-        typed.latestImage && typeof typed.latestImage === "object" ? updater(typed.latestImage) : typed.latestImage;
-      if (nextImages === typed.images && nextLatest === typed.latestImage) return data;
-      return { ...typed, images: nextImages, latestImage: nextLatest } satisfies RestaurantImageResponse;
-    }
-
-    if (nextImages === typed.images) return data;
-    return { ...typed, images: nextImages } satisfies RestaurantImageFeedResponse;
-  }
-
-  return data;
-};
 
 export const useSyncImage = () => {
   const { socket, isConnected } = useWebSocket();
@@ -103,7 +69,7 @@ export const useSyncImage = () => {
       if (!Number.isFinite(likes)) return;
 
       queryClient.setQueriesData({ queryKey: ["restaurantImages"] }, (old) =>
-        updateRestaurantImagesData(old, (img) => {
+        updateRestaurantImagesCache(old, (img) => {
           if (img.id !== imageId) return img;
           return img.likes === likes ? img : { ...img, likes };
         }),
@@ -131,20 +97,17 @@ export const useSyncImage = () => {
         const map = res?.thumbnailsByUserId ?? {};
         useRestaurantImageStore.setState((state) => {
           let changed = false;
-          const nextLatest = { ...state.latestImageIdByUserId };
-          const nextImageUrlsById = { ...state.imageUrlsById };
+          const next = { ...state.thumbnailUrlByUserId };
 
           for (const [userId, url] of Object.entries(map)) {
             const nextUrl = url ?? null;
-            const currentId = state.latestImageIdByUserId[userId] ?? null;
-            if (currentId === nextUrl) continue;
+            if (state.thumbnailUrlByUserId[userId] === nextUrl) continue;
             changed = true;
-            nextLatest[userId] = nextUrl;
-            if (nextUrl) nextImageUrlsById[nextUrl] = nextUrl;
+            next[userId] = nextUrl;
           }
 
           if (!changed) return state;
-          return { ...state, latestImageIdByUserId: nextLatest, imageUrlsById: nextImageUrlsById };
+          return { ...state, thumbnailUrlByUserId: next };
         });
       })
       .catch(() => undefined);
