@@ -18,6 +18,7 @@
     "@shared/types": "workspace:*",
     "@tldraw/sync": "^4.2.3",
     "@tldraw/tldraw": "^4.2.3",
+    "easystarjs": "^0.4.4",
     "livekit-client": "^2.16.1",
     "lucide-react": "^0.562.0",
     "monaco-editor": "^0.55.1",
