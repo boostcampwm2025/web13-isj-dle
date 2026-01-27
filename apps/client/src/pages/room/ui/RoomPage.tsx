@@ -4,6 +4,7 @@ import NoiseFilter from "./NoiseFilter";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { ChatDataBinder } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
@@ -110,7 +111,7 @@ const RoomPage = () => {
       <div className="pointer-events-none absolute inset-0 z-10">
         <LiveKitRoom
           data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
-          key={`${roomId || ""}-${token || ""}`}
+          key={roomId || "empty"}
           serverUrl={serverUrl || ""}
           token={token || ""}
           connect={!!token && !!serverUrl}
@@ -118,13 +119,17 @@ const RoomPage = () => {
           audio={isMicOn}
         >
           <NoiseFilter />
-          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+          <ChatDataBinder />
           {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && (
             <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />
           )}
           {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
-          <Sidebar />
         </LiveKitRoom>
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 z-20">
+        {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+        <Sidebar />
       </div>
 
       <RoomSelectorModal
