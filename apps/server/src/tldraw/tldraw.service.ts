@@ -1,9 +1,12 @@
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 
 import { TLSocketRoom } from "@tldraw/sync-core";
 import { createTLSchema, defaultBindingSchemas, defaultShapeSchemas } from "@tldraw/tlschema";
 import { IncomingMessage, Server } from "http";
 import { RawData, WebSocket, WebSocketServer } from "ws";
+
+import { UserManager } from "../user/user-manager.service";
 
 @Injectable()
 export class TldrawService implements OnModuleDestroy {
@@ -17,6 +20,8 @@ export class TldrawService implements OnModuleDestroy {
     bindings: defaultBindingSchemas,
   });
   private rooms = new Map<string, TLSocketRoom>();
+
+  constructor(private readonly userManager: UserManager) {}
 
   attachToServer(server: Server) {
     server.on("upgrade", (req: IncomingMessage, socket, head) => {
@@ -102,16 +107,31 @@ export class TldrawService implements OnModuleDestroy {
 
     const room = new TLSocketRoom({
       schema: this.schema,
-      onSessionRemoved: (room, { numSessionsRemaining }) => {
-        if (numSessionsRemaining === 0) {
-          room.close();
-          this.rooms.delete(roomId);
-        }
-      },
     });
 
     this.rooms.set(roomId, room);
     return room;
+  }
+
+  @OnEvent("user.leaving-room")
+  handleUserLeavingRoom(payload: { roomId: string }): void {
+    const { roomId } = payload;
+
+    setTimeout(() => {
+      const usersInRoom = this.userManager.getRoomSessions(roomId as any);
+
+      if (usersInRoom.length === 0) {
+        this.cleanupRoom(roomId);
+      }
+    }, 100);
+  }
+
+  private cleanupRoom(roomId: string): void {
+    const room = this.rooms.get(roomId);
+    if (room) {
+      room.close();
+      this.rooms.delete(roomId);
+    }
   }
 
   onModuleDestroy() {

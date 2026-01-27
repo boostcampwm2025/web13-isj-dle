@@ -1,4 +1,5 @@
 import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 
 import type { IncomingMessage } from "http";
 import type { Server } from "http";
@@ -8,6 +9,8 @@ import { type WebSocket, WebSocketServer } from "ws";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
+
+import { UserManager } from "../user/user-manager.service";
 
 const MESSAGE_SYNC = 0;
 const MESSAGE_AWARENESS = 1;
@@ -25,7 +28,7 @@ export class YjsService implements OnModuleDestroy {
 
   private awarenessStates: Map<string, awarenessProtocol.Awareness> = new Map();
 
-  constructor() {
+  constructor(private readonly userManager: UserManager) {
     this.wss = new WebSocketServer({ noServer: true });
   }
 
@@ -115,22 +118,13 @@ export class YjsService implements OnModuleDestroy {
     this.rooms.get(roomName)!.add(ws);
   }
 
-  private removeClientFromRoom(roomName: string, ws: WebSocket, awareness: awarenessProtocol.Awareness): void {
+  private removeClientFromRoom(roomName: string, ws: WebSocket, _awareness: awarenessProtocol.Awareness): void {
     const room = this.rooms.get(roomName);
     if (room) {
       room.delete(ws);
 
       if (room.size === 0) {
         this.rooms.delete(roomName);
-
-        const doc = this.docs.get(roomName);
-        if (doc) {
-          doc.destroy();
-          this.docs.delete(roomName);
-        }
-
-        awareness.destroy();
-        this.awarenessStates.delete(roomName);
       }
     }
   }
@@ -240,5 +234,37 @@ export class YjsService implements OnModuleDestroy {
     this.awarenessStates.clear();
     this.rooms.clear();
     this.logger.log("🛑 Yjs WebSocket Server closed");
+  }
+
+  @OnEvent("user.leaving-room")
+  handleUserLeavingRoom(payload: { roomId: string }): void {
+    const { roomId } = payload;
+
+    setTimeout(() => {
+      const usersInRoom = this.userManager.getRoomSessions(roomId as any);
+
+      if (usersInRoom.length === 0) {
+        const sanitizedRoomId = roomId.replace(/[\s()]/g, "-");
+        const yjsRoomName = `code-editor-${sanitizedRoomId}`;
+
+        this.cleanupRoom(yjsRoomName);
+      }
+    }, 100);
+  }
+
+  private cleanupRoom(roomName: string): void {
+    const doc = this.docs.get(roomName);
+    if (doc) {
+      doc.destroy();
+      this.docs.delete(roomName);
+    }
+
+    const awareness = this.awarenessStates.get(roomName);
+    if (awareness) {
+      awareness.destroy();
+      this.awarenessStates.delete(roomName);
+    }
+
+    this.rooms.delete(roomName);
   }
 }
