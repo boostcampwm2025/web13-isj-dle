@@ -6,11 +6,32 @@ import { useRestaurantImageViewStore, useToggleRestaurantImageLikeMutation } fro
 import { useUserStore } from "@entities/user";
 import type { RestaurantImage } from "@shared/types";
 
+const SkeletonImage = ({ src, alt, className }: { src: string; alt: string; className: string }) => (
+  <div className={`${className} rounded-sm bg-gray-200`}>
+    <img src={src} alt={alt} className="h-full w-full rounded-sm object-cover" />
+  </div>
+);
+
 type ImageListProps = {
   images: RestaurantImage[];
+  isLoading?: boolean;
 };
 
-const ImageList = memo(({ images }: ImageListProps) => {
+const ImageListSkeleton = () => (
+  <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+    <p className="font-semibold">오늘의 먹로그</p>
+    <div className="grid grid-cols-2 gap-2">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i}>
+          <div className="h-24 w-full rounded-sm bg-gray-200" />
+          <div className="mt-1 h-3 w-16 rounded bg-gray-200" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const ImageList = memo(({ images, isLoading }: ImageListProps) => {
   const openViewerModal = useRestaurantImageViewStore((state) => state.openViewer);
   const userId = useUserStore((state) => state.user?.id ?? null);
   const toggleLikeMutation = useToggleRestaurantImageLikeMutation(userId);
@@ -32,6 +53,10 @@ const ImageList = memo(({ images }: ImageListProps) => {
     [toggleLikeMutation, userId],
   );
 
+  if (isLoading) {
+    return <ImageListSkeleton />;
+  }
+
   if (images.length === 0) {
     return <div className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">아직 등록된 음식 사진이 없어요</div>;
   }
@@ -47,7 +72,7 @@ const ImageList = memo(({ images }: ImageListProps) => {
               onClick={() => handleImageClick({ userId: image.userId, url: image.url })}
               className="w-full text-left"
             >
-              <img src={image.url} alt="음식 사진" className="h-24 w-full rounded-sm object-cover" />
+              <SkeletonImage src={image.url} alt="음식 사진" className="h-24 w-full" />
               <p className="mt-1 truncate text-xs text-gray-600">{image.nickname}</p>
             </button>
             <button

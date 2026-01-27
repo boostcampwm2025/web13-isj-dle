@@ -128,7 +128,7 @@ const RestaurantSidebar = () => {
         onUploadError={handleUploadError}
       />
 
-      <ImageList images={images} />
+      <ImageList images={images} isLoading={imagesFeedQuery.isLoading} />
       <ImageViewerModal onDelete={handleDeleteImage} onUpdate={handleUpdateImage} />
     </div>
   );
