@@ -15,41 +15,87 @@ export class MetricsService {
     @InjectMetric("users_online_by_room")
     private usersByRoomGauge: Gauge<string>,
 
-    @InjectMetric("chat_messages_total")
-    private chatMessagesCounter: Counter<string>,
-
     @InjectMetric("rooms_active_total")
     private roomsActiveGauge: Gauge<string>,
 
     @InjectMetric("http_request_duration_seconds")
     private httpDurationHistogram: Histogram<string>,
+
+    @InjectMetric("s3_requests_total")
+    private s3RequestsCounter: Counter<string>,
+
+    @InjectMetric("s3_request_duration_seconds")
+    private s3DurationHistogram: Histogram<string>,
+
+    @InjectMetric("s3_upload_bytes_total")
+    private s3UploadBytesCounter: Counter<string>,
+
+    @InjectMetric("socket_room_transitions_total")
+    private roomTransitionsCounter: Counter<string>,
+
+    @InjectMetric("session_duration_seconds")
+    private sessionDurationHistogram: Histogram<string>,
   ) {}
 
   incrementWsConnections() {
     this.wsConnectionsGauge.inc();
   }
 
-  decrementWsConnection() {
+  decrementWsConnections() {
     this.wsConnectionsGauge.dec();
   }
 
-  setOnlineUsers(count: number) {
-    this.usersOnlineGauge.set(count);
+  userJoined(roomType: string) {
+    this.usersOnlineGauge.inc();
+    this.usersByRoomGauge.labels(roomType).inc();
   }
 
-  setUsersByRoom(roomType: string, count: number) {
-    this.usersByRoomGauge.labels(roomType).set(count);
+  userLeft(roomType: string) {
+    this.usersOnlineGauge.dec();
+    this.usersByRoomGauge.labels(roomType).dec();
   }
 
-  incrementChatMessages(roomType: string) {
-    this.chatMessagesCounter.labels(roomType).inc();
+  userMoved(fromRoomType: string, toRoomType: string) {
+    if (fromRoomType === toRoomType) return;
+    this.usersByRoomGauge.labels(fromRoomType).dec();
+    this.usersByRoomGauge.labels(toRoomType).inc();
+    this.roomTransitionsCounter.labels(fromRoomType, toRoomType).inc();
   }
 
-  setActiveRooms(roomType: string, count: number) {
-    this.roomsActiveGauge.labels(roomType).set(count);
+  incrementActiveRooms(roomType: string) {
+    this.roomsActiveGauge.labels(roomType).inc();
+  }
+
+  decrementActiveRooms(roomType: string) {
+    this.roomsActiveGauge.labels(roomType).dec();
+  }
+
+  recordSessionDuration(durationSeconds: number) {
+    this.sessionDurationHistogram.observe(durationSeconds);
   }
 
   observeHttpDuration(method: string, route: string, statusCode: number, durationSeconds: number) {
     this.httpDurationHistogram.labels(method, route, statusCode.toString()).observe(durationSeconds);
+  }
+
+  recordS3Request(operation: string, status: "success" | "error", durationSeconds: number) {
+    this.s3RequestsCounter.labels(operation, status).inc();
+    this.s3DurationHistogram.labels(operation).observe(durationSeconds);
+  }
+
+  recordS3Upload(bytes: number) {
+    this.s3UploadBytesCounter.inc(bytes);
+  }
+
+  reconcileOnlineUsers(actualCount: number) {
+    this.usersOnlineGauge.set(actualCount);
+  }
+
+  reconcileUsersByRoom(roomType: string, actualCount: number) {
+    this.usersByRoomGauge.labels(roomType).set(actualCount);
+  }
+
+  reconcileActiveRooms(roomType: string, actualCount: number) {
+    this.roomsActiveGauge.labels(roomType).set(actualCount);
   }
 }
