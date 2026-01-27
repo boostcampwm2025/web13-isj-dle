@@ -4,8 +4,6 @@ import { GAME_SCENE_KEY } from "../model/game.constants";
 import { useEffect, useRef, useState } from "react";
 
 import { useUserStore } from "@entities/user";
-import { SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
-import { useSidebarStore } from "@widgets/sidebar";
 
 interface MinimapOverlayProps {
   game: Phaser.Game | null;
@@ -19,70 +17,50 @@ const MARGIN = 16;
 export const MinimapOverlay = ({ game }: MinimapOverlayProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
-  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
+  const mapCacheRef = useRef<HTMLCanvasElement | null>(null);
   const [mapSize, setMapSize] = useState({ width: 1, height: 1 });
+  const [isMapReady, setIsMapReady] = useState(false);
 
-  const isOpen = useSidebarStore((state) => state.isOpen);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
-
-  const sidebarWidth = isOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH;
 
   useEffect(() => {
     if (!game) return;
 
     let active = true;
+    let checkHandle: number;
 
-    const poll = () => {
+    const checkAndCacheMap = () => {
       if (!active) return;
 
       const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
-      if (scene?.isReady && scene?.isLoadPlayer && scene?.mapInfo.map) {
+
+      if (scene?.isReady && scene?.mapInfo.map) {
         const map = scene.mapInfo.map;
-        setMapSize({ width: map.widthInPixels, height: map.heightInPixels });
+        const newMapSize = { width: map.widthInPixels, height: map.heightInPixels };
 
-        const cam = scene.cameras.main;
-        setPlayerPos({
-          x: cam.scrollX + cam.width / 2,
-          y: cam.scrollY + cam.height / 2,
-        });
-      }
+        setMapSize(newMapSize);
 
-      rafRef.current = requestAnimationFrame(poll);
-    };
+        const cacheCanvas = document.createElement("canvas");
+        cacheCanvas.width = WIDTH;
+        cacheCanvas.height = HEIGHT;
+        const ctx = cacheCanvas.getContext("2d");
 
-    poll();
+        if (!ctx) return;
 
-    return () => {
-      active = false;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [game]);
+        const scaleX = WIDTH / newMapSize.width;
+        const scaleY = HEIGHT / newMapSize.height;
+        const scale = Math.min(scaleX, scaleY);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!ctx || !game) return;
+        const scaledWidth = newMapSize.width * scale;
+        const scaledHeight = newMapSize.height * scale;
+        const offsetX = (WIDTH - scaledWidth) / 2;
+        const offsetY = (HEIGHT - scaledHeight) / 2;
 
-    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-    if (mapSize.width > 1 && mapSize.height > 1) {
-      const scaleX = WIDTH / mapSize.width;
-      const scaleY = HEIGHT / mapSize.height;
-      const scale = Math.min(scaleX, scaleY);
-
-      const scaledWidth = mapSize.width * scale;
-      const scaledHeight = mapSize.height * scale;
-      const offsetX = (WIDTH - scaledWidth) / 2;
-      const offsetY = (HEIGHT - scaledHeight) / 2;
-
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight);
-
-      if (scene?.mapInfo.map) {
-        const map = scene.mapInfo.map;
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight);
 
         map.layers.forEach((layerData) => {
           const layer = layerData.tilemapLayer;
@@ -111,32 +89,86 @@ export const MinimapOverlay = ({ game }: MinimapOverlayProps) => {
         ctx.strokeStyle = "#475569";
         ctx.lineWidth = 1;
         ctx.strokeRect(offsetX, offsetY, scaledWidth, scaledHeight);
+
+        mapCacheRef.current = cacheCanvas;
+        setIsMapReady(true);
+      } else {
+        checkHandle = requestAnimationFrame(checkAndCacheMap);
+      }
+    };
+
+    checkAndCacheMap();
+
+    return () => {
+      active = false;
+      if (checkHandle) cancelAnimationFrame(checkHandle);
+    };
+  }, [game]);
+
+  useEffect(() => {
+    if (!game || !isMapReady) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx || !mapCacheRef.current) return;
+
+    let active = true;
+
+    const scaleX = WIDTH / mapSize.width;
+    const scaleY = HEIGHT / mapSize.height;
+    const scale = Math.min(scaleX, scaleY);
+
+    const scaledWidth = mapSize.width * scale;
+    const scaledHeight = mapSize.height * scale;
+    const offsetX = (WIDTH - scaledWidth) / 2;
+    const offsetY = (HEIGHT - scaledHeight) / 2;
+
+    const render = () => {
+      if (!active) return;
+
+      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+
+      if (scene?.isReady && scene?.isLoadPlayer) {
+        ctx.drawImage(mapCacheRef.current!, 0, 0);
+
+        const cam = scene.cameras.main;
+        const playerX = cam.scrollX + cam.width / 2;
+        const playerY = cam.scrollY + cam.height / 2;
+
+        const mx = offsetX + playerX * scale;
+        const my = offsetY + playerY * scale;
+
+        ctx.beginPath();
+        ctx.arc(mx + 1, my + 1, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(mx, my, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#22c55e";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
       }
 
-      const mx = offsetX + playerPos.x * scale;
-      const my = offsetY + playerPos.y * scale;
+      rafRef.current = requestAnimationFrame(render);
+    };
 
-      ctx.beginPath();
-      ctx.arc(mx + 1, my + 1, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-      ctx.fill();
+    render();
 
-      ctx.beginPath();
-      ctx.arc(mx, my, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#22c55e";
-      ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-  }, [game, playerPos, mapSize]);
+    return () => {
+      active = false;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [game, isMapReady, mapSize]);
 
   return (
     <div
       className="pointer-events-none fixed overflow-hidden rounded-lg border border-slate-600/50 bg-slate-900/90 shadow-xl backdrop-blur-sm transition-all duration-300"
       style={{
         bottom: MARGIN,
-        right: MARGIN + sidebarWidth,
+        left: MARGIN,
         width: WIDTH,
         height: HEIGHT + HEADER,
         zIndex: 99999,
