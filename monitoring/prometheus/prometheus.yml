@@ -5,22 +5,22 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: [ 'alertmanager:9093' ]
+        - targets: ["alertmanager:9093"]
 
 rule_files:
-  - '/etc/prometheus/alerts.yml'
+  - "/etc/prometheus/alerts.yml"
 
 scrape_configs:
-  - job_name: 'moyo-server'
+  - job_name: "moyo-server"
     static_configs:
-      - targets: [ 'moyo-server:3000' ]
-    metrics_path: '/metrics'
+      - targets: ["moyo-server:3000"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
 
-  - job_name: 'node-exporter'
+  - job_name: "node-exporter"
     static_configs:
-      - targets: [ 'node-exporter:9100' ]
+      - targets: ["node-exporter:9100"]
 
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: [ 'localhost:9090' ]
+      - targets: ["localhost:9090"]
