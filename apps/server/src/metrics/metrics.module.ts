@@ -1,4 +1,4 @@
-import { Global, Module } from "@nestjs/common";
+import { Global, Module, forwardRef } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 
 import {
@@ -8,16 +8,19 @@ import {
   makeHistogramProvider,
 } from "@willsoto/nestjs-prometheus";
 
+import { UserModule } from "../user/user.module";
 import { HttpMetricsInterceptor } from "./http-metrics.interceptor";
+import { MetricsCollectorService } from "./metrics-collector.service";
 import { MetricsService } from "./metrics.service";
 
-@Global() // 전역 모듈: 어디서든 import 없이 MetricsService 사용 가능
+@Global()
 @Module({
   imports: [
     PrometheusModule.register({
       path: "/metrics",
       defaultMetrics: { enabled: true },
     }),
+    forwardRef(() => UserModule),
   ],
   providers: [
     makeGaugeProvider({
@@ -74,6 +77,7 @@ import { MetricsService } from "./metrics.service";
     }),
 
     MetricsService,
+    MetricsCollectorService,
     {
       provide: APP_INTERCEPTOR,
       useFactory: (metricsService: MetricsService) => new HttpMetricsInterceptor(metricsService),

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
 import { UserManager } from "../user/user-manager.service";
@@ -9,6 +9,7 @@ export class MetricsCollectorService {
   private readonly logger = new Logger(MetricsCollectorService.name);
   constructor(
     private readonly metricsService: MetricsService,
+    @Inject(forwardRef(() => UserManager))
     private readonly userManager: UserManager,
   ) {}
 
