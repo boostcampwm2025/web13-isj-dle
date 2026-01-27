@@ -1,5 +1,5 @@
-import { useTimerCompletionNotification } from "../model";
 import { useSyncTimer } from "../model/use-sync-timer";
+import { useTimerCompletionNotification } from "../model/use-timer-complete";
 
 import { useUserStore } from "@entities/user";
 

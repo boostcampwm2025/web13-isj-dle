@@ -135,6 +135,26 @@ export const useVideoConference = () => {
     } else {
       removeSidebarKey("participant");
     }
+
+    // restaurant 사이드바
+    if (currentRoomId === "restaurant") {
+      addSidebarKey("restaurant");
+    } else {
+      removeSidebarKey("restaurant");
+    }
+
+    if (currentRoomId.startsWith("meeting") && !isMeetingRoomRange(currentRoomId)) {
+      addSidebarKey("meeting");
+    } else {
+      removeSidebarKey("meeting");
+    }
+
+    const isInBreakoutRoom = roomId?.startsWith(COLLABORATION_ROOM_PREFIX.BREAKOUT) ?? false;
+    if (isInBreakoutRoom) {
+      addBottomNavKey("leave");
+    } else {
+      removeBottomNavKey("leave");
+    }
   }, [
     currentRoomId,
     userId,
@@ -142,6 +162,8 @@ export const useVideoConference = () => {
     isLobbyOrDeskOrMeeting,
     removeSidebarKey,
     addSidebarKey,
+    addBottomNavKey,
+    removeBottomNavKey,
     mode,
     roomId,
     isSeminarRoom,
