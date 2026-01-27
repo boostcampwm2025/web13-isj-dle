@@ -6,10 +6,12 @@ import { KnockEventType, RoomEventType, type RoomJoinPayload, RoomType, UserEven
 import { Server, Socket } from "socket.io";
 
 import { KnockService } from "../knock/knock.service";
+import { StopwatchGateway } from "../stopwatch/stopwatch.gateway";
 import { TimerService } from "../timer/timer.service";
 import { UserManager } from "../user/user-manager.service";
 
 const isTimerRoomId = (roomId: RoomType): boolean => roomId.startsWith("meeting");
+const isMogakcoRoom = (roomId: RoomType): boolean => roomId === "mogakco";
 
 @WebSocketGateway({
   cors: {
@@ -25,6 +27,7 @@ export class RoomGateway {
     private readonly userManager: UserManager,
     private readonly knockService: KnockService,
     private readonly timerService: TimerService,
+    private readonly stopwatchGateway: StopwatchGateway,
   ) {}
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
@@ -82,6 +85,7 @@ export class RoomGateway {
       await client.join(payload.roomId);
 
       this.cleanupTimerAfterLeave(previousRoomId);
+      this.cleanupStopwatchAfterLeave(previousRoomId, client.id);
 
       const updatedUser = this.userManager.getSession(client.id);
       if (!updatedUser) return;
@@ -135,6 +139,12 @@ export class RoomGateway {
     if (remaining !== 0) return;
 
     this.timerService.deleteTimer(roomId);
+  }
+
+  private cleanupStopwatchAfterLeave(roomId: RoomType, userId: string) {
+    if (!isMogakcoRoom(roomId)) return;
+
+    this.stopwatchGateway.handleUserLeft(roomId, userId);
   }
 
   private endTalkIfNeeded(userId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {

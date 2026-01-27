@@ -8,6 +8,7 @@ import {
   Megaphone,
   MessageCircleMore,
   PenTool,
+  Presentation,
   Timer,
   Users,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { CodeEditorSidebar } from "@features/code-editor-sidebar";
 import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
 import { GuideSidebar } from "@features/guide-sidebar";
 import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
+import { MeetingSidebar } from "@features/meeting-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { RestaurantSidebar } from "@features/restaurant-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
@@ -84,5 +86,9 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "식당",
     Icon: Images,
     Panel: RestaurantSidebar,
+  meeting: {
+    title: "회의실",
+    Icon: Presentation,
+    Panel: MeetingSidebar,
   },
 };
