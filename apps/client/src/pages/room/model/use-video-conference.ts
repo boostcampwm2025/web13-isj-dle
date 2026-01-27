@@ -131,6 +131,8 @@ export const useVideoConference = () => {
         addSidebarKey("restaurant");
       } else {
         removeSidebarKey("restaurant");
+      }
+
       if (currentRoomId.startsWith("meeting") && !isMeetingRoomRange(currentRoomId)) {
         addSidebarKey("meeting");
       } else {

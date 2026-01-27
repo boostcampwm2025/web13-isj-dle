@@ -86,6 +86,7 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     title: "식당",
     Icon: Images,
     Panel: RestaurantSidebar,
+  },
   meeting: {
     title: "회의실",
     Icon: Presentation,
