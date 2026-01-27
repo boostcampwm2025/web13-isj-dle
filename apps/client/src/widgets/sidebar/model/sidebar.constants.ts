@@ -7,7 +7,6 @@ import {
   Megaphone,
   MessageCircleMore,
   PanelsTopLeft,
-  PenTool,
   Presentation,
   Timer,
   Users,
