@@ -24,3 +24,5 @@ export type MoveKeys = {
   right: Phaser.Input.Keyboard.Key;
   sit: Phaser.Input.Keyboard.Key;
 };
+
+export type TilePoint = { x: number; y: number };
