@@ -1,8 +1,10 @@
+import { optimizeImage } from "../lib/optimize-image";
+
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
-export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE";
+export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE" | "OPTIMIZE_FAILED";
 
-export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const DEFAULT_MAX_SIZE_MB = 7;
 export const DEFAULT_ACCEPT = ALLOWED_IMAGE_TYPES.join(",");
 
@@ -51,7 +53,7 @@ export const useImageAttachment = (options: UseImageAttachmentOptions = {}) => {
   }, []);
 
   const handleFile = useCallback(
-    (nextFile: File | null) => {
+    async (nextFile: File | null) => {
       if (!nextFile) return;
 
       const validationError = validateImageFile(nextFile, maxSizeMB);
@@ -63,11 +65,17 @@ export const useImageAttachment = (options: UseImageAttachmentOptions = {}) => {
 
       clear();
 
-      const objectUrl = URL.createObjectURL(nextFile);
-      objectUrlRef.current = objectUrl;
+      try {
+        const optimized = await optimizeImage(nextFile);
 
-      setFile(nextFile);
-      setPreviewUrl(objectUrl);
+        const objectUrl = URL.createObjectURL(optimized);
+        objectUrlRef.current = objectUrl;
+
+        setFile(optimized);
+        setPreviewUrl(objectUrl);
+      } catch {
+        setError("OPTIMIZE_FAILED");
+      }
     },
     [clear, maxSizeMB],
   );

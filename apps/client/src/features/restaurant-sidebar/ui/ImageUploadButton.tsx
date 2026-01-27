@@ -2,6 +2,7 @@ import {
   DEFAULT_INFO_MESSAGE,
   INVALID_SIZE_MESSAGE,
   INVALID_TYPE_MESSAGE,
+  OPTIMIZE_FAILED_MESSAGE,
   UPLOAD_ERROR_MESSAGE,
 } from "../model/message.constants";
 import { useImageAttachment } from "../model/use-image-attachment";
@@ -61,6 +62,9 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
     }
     if (error === "INVALID_SIZE") {
       return { type: "error" as const, text: INVALID_SIZE_MESSAGE };
+    }
+    if (error === "OPTIMIZE_FAILED") {
+      return { type: "error" as const, text: OPTIMIZE_FAILED_MESSAGE };
     }
     if (uploadError) {
       return { type: "error" as const, text: uploadError };
@@ -128,7 +132,7 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
         }`}
       >
         <span className="font-semibold">{isDragging ? "Drop to upload" : "Drag or Click"}</span>
-        <span className="text-xs text-gray-500">JPEG(JPG), PNG · 최대 7MB</span>
+        <span className="text-xs text-gray-500">JPEG, PNG, WebP · 최대 7MB</span>
       </button>
 
       {previewUrl && (
