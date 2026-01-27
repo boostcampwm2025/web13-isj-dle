@@ -4,6 +4,7 @@ import NoiseFilter from "./NoiseFilter";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { ChatDataBinder } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useAction } from "@features/actions";
@@ -20,6 +21,7 @@ import {
 } from "@features/game";
 import { MinimapOverlay } from "@features/game/ui/MinimapOverlay";
 import { useKnockSocket } from "@features/knock";
+import { useSyncImage } from "@features/restaurant-sidebar/model";
 import { useWebSocket } from "@features/socket";
 import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
@@ -86,6 +88,7 @@ const RoomPage = () => {
   useAvatarRenderer(game);
 
   useKnockSocket();
+  useSyncImage();
 
   useEffect(() => {
     if (!game) return;
@@ -109,7 +112,7 @@ const RoomPage = () => {
       <div className="pointer-events-none absolute inset-0 z-10">
         <LiveKitRoom
           data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
-          key={`${roomId || ""}-${token || ""}`}
+          key={roomId || "empty"}
           serverUrl={serverUrl || ""}
           token={token || ""}
           connect={!!token && !!serverUrl}
@@ -117,16 +120,21 @@ const RoomPage = () => {
           audio={isMicOn}
         >
           <NoiseFilter />
-          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+          <ChatDataBinder />
           {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && (
             <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />
           )}
           {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
-          <Sidebar />
         </LiveKitRoom>
       </div>
 
       <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID} />
+
+      <div className="pointer-events-none absolute inset-0 z-20">
+        {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+        <Sidebar />
+      </div>
+
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}

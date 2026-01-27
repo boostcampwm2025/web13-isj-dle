@@ -6,26 +6,29 @@ export type SidebarKey =
   | "users"
   | "notices"
   | "guide"
-  | "whiteboard"
-  | "code-editor"
+  | "collaboration-tool"
   | "timer-stopwatch"
   | "chat"
   | "deskZone"
   | "host"
-  | "participant";
+  | "participant"
+  | "restaurant"
+  | "meeting";
 
 export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   users: 0,
   notices: 1,
   guide: 2,
   chat: 3,
-  "code-editor": 4,
-  whiteboard: 5,
-  "timer-stopwatch": 6,
-  participant: 7,
-  host: 8,
-  deskZone: 9,
+  "collaboration-tool": 4,
+  "timer-stopwatch": 5,
+  participant: 6,
+  host: 7,
+  deskZone: 8,
+  restaurant: 9,
+  meeting: 10,
 };
+
 export type SidebarItem = {
   title: string;
   Icon: LucideIcon;

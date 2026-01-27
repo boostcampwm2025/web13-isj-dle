@@ -8,9 +8,8 @@ export const COLLABORATION_TOOL = {
 
 export type CollaborationToolType = (typeof COLLABORATION_TOOL)[keyof typeof COLLABORATION_TOOL] | null;
 
-export const COLLABORATION_SIDEBAR_KEYS: readonly SidebarKey[] = [
-  COLLABORATION_TOOL.WHITEBOARD,
-  COLLABORATION_TOOL.CODE_EDITOR,
-] as const;
+export const COLLABORATION_TOOL_SIDEBAR_KEY: SidebarKey = "collaboration-tool";
+
+export const COLLABORATION_SIDEBAR_KEYS: readonly SidebarKey[] = [COLLABORATION_TOOL_SIDEBAR_KEY];
 
 export const TIMER_STOPWATCH_SIDEBAR_KEY: SidebarKey = COLLABORATION_TOOL.TIMER_STOPWATCH;
