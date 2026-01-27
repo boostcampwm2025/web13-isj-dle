@@ -2,12 +2,11 @@ import {
   Blocks,
   BookOpen,
   Briefcase,
-  Code,
   Crown,
   Images,
   Megaphone,
   MessageCircleMore,
-  PenTool,
+  PanelsTopLeft,
   Presentation,
   Timer,
   Users,
@@ -16,7 +15,7 @@ import {
 import { lazy } from "react";
 
 import { ChatSidebar } from "@features/chat-sidebar";
-import { CodeEditorSidebar } from "@features/code-editor-sidebar";
+import { CollaborationToolsSidebar } from "@features/collaboration-tool-sidebar";
 import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
 import { GuideSidebar } from "@features/guide-sidebar";
 import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
@@ -24,7 +23,6 @@ import { MeetingSidebar } from "@features/meeting-sidebar";
 import { NoticeSidebar } from "@features/notice-sidebar";
 import { RestaurantSidebar } from "@features/restaurant-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
-import { WhiteboardSidebar } from "@features/whiteboard-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
 
 const TimerStopwatchSidebar = lazy(() =>
@@ -47,15 +45,10 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     Icon: BookOpen,
     Panel: GuideSidebar,
   },
-  whiteboard: {
-    title: "화이트보드",
-    Icon: PenTool,
-    Panel: WhiteboardSidebar,
-  },
-  "code-editor": {
-    title: "코드 에디터",
-    Icon: Code,
-    Panel: CodeEditorSidebar,
+  "collaboration-tool": {
+    title: "협업 도구",
+    Icon: PanelsTopLeft,
+    Panel: CollaborationToolsSidebar,
   },
   "timer-stopwatch": {
     title: "타이머/스톱워치",

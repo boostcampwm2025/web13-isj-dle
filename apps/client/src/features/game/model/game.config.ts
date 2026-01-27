@@ -26,5 +26,6 @@ export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.Game
         debug: false,
       },
     },
+    backgroundColor: "#DFC7B2",
   };
 };
