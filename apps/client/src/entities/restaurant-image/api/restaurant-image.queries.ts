@@ -1,21 +1,50 @@
+import { fetchMyRestaurantImage, fetchRestaurantImagesFeed, fetchUserRestaurantImage } from "./restaurant-image.fetch";
 import {
   deleteRestaurantImage,
-  fetchMyRestaurantImage,
-  fetchRestaurantImagesFeed,
-  fetchUserRestaurantImage,
-  presignRestaurantImageUpload,
-  putPresignedRestaurantImage,
+  likeRestaurantImage,
   replaceRestaurantImage,
   uploadRestaurantImage,
-} from "./restaurant-image.api";
+} from "./restaurant-image.mutation";
+import { putPresignedRestaurantImage, uploadPresignRestaurantImage } from "./restaurant-image.presign";
 
-import type { RestaurantImageFeedResponse, RestaurantImageResponse } from "@shared/types";
+import type { RestaurantImage, RestaurantImageFeedResponse, RestaurantImageResponse } from "@shared/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const restaurantImageKeys = {
   feed: () => ["restaurantImages", "feed"] as const,
   my: (userId: string) => ["restaurantImages", "me", userId] as const,
   user: (targetUserId: string) => ["restaurantImages", "user", targetUserId] as const,
+};
+
+const mapRestaurantImages = (images: RestaurantImage[], updater: (img: RestaurantImage) => RestaurantImage) => {
+  let changed = false;
+  const next = images.map((img) => {
+    const updated = updater(img);
+    if (updated !== img) changed = true;
+    return updated;
+  });
+  return changed ? next : images;
+};
+
+const updateRestaurantImagesData = (data: unknown, updater: (img: RestaurantImage) => RestaurantImage): unknown => {
+  if (!data || typeof data !== "object") return data;
+
+  if ("images" in data && Array.isArray((data as { images: unknown }).images)) {
+    const typed = data as RestaurantImageFeedResponse | RestaurantImageResponse;
+    const nextImages = mapRestaurantImages(typed.images, updater);
+
+    if ("latestImage" in typed) {
+      const nextLatest =
+        typed.latestImage && typeof typed.latestImage === "object" ? updater(typed.latestImage) : typed.latestImage;
+      if (nextImages === typed.images && nextLatest === typed.latestImage) return data;
+      return { ...typed, images: nextImages, latestImage: nextLatest } satisfies RestaurantImageResponse;
+    }
+
+    if (nextImages === typed.images) return data;
+    return { ...typed, images: nextImages } satisfies RestaurantImageFeedResponse;
+  }
+
+  return data;
 };
 
 export const useRestaurantImagesFeedQuery = (requestUserId: string | null) => {
@@ -91,7 +120,7 @@ export const useReplaceRestaurantImageMutation = (userId: string | null) => {
       const { imageUrl, file } = params;
       if (!userId) throw new Error("userId is required");
 
-      const presigned = await presignRestaurantImageUpload(userId, {
+      const presigned = await uploadPresignRestaurantImage(userId, {
         contentType: file.type,
         originalName: file.name,
       });
@@ -103,6 +132,44 @@ export const useReplaceRestaurantImageMutation = (userId: string | null) => {
       if (!userId) return;
       queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
       queryClient.invalidateQueries({ queryKey: restaurantImageKeys.feed() }).catch(() => undefined);
+    },
+  });
+};
+
+export const useToggleRestaurantImageLikeMutation = (userId: string | null) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (imageId: string) => {
+      if (!userId) throw new Error("userId is required");
+      return likeRestaurantImage(userId, imageId);
+    },
+    onMutate: async (imageId: string) => {
+      const previous = queryClient.getQueriesData({ queryKey: ["restaurantImages"] });
+
+      queryClient.setQueriesData({ queryKey: ["restaurantImages"] }, (old) =>
+        updateRestaurantImagesData(old, (img) => {
+          if (img.id !== imageId) return img;
+          const liked = !img.likedByMe;
+          const likes = Math.max(0, img.likes + (liked ? 1 : -1));
+          return { ...img, likedByMe: liked, likes };
+        }),
+      );
+
+      return { previous };
+    },
+    onError: (_err, _imageId, context) => {
+      const previous = context?.previous ?? [];
+      for (const [key, data] of previous) {
+        queryClient.setQueryData(key, data);
+      }
+    },
+    onSuccess: (res, imageId) => {
+      queryClient.setQueriesData({ queryKey: ["restaurantImages"] }, (old) =>
+        updateRestaurantImagesData(old, (img) => {
+          if (img.id !== imageId) return img;
+          return { ...img, likedByMe: res.liked, likes: res.likes };
+        }),
+      );
     },
   });
 };
