@@ -7,7 +7,7 @@ services:
     expose:
       - "3000"
     env_file:
-      - backend.env
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=3000
