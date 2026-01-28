@@ -9,12 +9,7 @@ import { type UserDisconnectingPayload, UserInternalEvent } from "../user/user-e
 import { UserManager } from "../user/user-manager.service";
 import { LecternService } from "./lectern.service";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class LecternGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(LecternGateway.name);

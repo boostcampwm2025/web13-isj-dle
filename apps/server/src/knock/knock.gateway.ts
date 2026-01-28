@@ -15,12 +15,7 @@ import { type UserDisconnectingPayload, UserInternalEvent } from "../user/user-e
 import { UserManager } from "../user/user-manager.service";
 import { KnockService } from "./knock.service";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class KnockGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(KnockGateway.name);

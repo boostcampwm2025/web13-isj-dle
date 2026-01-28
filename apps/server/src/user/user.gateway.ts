@@ -6,12 +6,7 @@ import { Server, Socket } from "socket.io";
 
 import { UserManager } from "./user-manager.service";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class UserGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(UserGateway.name);

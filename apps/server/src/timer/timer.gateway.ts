@@ -17,12 +17,7 @@ import { TimerService } from "./timer.service";
 
 const isMeetingRoomId = (roomId: string): boolean => roomId.startsWith("meeting");
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class TimerGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(TimerGateway.name);

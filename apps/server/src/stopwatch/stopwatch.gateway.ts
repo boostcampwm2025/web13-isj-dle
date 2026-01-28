@@ -15,12 +15,7 @@ import { StopwatchService } from "./stopwatch.service";
 
 const isMogakcoRoom = (roomId: string): boolean => roomId === "mogakco";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(StopwatchGateway.name);
@@ -87,7 +82,6 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
     const userInfo = this.socketUserMap.get(client.id);
 
     if (!userInfo) {
-      this.logger.warn(`No user info found for socket ${client.id}`);
       return;
     }
 

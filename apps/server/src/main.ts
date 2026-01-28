@@ -4,11 +4,14 @@ import { NestFactory } from "@nestjs/core";
 import type { Server } from "http";
 
 import { AppModule } from "./app.module";
+import { SocketIoAdapter } from "./socket-io.adapter";
 import { TldrawService } from "./tldraw/tldraw.service";
 import { YjsService } from "./yjs/yjs.service";
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
+
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
 
   app.setGlobalPrefix("api", {
     exclude: ["metrics"],
