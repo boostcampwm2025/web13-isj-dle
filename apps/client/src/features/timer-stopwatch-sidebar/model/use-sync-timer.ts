@@ -48,6 +48,7 @@ export const useSyncTimer = ({ roomId, isMeetingRoom }: UseTimerSyncProps): void
 
     return () => {
       socket.off(TimerEventType.TIMER_STATE, handleTimerState);
+      resetTimer();
     };
   }, [socket, roomId, isMeetingRoom, resetTimer, setTimer]);
 };

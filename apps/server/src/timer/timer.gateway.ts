@@ -76,6 +76,8 @@ export class TimerGateway {
     if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
     const timerState = this.timerService.getTimerState(roomId);
+    const finishedAt = (timerState.startedAt ?? 0) + timerState.initialTimeSec * 1000;
+    if (Date.now() > finishedAt) return;
     client.emit(TimerEventType.TIMER_STATE, timerState);
   }
 }
