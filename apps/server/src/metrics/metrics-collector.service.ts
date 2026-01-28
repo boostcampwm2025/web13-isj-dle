@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
 import { UserManager } from "../user/user-manager.service";
+import { KNOWN_ROOM_TYPES } from "./metric-room-types";
 import { MetricsService } from "./metrics.service";
 
 @Injectable()
@@ -24,8 +25,7 @@ export class MetricsCollectorService {
         this.metricsService.reconcileUsersByRoom(roomType, count);
       }
 
-      const knownRoomTypes = ["lobby", "desk_zone", "mogakco", "meeting", "restaurant", "other"];
-      for (const roomType of knownRoomTypes) {
+      for (const roomType of KNOWN_ROOM_TYPES) {
         if (!usersByRoom.has(roomType)) {
           this.metricsService.reconcileUsersByRoom(roomType, 0);
         }
@@ -35,7 +35,7 @@ export class MetricsCollectorService {
       for (const [roomType, count] of activeRoomsByType.entries()) {
         this.metricsService.reconcileActiveRooms(roomType, count);
       }
-      for (const roomType of knownRoomTypes) {
+      for (const roomType of KNOWN_ROOM_TYPES) {
         if (!activeRoomsByType.has(roomType)) {
           this.metricsService.reconcileActiveRooms(roomType, 0);
         }

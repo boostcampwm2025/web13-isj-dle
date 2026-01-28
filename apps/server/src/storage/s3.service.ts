@@ -100,11 +100,7 @@ export class S3Service {
     const count = Math.max(0, Math.min(byteCount, 1024));
     if (count === 0) return Buffer.alloc(0);
 
-    const startTime = performance.now();
-    const getDurationSec = () => (performance.now() - startTime) / 1000;
-    let hasError = false;
-
-    try {
+    return this.withS3Metrics("getObject", async () => {
       const res = await this.client.send(
         new GetObjectCommand({
           Bucket: this.bucket,
@@ -113,20 +109,11 @@ export class S3Service {
         }),
       );
       return this.readBodyToBuffer(res.Body);
-    } catch (error) {
-      hasError = true;
-      throw error;
-    } finally {
-      this.metricsService.recordS3Request("getObject", hasError ? "error" : "success", getDurationSec());
-    }
+    });
   }
 
   async putObject({ key, body, contentType }: PutObjectParams): Promise<void> {
-    const startTime = performance.now();
-    const getDurationSec = () => (performance.now() - startTime) / 1000;
-    let hasError = false;
-
-    try {
+    return this.withS3Metrics("putObject", async () => {
       await this.client.send(
         new PutObjectCommand({
           Bucket: this.bucket,
@@ -139,23 +126,14 @@ export class S3Service {
       if (Buffer.isBuffer(body)) {
         this.metricsService.recordS3Upload(body.length);
       }
-    } catch (error) {
-      hasError = true;
-      throw error;
-    } finally {
-      this.metricsService.recordS3Request("putObject", hasError ? "error" : "success", getDurationSec());
-    }
+    });
   }
 
   async deleteObjects(keys: string[]): Promise<void> {
     const uniqueKeys = Array.from(new Set(keys.map((k) => k.trim()).filter(Boolean)));
     if (uniqueKeys.length === 0) return;
 
-    const startTime = performance.now();
-    const getDurationSec = () => (performance.now() - startTime) / 1000;
-    let hasError = false;
-
-    try {
+    return this.withS3Metrics("deleteObjects", async () => {
       const res = await this.client.send(
         new DeleteObjectsCommand({
           Bucket: this.bucket,
@@ -168,18 +146,12 @@ export class S3Service {
 
       const errors = res.Errors?.filter((e) => e.Key || e.Code || e.Message) ?? [];
       if (errors.length > 0) {
-        hasError = true;
         const first = errors[0];
         throw new Error(
           `Failed to delete S3 objects (count=${errors.length}) key=${first.Key ?? ""} code=${first.Code ?? ""}`,
         );
       }
-    } catch (error) {
-      hasError = true;
-      throw error;
-    } finally {
-      this.metricsService.recordS3Request("deleteObjects", hasError ? "error" : "success", getDurationSec());
-    }
+    });
   }
 
   async copyObject({ sourceKey, destinationKey }: CopyObjectParams): Promise<void> {
@@ -188,11 +160,7 @@ export class S3Service {
     if (!src || !dst) throw new Error("copyObject requires sourceKey and destinationKey");
     if (src === dst) return;
 
-    const startTime = performance.now();
-    const getDurationSec = () => (performance.now() - startTime) / 1000;
-    let hasError = false;
-
-    try {
+    return this.withS3Metrics("copyObject", async () => {
       const copySourceKey = encodeURIComponent(src).replace(/%2F/g, "/");
       await this.client.send(
         new CopyObjectCommand({
@@ -202,12 +170,7 @@ export class S3Service {
           MetadataDirective: "COPY",
         }),
       );
-    } catch (error) {
-      hasError = true;
-      throw error;
-    } finally {
-      this.metricsService.recordS3Request("copyObject", hasError ? "error" : "success", getDurationSec());
-    }
+    });
   }
 
   getPublicUrl(key: string): string {
@@ -225,7 +188,10 @@ export class S3Service {
 
   async objectExists(key: string): Promise<boolean> {
     const startTime = performance.now();
-    const getDurationSec = () => (performance.now() - startTime) / 1000;
+    const recordMetric = (status: "success" | "error") => {
+      const durationSec = (performance.now() - startTime) / 1000;
+      this.metricsService.recordS3Request("headObject", status, durationSec);
+    };
 
     try {
       await this.client.send(
@@ -234,17 +200,17 @@ export class S3Service {
           Key: key,
         }),
       );
-      this.metricsService.recordS3Request("headObject", "success", getDurationSec());
+      recordMetric("success");
       return true;
     } catch (e) {
       const err = e as { name?: string };
 
       if (err.name === "NotFound" || err.name === "NoSuchKey") {
-        this.metricsService.recordS3Request("headObject", "success", getDurationSec());
+        recordMetric("success");
         return false;
       }
 
-      this.metricsService.recordS3Request("headObject", "error", getDurationSec());
+      recordMetric("error");
       throw e;
     }
   }
@@ -253,5 +219,20 @@ export class S3Service {
     const trimmed = prefix.trim();
     if (!trimmed) return "";
     return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
+  }
+
+  private async withS3Metrics<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+    const startTime = performance.now();
+    let hasError = false;
+
+    try {
+      return await fn();
+    } catch (error) {
+      hasError = true;
+      throw error;
+    } finally {
+      const durationSec = (performance.now() - startTime) / 1000;
+      this.metricsService.recordS3Request(operation, hasError ? "error" : "success", durationSec);
+    }
   }
 }

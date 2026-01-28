@@ -12,7 +12,7 @@ import type {
 } from "@shared/types";
 
 import { generateRandomAvatar } from "../avatar/avatar.generator";
-import { MetricsService } from "../metrics";
+import { MetricsService, mapRoomIdToMetricType } from "../metrics";
 import { generateUniqueNickname } from "../nickname/nickname.generator";
 
 @Injectable()
@@ -54,7 +54,7 @@ export class UserManager {
     this.sessions.set(id, user);
     this.sessionStartTimes.set(id, Date.now());
 
-    const roomType = this.getRoomType(avatar.currentRoomId);
+    const roomType = mapRoomIdToMetricType(avatar.currentRoomId);
 
     this.metricsService.userJoined(roomType);
     this.updateRoomOccupancy(avatar.currentRoomId, 1);
@@ -98,8 +98,8 @@ export class UserManager {
     if (!user) return false;
 
     const oldRoomId = user.avatar.currentRoomId;
-    const oldRoomType = this.getRoomType(oldRoomId);
-    const newRoomType = this.getRoomType(roomId);
+    const oldRoomType = mapRoomIdToMetricType(oldRoomId);
+    const newRoomType = mapRoomIdToMetricType(roomId);
 
     user.avatar.currentRoomId = roomId;
 
@@ -156,7 +156,7 @@ export class UserManager {
     if (!user) return false;
 
     const roomId = user.avatar.currentRoomId;
-    const roomType = this.getRoomType(roomId);
+    const roomType = mapRoomIdToMetricType(roomId);
 
     const startTime = this.sessionStartTimes.get(id);
     if (startTime) {
@@ -178,7 +178,7 @@ export class UserManager {
   getUserCountByRoomType(): Map<string, number> {
     const cnt = new Map<string, number>();
     for (const user of this.sessions.values()) {
-      const roomType = this.getRoomType(user.avatar.currentRoomId);
+      const roomType = mapRoomIdToMetricType(user.avatar.currentRoomId);
       cnt.set(roomType, (cnt.get(roomType) || 0) + 1);
     }
     return cnt;
@@ -188,7 +188,7 @@ export class UserManager {
     const counts = new Map<string, number>();
     for (const [roomId, occupancy] of this.roomOccupancy.entries()) {
       if (occupancy > 0) {
-        const roomType = this.getRoomType(roomId);
+        const roomType = mapRoomIdToMetricType(roomId);
         counts.set(roomType, (counts.get(roomType) || 0) + 1);
       }
     }
@@ -204,7 +204,7 @@ export class UserManager {
   private updateRoomOccupancy(roomId: string, delta: number) {
     const current = this.roomOccupancy.get(roomId) || 0;
     const next = current + delta;
-    const roomType = this.getRoomType(roomId);
+    const roomType = mapRoomIdToMetricType(roomId);
 
     if (next <= 0) {
       this.roomOccupancy.delete(roomId);
@@ -217,15 +217,5 @@ export class UserManager {
         this.metricsService.incrementActiveRooms(roomType);
       }
     }
-  }
-
-  private getRoomType(roomId: string): string {
-    if (roomId === "lobby") return "lobby";
-    if (roomId === "desk zone") return "desk_zone";
-    if (roomId === "mogakco") return "mogakco";
-    if (roomId === "restaurant") return "restaurant";
-    if (roomId.startsWith("seminar")) return "seminar";
-    if (roomId.startsWith("meeting")) return "meeting";
-    return "other";
   }
 }
