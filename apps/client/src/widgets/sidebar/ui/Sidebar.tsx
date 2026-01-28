@@ -13,7 +13,7 @@ import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } 
 const MAX_BADGE_COUNT = 9;
 
 const Sidebar = () => {
-  const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
+  const { sidebarKeys, validCurrentKey, isOpen, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
 
@@ -29,36 +29,21 @@ const Sidebar = () => {
         }}
       >
         <div className="mx-2 my-2 h-[calc(100%-1rem)] overflow-hidden rounded-2xl bg-white p-4">
-          {currentPanel ? (
-            <div className="h-full w-full">
-              <div className="text-xl font-semibold">{currentPanel.title}</div>
-              <hr className="mt-2 mb-4 text-gray-500" />
-              <div className="h-[calc(100%-3.5rem)] overflow-y-auto">
-                {(() => {
-                  const CollaborationPanel = SIDEBAR_MAP["collaboration-tool"]?.Panel;
-                  const hasCollaborationTool = sidebarKeys.includes("collaboration-tool") && CollaborationPanel;
-                  return (
-                    <>
-                      {hasCollaborationTool && (
-                        <div className={validCurrentKey === "collaboration-tool" ? "h-full" : "hidden"}>
-                          <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
-                            <CollaborationPanel />
-                          </Suspense>
-                        </div>
-                      )}
-                      {validCurrentKey !== "collaboration-tool" && (
-                        <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
-                          <currentPanel.Panel />
-                        </Suspense>
-                      )}
-                    </>
-                  );
-                })()}
+          {sidebarKeys.map((key, index) => {
+            const isActive = key === validCurrentKey;
+            const PanelComponent = SIDEBAR_MAP[key];
+            return (
+              <div className={`h-full w-full ${isActive ? "block" : "hidden"}`} key={index}>
+                <div className="text-xl font-semibold">{PanelComponent.title}</div>
+                <hr className="mt-2 mb-4 text-gray-500" />
+                <div className="h-[calc(100%-3.5rem)] overflow-y-auto">
+                  <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                    <PanelComponent.Panel />
+                  </Suspense>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-gray-400">Select a panel</div>
-          )}
+            );
+          })}
         </div>
       </div>
 
