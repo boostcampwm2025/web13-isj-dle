@@ -135,7 +135,7 @@ export const TimerStopwatchSidebar = () => {
   const startStopButtonStyle = activeControl.isRunning ? TIMER_BUTTON_STYLES.running : TIMER_BUTTON_STYLES.stopped;
 
   return (
-    <div className="h-full w-full overflow-y-auto p-3">
+    <div className="h-full w-full overflow-y-auto">
       <div className="mx-auto w-full max-w-sm">
         <div className="rounded-2xl">
           <ModeToggle mode={mode} onModeChange={handleModeChange} />
@@ -232,7 +232,7 @@ const ModeToggle = ({ mode, onModeChange }: Readonly<ModeToggleProps>) => {
           <button
             key={modeItem}
             onClick={() => onModeChange(modeItem)}
-            className="relative z-10 flex-1 cursor-pointer py-1.5 text-sm text-gray-700"
+            className="relative z-10 flex-1 py-1.5 text-sm text-gray-700"
           >
             {MODE_LABELS[modeItem]}
           </button>

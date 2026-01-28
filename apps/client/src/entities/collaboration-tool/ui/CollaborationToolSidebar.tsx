@@ -46,7 +46,7 @@ const CollaborationToolSidebar = ({
   const buttonStyles = BUTTON_COLORS[buttonColor];
 
   return (
-    <div className="flex h-full w-full flex-col gap-4 p-2">
+    <div className="flex h-full w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
         <p className="text-sm text-gray-600">{description}</p>
       </div>

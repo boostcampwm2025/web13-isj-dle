@@ -16,7 +16,7 @@ import { MetricsService, mapRoomIdToMetricType } from "../metrics";
 import { generateUniqueNickname } from "../nickname/nickname.generator";
 
 @Injectable()
-export class UserManager {
+export class UserService {
   private readonly sessions = new Map<string, User>();
   private readonly roomOccupancy = new Map<string, number>();
   private readonly sessionStartTimes = new Map<string, number>();

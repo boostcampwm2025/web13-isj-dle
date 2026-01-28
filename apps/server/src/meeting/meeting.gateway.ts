@@ -12,12 +12,7 @@ import { Server, Socket } from "socket.io";
 
 import { MeetingService } from "./meeting.service";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class MeetingGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(MeetingGateway.name);

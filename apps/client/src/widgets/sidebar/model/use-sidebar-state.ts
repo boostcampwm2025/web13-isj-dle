@@ -1,4 +1,3 @@
-import { SIDEBAR_MAP } from "./sidebar.constants";
 import { useSidebarStore } from "./sidebar.store";
 
 import { useEffect, useMemo } from "react";
@@ -49,9 +48,15 @@ const useSidebarState = () => {
       resetChatUnreadCount();
     }
   };
-  const currentPanel = validCurrentKey ? SIDEBAR_MAP[validCurrentKey] : null;
 
-  return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar, openSidebarWithLastKey };
+  return {
+    sidebarKeys,
+    validCurrentKey,
+    isOpen,
+    handleTabClick,
+    toggleSidebar,
+    openSidebarWithLastKey,
+  };
 };
 
 export default useSidebarState;

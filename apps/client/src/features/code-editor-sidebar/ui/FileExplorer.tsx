@@ -58,14 +58,14 @@ const FileExplorer = ({
         <div className="flex space-x-1">
           <button
             onClick={() => setIsCreatingRoot("file")}
-            className={`cursor-pointer rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
+            className={`rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
             title="새 파일"
           >
             <FilePlus size={16} />
           </button>
           <button
             onClick={() => setIsCreatingRoot("folder")}
-            className={`cursor-pointer rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
+            className={`rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
             title="새 폴더"
           >
             <FolderPlus size={16} />

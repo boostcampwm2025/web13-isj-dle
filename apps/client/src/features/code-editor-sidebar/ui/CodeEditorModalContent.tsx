@@ -69,7 +69,7 @@ const CodeEditorModalContent = () => {
         >
           <button
             onClick={() => setShowExplorer(!showExplorer)}
-            className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-md ${THEME_COLORS[theme].hoverBg} ${showExplorer ? "text-blue-500" : "text-gray-500"}`}
+            className={`flex h-10 w-10 items-center justify-center rounded-md ${THEME_COLORS[theme].hoverBg} ${showExplorer ? "text-blue-500" : "text-gray-500"}`}
             title="파일 탐색기"
           >
             <Files size={20} />

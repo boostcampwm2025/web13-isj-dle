@@ -2,14 +2,14 @@ import { optimizeImage } from "../lib/optimize-image";
 
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import { ALLOWED_IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_MB } from "@shared/types";
+import { ALLOWED_IMAGE_MIME_TYPES, IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_MB } from "@shared/types";
 
 export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE" | "OPTIMIZE_FAILED";
 
 export const DEFAULT_ACCEPT = ALLOWED_IMAGE_MIME_TYPES.join(",");
 
 export const validateImageFile = (file: File, maxSizeMB: number = MAX_IMAGE_FILE_SIZE_MB): ImageAttachError | null => {
-  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
+  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type as IMAGE_MIME_TYPES)) {
     return "INVALID_TYPE";
   }
   if (file.size > maxSizeMB * 1024 * 1024) {

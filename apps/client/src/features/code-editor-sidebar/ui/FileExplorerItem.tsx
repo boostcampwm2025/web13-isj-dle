@@ -111,7 +111,7 @@ export const FileExplorerItem = ({
                   setCreatingState({ parentId: node.id, type: "file" });
                   if (!isExpanded) toggleFolder(node.id);
                 }}
-                className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
+                className={`rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
                 title="새 파일"
               >
                 <FilePlus size={12} />
@@ -122,7 +122,7 @@ export const FileExplorerItem = ({
                   setCreatingState({ parentId: node.id, type: "folder" });
                   if (!isExpanded) toggleFolder(node.id);
                 }}
-                className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
+                className={`rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
                 title="새 폴더"
               >
                 <FolderPlus size={12} />
@@ -134,7 +134,7 @@ export const FileExplorerItem = ({
               e.stopPropagation();
               setIsEditing(true);
             }}
-            className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
+            className={`rounded p-0.5 ${THEME_COLORS[theme].textColor}`}
             title="이름 변경"
           >
             <Edit2 size={12} />
@@ -144,7 +144,7 @@ export const FileExplorerItem = ({
               e.stopPropagation();
               onDelete(node.id);
             }}
-            className={`cursor-pointer rounded p-0.5 ${THEME_COLORS[theme].deletedTextColor}`}
+            className={`rounded p-0.5 ${THEME_COLORS[theme].deletedTextColor}`}
             title="삭제"
           >
             <Trash2 size={12} />

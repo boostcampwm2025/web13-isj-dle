@@ -14,7 +14,7 @@ const BottomNav = () => {
         return (
           <div key={key} className="group relative">
             <button
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl bg-gray-700 hover:bg-gray-300 [&>svg]:h-5 [&>svg]:w-5"
+              className="flex h-8 w-8 items-center justify-center rounded-2xl bg-gray-700 hover:bg-gray-300 [&>svg]:h-5 [&>svg]:w-5"
               onClick={handleClick}
             >
               {icon}

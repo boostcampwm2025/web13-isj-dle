@@ -7,7 +7,7 @@ import { In, Repository } from "typeorm";
 import { S3Service } from "../storage/s3.service";
 import { RestaurantImageEntity } from "./restaurant-image.entity";
 
-const BATCH_SIZE = 100;
+const CLEANUP_BATCH_SIZE = 100;
 const S3_LIST_BATCH_SIZE = 500;
 const MAX_CONSECUTIVE_FAILURES = 3;
 const RESTAURANT_IMAGES_PREFIX = "restaurant-images/";
@@ -63,7 +63,7 @@ export class RestaurantImageCleanupService {
       .select(["img.id", "img.key"])
       .where("img.id > :lastId", { lastId })
       .orderBy("img.id", "ASC")
-      .limit(BATCH_SIZE)
+      .limit(CLEANUP_BATCH_SIZE)
       .getMany();
   }
 
@@ -148,7 +148,7 @@ export class RestaurantImageCleanupService {
     orphanKeys: string[],
     stats: { deletedCount: number; failedCount: number },
   ): Promise<void> {
-    const batchSize = BATCH_SIZE;
+    const batchSize = CLEANUP_BATCH_SIZE;
 
     for (let i = 0; i < orphanKeys.length; i += batchSize) {
       const batch = orphanKeys.slice(i, i + batchSize);

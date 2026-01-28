@@ -29,7 +29,7 @@ const CollaborationToolsSidebar = () => {
   }, [closeTool, currentRoomId, setActiveTab]);
 
   return (
-    <div className="flex h-full w-full flex-col pt-3">
+    <div className="flex h-full w-full flex-col">
       <CollaborationToolSwitch className="mb-4" variant="panel" />
 
       <div className="min-h-0 flex-1">

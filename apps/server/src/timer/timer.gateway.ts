@@ -12,28 +12,23 @@ import {
 } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 import { TimerService } from "./timer.service";
 
 const isMeetingRoomId = (roomId: string): boolean => roomId.startsWith("meeting");
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class TimerGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(TimerGateway.name);
 
   constructor(
     private readonly timerService: TimerService,
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
   ) {}
 
   private validateTimerRequest(client: Socket, roomId: RoomType): boolean {
-    const user = this.userManager.getSession(client.id);
+    const user = this.userService.getSession(client.id);
     if (!user) return false;
 
     return user.avatar.currentRoomId === roomId;
@@ -81,6 +76,8 @@ export class TimerGateway {
     if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
     const timerState = this.timerService.getTimerState(roomId);
+    const finishedAt = (timerState.startedAt ?? 0) + timerState.initialTimeSec * 1000;
+    if (Date.now() > finishedAt) return;
     client.emit(TimerEventType.TIMER_STATE, timerState);
   }
 }

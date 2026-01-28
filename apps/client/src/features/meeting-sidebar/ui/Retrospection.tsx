@@ -15,7 +15,7 @@ const Retrospection = () => {
 
           <button
             onClick={handleTemplate}
-            className="cursor-pointer rounded-xl bg-amber-300 px-3 py-1 text-sm font-semibold text-amber-950 hover:bg-amber-400 active:scale-[0.95]"
+            className="rounded-xl bg-amber-300 px-3 py-1 text-sm font-semibold text-amber-950 hover:bg-amber-400 active:scale-[0.95]"
           >
             랜덤 템플릿 받기
           </button>
@@ -36,7 +36,7 @@ const Retrospection = () => {
                 <div className="text-sm font-semibold text-gray-800">선택된 템플릿</div>
                 <button
                   onClick={resetTemplate}
-                  className="cursor-pointer rounded-xl bg-amber-100 px-3 py-1 text-xs text-amber-800 hover:bg-amber-200"
+                  className="rounded-xl bg-amber-100 px-3 py-1 text-xs text-amber-800 hover:bg-amber-200"
                 >
                   템플릿 초기화
                 </button>
@@ -53,7 +53,7 @@ const Retrospection = () => {
                 <div className="text-sm font-medium text-gray-700">템플릿 내용</div>
                 <button
                   onClick={handleCopy}
-                  className="cursor-pointer rounded-md bg-gray-200 p-2 text-gray-700 hover:bg-gray-300"
+                  className="rounded-md bg-gray-200 p-2 text-gray-700 hover:bg-gray-300"
                   title="복사하기"
                 >
                   <Copy size={14} />

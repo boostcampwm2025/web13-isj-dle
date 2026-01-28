@@ -6,22 +6,17 @@ import { type BreakoutConfig, LecternEventType, RoomType, UserEventType } from "
 import { Server, Socket } from "socket.io";
 
 import { type UserDisconnectingPayload, UserInternalEvent } from "../user/user-event.types";
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 import { LecternService } from "./lectern.service";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class LecternGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(LecternGateway.name);
 
   constructor(
     private readonly lecternService: LecternService,
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
   ) {}
 
   @SubscribeMessage(LecternEventType.LECTERN_ENTER)
@@ -53,10 +48,10 @@ export class LecternGateway {
       return;
     }
 
-    const targetUsers = this.userManager.getRoomSessions(payload.roomId).filter((user) => user.id !== client.id);
+    const targetUsers = this.userService.getRoomSessions(payload.roomId).filter((user) => user.id !== client.id);
     for (const user of targetUsers) {
       if (user.id !== client.id) {
-        this.userManager.updateSessionMedia(user.id, { micOn: false });
+        this.userService.updateSessionMedia(user.id, { micOn: false });
       }
     }
 

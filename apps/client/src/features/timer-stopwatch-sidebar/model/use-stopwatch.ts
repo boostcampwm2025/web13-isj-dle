@@ -36,8 +36,9 @@ export const useStopwatch = (): UseStopwatchReturn => {
       if (intervalRef.current !== null) {
         clearInterval(intervalRef.current);
       }
+      resetStopwatch();
     };
-  }, [isRunning]);
+  }, [isRunning, resetStopwatch]);
 
   const start = useCallback(() => {
     setStopwatch({ startedAt: Date.now(), isRunning: true });

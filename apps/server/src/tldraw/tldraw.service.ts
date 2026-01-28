@@ -7,7 +7,7 @@ import { IncomingMessage, Server } from "http";
 import { RawData, WebSocket, WebSocketServer } from "ws";
 
 import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class TldrawService implements OnModuleDestroy {
@@ -22,7 +22,7 @@ export class TldrawService implements OnModuleDestroy {
   });
   private rooms = new Map<string, TLSocketRoom>();
 
-  constructor(private readonly userManager: UserManager) {}
+  constructor(private readonly userService: UserService) {}
 
   attachToServer(server: Server) {
     server.on("upgrade", (req: IncomingMessage, socket, head) => {
@@ -119,7 +119,7 @@ export class TldrawService implements OnModuleDestroy {
     const { roomId } = payload;
 
     setTimeout(() => {
-      const usersInRoom = this.userManager.getRoomSessions(roomId);
+      const usersInRoom = this.userService.getRoomSessions(roomId);
 
       if (usersInRoom.length === 0) {
         this.cleanupRoom(roomId);

@@ -6,7 +6,7 @@ import { type DataSource } from "typeorm";
 import { type RestaurantImageEntity } from "../../src/restaurant/restaurant-image.entity";
 import { RestaurantService } from "../../src/restaurant/restaurant.service";
 import { type S3Service } from "../../src/storage/s3.service";
-import { type UserManager } from "../../src/user/user-manager.service";
+import { type UserService } from "../../src/user/user.service";
 
 describe("RestaurantService", () => {
   const makeService = (overrides?: {
@@ -23,7 +23,7 @@ describe("RestaurantService", () => {
       ...overrides?.s3,
     };
 
-    const userManager: Partial<UserManager> = {
+    const userService: Partial<UserService> = {
       getSession: () => ({ nickname: "nick" }) as never,
     };
 
@@ -56,7 +56,7 @@ describe("RestaurantService", () => {
 
     const service = new RestaurantService(
       s3Service as S3Service,
-      userManager as UserManager,
+      userService as UserService,
       dataSource as DataSource,
       eventEmitter as EventEmitter2,
       restaurantImageRepository as never,
@@ -128,7 +128,7 @@ describe("RestaurantService", () => {
         getPublicUrl: (key: string) => `https://cdn.example.com/${key}`,
       };
 
-      const userManager: Partial<UserManager> = {
+      const userService: Partial<UserService> = {
         getSession: () => ({ nickname: "nick" }) as never,
       };
 
@@ -149,7 +149,7 @@ describe("RestaurantService", () => {
 
       const service = new RestaurantService(
         s3Service as S3Service,
-        userManager as UserManager,
+        userService as UserService,
         dataSource as DataSource,
         eventEmitter as EventEmitter2,
         restaurantImageRepository as never,
