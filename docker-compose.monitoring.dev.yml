@@ -1,0 +1,48 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: moyo-prometheus-dev
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.dev.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_dev:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+      - "--web.enable-lifecycle"
+    networks:
+      - docker_moyo-network-dev
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: moyo-grafana-dev
+    restart: unless-stopped
+    volumes:
+      - grafana_data_dev:/var/lib/grafana
+      - ./monitoring/grafana/provisioning-dev:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - docker_moyo-network-dev
+
+volumes:
+  prometheus_data_dev:
+    driver: local
+  grafana_data_dev:
+    driver: local
+
+networks:
+  docker_moyo-network-dev:
+    external: true
