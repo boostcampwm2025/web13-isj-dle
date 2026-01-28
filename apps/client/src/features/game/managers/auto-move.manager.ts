@@ -48,7 +48,11 @@ export class AutoMoveManager {
     }
 
     this.easystar.findPath(from.x, from.y, to.x, to.y, (path) => {
-      if (!path || path.length === 0) return;
+      if (!path || path.length === 0) {
+        console.warn(`AutoMoveManager: No path found from: ${from} to: ${to}`);
+        this.targetTile = undefined;
+        return;
+      }
 
       this.followPath(path, direction);
     });
