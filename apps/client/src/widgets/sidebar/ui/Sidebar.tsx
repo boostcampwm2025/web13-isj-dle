@@ -34,9 +34,26 @@ const Sidebar = () => {
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2 text-gray-500" />
               <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
-                <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
-                  <currentPanel.Panel />
-                </Suspense>
+                {(() => {
+                  const CollaborationPanel = SIDEBAR_MAP["collaboration-tool"]?.Panel;
+                  const hasCollaborationTool = sidebarKeys.includes("collaboration-tool") && CollaborationPanel;
+                  return (
+                    <>
+                      {hasCollaborationTool && (
+                        <div className={validCurrentKey === "collaboration-tool" ? "h-full" : "hidden"}>
+                          <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                            <CollaborationPanel />
+                          </Suspense>
+                        </div>
+                      )}
+                      {validCurrentKey !== "collaboration-tool" && (
+                        <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                          <currentPanel.Panel />
+                        </Suspense>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           ) : (

@@ -1,4 +1,4 @@
-import { AVATAR_MOVE_SPEED } from "../model/game.constants";
+import { AVATAR_RUN_SPEED, AVATAR_WALK_SPEED } from "../model/game.constants";
 import type { MoveKeys } from "../model/game.types";
 import Phaser from "phaser";
 
@@ -33,6 +33,7 @@ export class InputManager {
       this.keys.left.enabled = enabled;
       this.keys.right.enabled = enabled;
       this.keys.sit.enabled = enabled;
+      this.keys.shift.enabled = enabled;
     }
 
     if (this.cursors) {
@@ -59,6 +60,7 @@ export class InputManager {
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
       sit: Phaser.Input.Keyboard.KeyCodes.E,
+      shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
     }) as MoveKeys;
 
     keyboard.on("keydown", (e: KeyboardEvent) => {
@@ -93,11 +95,17 @@ export class InputManager {
   }
 
   dirToVel(dir: AvatarDirection | null): { vx: number; vy: number } {
-    if (dir === "left") return { vx: -AVATAR_MOVE_SPEED, vy: 0 };
-    if (dir === "right") return { vx: AVATAR_MOVE_SPEED, vy: 0 };
-    if (dir === "up") return { vx: 0, vy: -AVATAR_MOVE_SPEED };
-    if (dir === "down") return { vx: 0, vy: AVATAR_MOVE_SPEED };
+    const speed = this.isShiftKeyPressed() ? AVATAR_RUN_SPEED : AVATAR_WALK_SPEED;
+    if (dir === "left") return { vx: -speed, vy: 0 };
+    if (dir === "right") return { vx: speed, vy: 0 };
+    if (dir === "up") return { vx: 0, vy: -speed };
+    if (dir === "down") return { vx: 0, vy: speed };
     return { vx: 0, vy: 0 };
+  }
+
+  isShiftKeyPressed(): boolean {
+    if (!this._enabled) return false;
+    return this.keys?.shift.isDown ?? false;
   }
 
   isSitKeyPressed(): boolean {

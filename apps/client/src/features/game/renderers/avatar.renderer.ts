@@ -73,6 +73,8 @@ export class AvatarRenderer {
       this.toSit(avatar, avatarModel.direction);
     } else if (avatarModel.state === "walk") {
       this.toWalk(avatar, avatarModel.direction);
+    } else if (avatarModel.state === "run") {
+      this.toRun(avatar, avatarModel.direction);
     } else {
       this.toIdle(avatar, avatarModel.direction);
     }
@@ -263,6 +265,11 @@ export class AvatarRenderer {
 
   private toWalk(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection): void {
     const key = `walk-${sprite.texture.key}-${dir}`;
+    sprite.anims.play(key, true);
+  }
+
+  private toRun(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection): void {
+    const key = `run-${sprite.texture.key}-${dir}`;
     sprite.anims.play(key, true);
   }
 

@@ -15,6 +15,7 @@ import { BoundaryService } from "src/boundary/boundary.service";
 import { BoundaryTracker } from "src/boundary/boundaryTracker.service";
 
 import { MetricsService } from "../metrics";
+import { UserInternalEvent } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 
 const BOUNDARY_TICK_MS = 100;
@@ -82,7 +83,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       this.boundaryTracker.clear(client.id);
 
-      this.eventEmitter.emit("user.disconnecting", { clientId: client.id, nickname });
+      this.eventEmitter.emit(UserInternalEvent.DISCONNECTING, { clientId: client.id, nickname });
 
       const deleted = this.userManager.deleteSession(client.id);
       if (!deleted) {
@@ -95,7 +96,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
 
       if (previousRoomId) {
-        this.eventEmitter.emit("user.leaving-room", { roomId: previousRoomId });
+        this.eventEmitter.emit(UserInternalEvent.LEAVING_ROOM, { roomId: previousRoomId });
       }
     } catch (err) {
       this.logger.error(`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));

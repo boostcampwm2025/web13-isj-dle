@@ -5,6 +5,7 @@ import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/web
 import { type BreakoutConfig, LecternEventType, RoomType, UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
+import { type UserDisconnectingPayload, UserInternalEvent } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 import { LecternService } from "./lectern.service";
 
@@ -160,8 +161,8 @@ export class LecternGateway {
     }
   }
 
-  @OnEvent("user.disconnecting")
-  handleUserDisconnect({ clientId }: { clientId: string }) {
+  @OnEvent(UserInternalEvent.DISCONNECTING)
+  handleUserDisconnect({ clientId }: UserDisconnectingPayload) {
     const affectedRooms = this.lecternService.removeUserFromAllLecterns(clientId);
     for (const [roomId, state] of affectedRooms) {
       this.server.to(roomId).emit(LecternEventType.LECTERN_UPDATE, {

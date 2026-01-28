@@ -11,6 +11,7 @@ import {
 } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
+import { type UserDisconnectingPayload, UserInternalEvent } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 import { KnockService } from "./knock.service";
 
@@ -242,8 +243,8 @@ export class KnockGateway {
     this.logger.log(`📞 대화 종료 (사용자 요청): ${user.nickname} ↔ ${partner?.nickname}`);
   }
 
-  @OnEvent("user.disconnecting")
-  handleUserDisconnecting({ clientId, nickname }: { clientId: string; nickname: string }) {
+  @OnEvent(UserInternalEvent.DISCONNECTING)
+  handleUserDisconnecting({ clientId, nickname }: UserDisconnectingPayload) {
     this.endTalkIfNeeded(clientId, nickname, "disconnected");
 
     const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(clientId);

@@ -5,6 +5,7 @@ export type RoomType =
   | "seminar (lounge)"
   | "lobby"
   | "mogakco"
+  | "moyo"
   | "restaurant"
   | "desk zone"
   | "meeting (web 1-10)"
