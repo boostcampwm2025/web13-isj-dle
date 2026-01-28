@@ -8,7 +8,7 @@ import {
 import { useImageAttachment } from "../model/use-image-attachment";
 import { Camera } from "lucide-react";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useRestaurantImageViewStore, useUploadRestaurantImageMutation } from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
@@ -57,10 +57,10 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
     return () => window.removeEventListener("focus", handleFocus);
   }, [isFileDialogOpen]);
 
-  const handleOpenFileDialog = () => {
+  const handleOpenFileDialog = useCallback(() => {
     setIsFileDialogOpen(true);
     openFileDialog();
-  };
+  }, [openFileDialog]);
 
   useEffect(() => {
     if (isUploadRequested && !prevIsUploadRequestedRef.current) {
@@ -68,7 +68,7 @@ const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadErro
       handleOpenFileDialog();
     }
     prevIsUploadRequestedRef.current = isUploadRequested;
-  }, [isUploadRequested, clearUploadRequest]);
+  }, [isUploadRequested, clearUploadRequest, handleOpenFileDialog]);
 
   const message = (() => {
     if (error === "INVALID_TYPE") {
