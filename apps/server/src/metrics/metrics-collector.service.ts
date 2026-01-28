@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 import { KNOWN_ROOM_TYPES } from "./metric-room-types";
 import { MetricsService } from "./metrics.service";
 
@@ -10,17 +10,17 @@ export class MetricsCollectorService {
   private readonly logger = new Logger(MetricsCollectorService.name);
   constructor(
     private readonly metricsService: MetricsService,
-    @Inject(forwardRef(() => UserManager))
-    private readonly userManager: UserManager,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   reconcileMetrics() {
     try {
-      const actualUserCount = this.userManager.getSessionCount();
+      const actualUserCount = this.userService.getSessionCount();
       this.metricsService.reconcileOnlineUsers(actualUserCount);
 
-      const usersByRoom = this.userManager.getUserCountByRoomType();
+      const usersByRoom = this.userService.getUserCountByRoomType();
       for (const [roomType, count] of usersByRoom.entries()) {
         this.metricsService.reconcileUsersByRoom(roomType, count);
       }
@@ -31,7 +31,7 @@ export class MetricsCollectorService {
         }
       }
 
-      const activeRoomsByType = this.userManager.getActiveRoomCountByType();
+      const activeRoomsByType = this.userService.getActiveRoomCountByType();
       for (const [roomType, count] of activeRoomsByType.entries()) {
         this.metricsService.reconcileActiveRooms(roomType, count);
       }

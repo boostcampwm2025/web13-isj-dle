@@ -11,7 +11,7 @@ import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
 
 import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 
 const MESSAGE_SYNC = 0;
 const MESSAGE_AWARENESS = 1;
@@ -31,7 +31,7 @@ export class YjsService implements OnModuleDestroy {
 
   private clientIds: Map<WebSocket, number> = new Map();
 
-  constructor(private readonly userManager: UserManager) {
+  constructor(private readonly userService: UserService) {
     this.wss = new WebSocketServer({ noServer: true });
   }
 
@@ -266,7 +266,7 @@ export class YjsService implements OnModuleDestroy {
     const { roomId } = payload;
 
     setTimeout(() => {
-      const usersInRoom = this.userManager.getRoomSessions(roomId);
+      const usersInRoom = this.userService.getRoomSessions(roomId);
 
       if (usersInRoom.length === 0) {
         const sanitizedRoomId = roomId.replace(/[\s()]/g, "-");

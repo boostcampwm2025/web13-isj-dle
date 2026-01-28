@@ -4,19 +4,19 @@ import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/web
 import { AvatarDirection, AvatarState, UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
-import { UserManager } from "./user-manager.service";
+import { UserService } from "./user.service";
 
 @WebSocketGateway()
 export class UserGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(UserGateway.name);
 
-  constructor(private readonly userManager: UserManager) {}
+  constructor(private readonly userService: UserService) {}
 
   @SubscribeMessage(UserEventType.USER_UPDATE)
   handleUserUpdate(client: Socket, payload: { cameraOn?: boolean; micOn?: boolean }) {
-    const updated = this.userManager.updateSessionMedia(client.id, payload);
-    const user = this.userManager.getSession(client.id);
+    const updated = this.userService.updateSessionMedia(client.id, payload);
+    const user = this.userService.getSession(client.id);
 
     if (!updated || !user) {
       this.logger.warn(`⚠️ USER_UPDATE: Session not found for client: ${client.id}`);
@@ -32,8 +32,8 @@ export class UserGateway {
     payload: { x: number; y: number; direction: AvatarDirection; state: AvatarState; force?: boolean },
     ack?: (res: any) => void,
   ) {
-    const updated = this.userManager.updateSessionPosition(client.id, payload);
-    const user = this.userManager.getSession(client.id);
+    const updated = this.userService.updateSessionPosition(client.id, payload);
+    const user = this.userService.getSession(client.id);
 
     if (!updated || !user) {
       this.logger.warn(`⚠️ PLAYER_MOVE: Session not found for client: ${client.id}`);

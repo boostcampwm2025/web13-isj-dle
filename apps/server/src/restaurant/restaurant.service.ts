@@ -19,7 +19,7 @@ import { randomUUID } from "crypto";
 import { DataSource, Repository } from "typeorm";
 
 import { S3Service } from "../storage/s3.service";
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 import { RestaurantImageEntity } from "./restaurant-image.entity";
 
 const ALLOWED_MIME_TYPES = new Set(ALLOWED_IMAGE_MIME_TYPES);
@@ -30,7 +30,7 @@ export class RestaurantService {
 
   constructor(
     private readonly s3Service: S3Service,
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitter2,
 
@@ -203,7 +203,7 @@ export class RestaurantService {
   }
 
   async saveImage(userId: string, key: string): Promise<void> {
-    const user = this.userManager.getSession(userId);
+    const user = this.userService.getSession(userId);
     const nickname = user?.nickname ?? "";
 
     await this.restaurantImageRepository.save({

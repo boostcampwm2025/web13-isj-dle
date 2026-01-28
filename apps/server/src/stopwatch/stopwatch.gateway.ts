@@ -10,7 +10,7 @@ import {
 import { RoomType, StopwatchEventType, type StopwatchSyncPayload, type StopwatchUpdatePayload } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 import { StopwatchService } from "./stopwatch.service";
 
 const isMogakcoRoom = (roomId: string): boolean => roomId === "mogakco";
@@ -24,18 +24,18 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   constructor(
     private readonly stopwatchService: StopwatchService,
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
   ) {}
 
   private validateRequest(client: Socket, roomId: RoomType): boolean {
-    const user = this.userManager.getSession(client.id);
+    const user = this.userService.getSession(client.id);
     if (!user) return false;
 
     return user.avatar.currentRoomId === roomId;
   }
 
   handleConnection(client: Socket) {
-    const user = this.userManager.getSession(client.id);
+    const user = this.userService.getSession(client.id);
     if (user && user.avatar.currentRoomId && isMogakcoRoom(user.avatar.currentRoomId)) {
       this.socketUserMap.set(client.id, {
         userId: user.id,
@@ -50,7 +50,7 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
     const roomId = payload?.roomId;
     if (!roomId || !isMogakcoRoom(roomId) || !this.validateRequest(client, roomId)) return;
 
-    const user = this.userManager.getSession(client.id);
+    const user = this.userService.getSession(client.id);
     if (!user) return;
 
     this.socketUserMap.set(client.id, {

@@ -12,7 +12,7 @@ import {
 } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
-import { UserManager } from "../user/user-manager.service";
+import { UserService } from "../user/user.service";
 import { TimerService } from "./timer.service";
 
 const isMeetingRoomId = (roomId: string): boolean => roomId.startsWith("meeting");
@@ -24,11 +24,11 @@ export class TimerGateway {
 
   constructor(
     private readonly timerService: TimerService,
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
   ) {}
 
   private validateTimerRequest(client: Socket, roomId: RoomType): boolean {
-    const user = this.userManager.getSession(client.id);
+    const user = this.userService.getSession(client.id);
     if (!user) return false;
 
     return user.avatar.currentRoomId === roomId;
