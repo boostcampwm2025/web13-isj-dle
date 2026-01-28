@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
 
-import { restaurantImageKeys, useRestaurantImageStore } from "@entities/restaurant-image";
+import { restaurantImageKeys, updateRestaurantImagesCache, useRestaurantImageStore } from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
 import { emitAck, useWebSocket } from "@features/socket";
 import {
   RestaurantImageEventType,
+  type RestaurantImageLikeUpdatedPayload,
   type RestaurantThumbnailUpdatedPayload,
   type RestaurantThumbnailsStatePayload,
 } from "@shared/types";
@@ -60,9 +61,26 @@ export const useSyncImage = () => {
       }
     };
 
+    const handleLikeUpdated = (payload: RestaurantImageLikeUpdatedPayload) => {
+      const imageId = String(payload?.imageId ?? "").trim();
+      if (!imageId) return;
+
+      const likes = typeof payload?.likes === "number" ? payload.likes : Number(payload?.likes);
+      if (!Number.isFinite(likes)) return;
+
+      queryClient.setQueriesData({ queryKey: ["restaurantImages"] }, (old) =>
+        updateRestaurantImagesCache(old, (img) => {
+          if (img.id !== imageId) return img;
+          return img.likes === likes ? img : { ...img, likes };
+        }),
+      );
+    };
+
     socket.on(RestaurantImageEventType.THUMBNAIL_UPDATED, handleThumbnailUpdated);
+    socket.on(RestaurantImageEventType.IMAGE_LIKE_UPDATED, handleLikeUpdated);
     return () => {
       socket.off(RestaurantImageEventType.THUMBNAIL_UPDATED, handleThumbnailUpdated);
+      socket.off(RestaurantImageEventType.IMAGE_LIKE_UPDATED, handleLikeUpdated);
     };
   }, [socket, queryClient, me?.id]);
 
@@ -79,20 +97,17 @@ export const useSyncImage = () => {
         const map = res?.thumbnailsByUserId ?? {};
         useRestaurantImageStore.setState((state) => {
           let changed = false;
-          const nextLatest = { ...state.latestImageIdByUserId };
-          const nextImagesById = { ...state.imagesById };
+          const next = { ...state.thumbnailUrlByUserId };
 
           for (const [userId, url] of Object.entries(map)) {
             const nextUrl = url ?? null;
-            const currentId = state.latestImageIdByUserId[userId] ?? null;
-            if (currentId === nextUrl) continue;
+            if (state.thumbnailUrlByUserId[userId] === nextUrl) continue;
             changed = true;
-            nextLatest[userId] = nextUrl;
-            if (nextUrl) nextImagesById[nextUrl] = { id: nextUrl, userId, url: nextUrl };
+            next[userId] = nextUrl;
           }
 
           if (!changed) return state;
-          return { ...state, latestImageIdByUserId: nextLatest, imagesById: nextImagesById };
+          return { ...state, thumbnailUrlByUserId: next };
         });
       })
       .catch(() => undefined);

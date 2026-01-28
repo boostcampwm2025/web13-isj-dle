@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  MAX_IMAGES_PER_USER,
   type RestaurantImage,
   RestaurantImageEventType,
   type RestaurantImageFeedResponse,
@@ -16,8 +18,7 @@ import { S3Service } from "../storage/s3.service";
 import { UserManager } from "../user/user-manager.service";
 import { RestaurantImageEntity } from "./restaurant-image.entity";
 
-const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
-const MAX_IMAGES_PER_USER = 50;
+const ALLOWED_MIME_TYPES = new Set(ALLOWED_IMAGE_MIME_TYPES);
 
 @Injectable()
 export class RestaurantService {
@@ -65,25 +66,46 @@ export class RestaurantService {
       return;
     }
 
+    if (ct === "image/webp") {
+      // WebP: RIFF....WEBP (bytes 0-3: "RIFF", bytes 8-11: "WEBP")
+      const ok =
+        buffer.length >= 12 &&
+        buffer[0] === 0x52 &&
+        buffer[1] === 0x49 &&
+        buffer[2] === 0x46 &&
+        buffer[3] === 0x46 &&
+        buffer[8] === 0x57 &&
+        buffer[9] === 0x45 &&
+        buffer[10] === 0x42 &&
+        buffer[11] === 0x50;
+      if (!ok) throw new BadRequestException("Invalid WebP file signature");
+      return;
+    }
+
     throw new BadRequestException(`Invalid content type: ${contentType}`);
   }
 
-  private extractExtensionFromKey(key: string): "jpg" | "png" | null {
+  private extractExtensionFromKey(key: string): "jpg" | "png" | "webp" | null {
     const ext = key.split(".").pop()?.toLowerCase();
     if (ext === "jpg") return "jpg";
     if (ext === "png") return "png";
+    if (ext === "webp") return "webp";
     return null;
   }
 
   private async validateTempObjectSignature(key: string, finalKey: string): Promise<void> {
     const ext = this.extractExtensionFromKey(finalKey);
     if (!ext) {
-      throw new BadRequestException("Invalid key extension (allowed: .jpg, .png)");
+      throw new BadRequestException("Invalid key extension (allowed: .jpg, .png, .webp)");
     }
 
     const prefix = await this.s3Service.getObjectPrefixBytes(key, 16);
-    const contentType = ext === "png" ? "image/png" : "image/jpeg";
-    this.validateImageMagicBytes(prefix, contentType);
+    const contentTypeMap: Record<string, string> = {
+      jpg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+    };
+    this.validateImageMagicBytes(prefix, contentTypeMap[ext]);
   }
 
   private validateKeyOwnership(userId: string, key: string): void {
@@ -95,45 +117,73 @@ export class RestaurantService {
     }
   }
 
-  async getImagesByUserId(userId: string): Promise<RestaurantImageResponse> {
+  private mapEntityToImage(entity: RestaurantImageEntity, requestUserId: string): RestaurantImage {
+    const likedBy = Array.isArray(entity.likedBy) ? entity.likedBy : [];
+    return {
+      id: String(entity.id),
+      url: this.resolveKeyForView(entity.key),
+      userId: entity.userId,
+      nickname: entity.nickname,
+      likes: entity.likes,
+      likedByMe: likedBy.includes(requestUserId),
+      createdAt: entity.createdAt.toISOString(),
+    };
+  }
+
+  async getImagesByUserId(requestUserId: string, targetUserId: string): Promise<RestaurantImageResponse> {
     const userImages = await this.restaurantImageRepository.find({
-      where: { userId },
+      where: { userId: targetUserId },
       order: { createdAt: "DESC" },
     });
 
-    const images: RestaurantImage[] = await Promise.all(
-      userImages.map(async (img) => ({
-        id: String(img.id),
-        url: await this.resolveKeyForView(img.key),
-        userId: img.userId,
-        nickname: img.nickname,
-        createdAt: img.createdAt.toISOString(),
-      })),
-    );
+    const images = userImages.map((img) => this.mapEntityToImage(img, requestUserId));
 
     return {
-      latestImage: images[0] || null,
+      latestImage: images[0] ?? null,
       images,
     };
   }
 
-  async getRecentImages(limit = 50): Promise<RestaurantImageFeedResponse> {
+  async getRecentImages(requestUserId: string, limit = 50): Promise<RestaurantImageFeedResponse> {
     const rows = await this.restaurantImageRepository.find({
       order: { createdAt: "DESC" },
       take: limit,
     });
 
-    const images: RestaurantImage[] = await Promise.all(
-      rows.map(async (img) => ({
-        id: String(img.id),
-        url: await this.resolveKeyForView(img.key),
-        userId: img.userId,
-        nickname: img.nickname,
-        createdAt: img.createdAt.toISOString(),
-      })),
-    );
+    const images = rows.map((img) => this.mapEntityToImage(img, requestUserId));
 
     return { images };
+  }
+
+  async toggleImageLike(userId: string, imageId: number): Promise<{ likes: number; liked: boolean }> {
+    const result = await this.dataSource.transaction(async (manager) => {
+      const imageRepository = manager.getRepository(RestaurantImageEntity);
+
+      const image = await imageRepository.findOne({
+        where: { id: imageId },
+        select: { id: true, likes: true, likedBy: true },
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!image) {
+        throw new BadRequestException("Image not found");
+      }
+
+      const likedBy = Array.isArray(image.likedBy) ? image.likedBy.filter(Boolean) : [];
+      const alreadyLiked = likedBy.includes(userId);
+      const newLikedBy = alreadyLiked ? likedBy.filter((id) => id !== userId) : [...likedBy, userId];
+      const newLikes = newLikedBy.length;
+
+      await imageRepository.update({ id: imageId }, { likes: newLikes, likedBy: newLikedBy });
+
+      return { likes: newLikes, liked: !alreadyLiked };
+    });
+
+    this.eventEmitter.emit(RestaurantImageEventType.IMAGE_LIKE_UPDATED, {
+      imageId: String(imageId),
+      likes: result.likes,
+    });
+    return result;
   }
 
   async getLatestThumbnailUrlByUserId(userId: string): Promise<string | null> {
@@ -160,6 +210,8 @@ export class RestaurantService {
       userId,
       key,
       nickname,
+      likes: 0,
+      likedBy: [],
     });
   }
 
@@ -174,9 +226,8 @@ export class RestaurantService {
       key,
     });
 
-    const viewUrl = await this.s3Service.createGetPresignedUrl({ key, expiresInSeconds: 300 });
-    const imageUrl = viewUrl;
-    return { key, uploadUrl, imageUrl, viewUrl };
+    const viewUrl = this.s3Service.getPublicUrl(key);
+    return { key, uploadUrl, imageUrl: viewUrl, viewUrl };
   }
 
   private async checkImageLimit(userId: string): Promise<void> {
@@ -241,6 +292,7 @@ export class RestaurantService {
       key,
       body: file.buffer,
       contentType,
+      cacheControl: "public, max-age=604800",
     });
 
     try {
@@ -267,17 +319,36 @@ export class RestaurantService {
 
     this.validateKeyOwnership(userId, key);
 
-    const row = await this.restaurantImageRepository.findOne({
-      where: { userId, key },
-      select: { id: true, key: true },
-    });
+    if (this.s3Service.isTempKey(key)) {
+      try {
+        await this.s3Service.deleteObjects([key]);
+      } catch (e) {
+        this.logger.warn(`Failed to delete temp S3 object: ${key}`, e);
+        throw new InternalServerErrorException("Failed to delete image");
+      }
+      return;
+    }
 
-    if (!row) return;
+    try {
+      await this.dataSource.transaction(async (manager) => {
+        const repo = manager.getRepository(RestaurantImageEntity);
 
-    await this.restaurantImageRepository.delete({ id: row.id });
+        const row = await repo.findOne({
+          where: { userId, key },
+          select: { id: true, key: true },
+        });
 
-    this.s3Service.deleteObjects([row.key]).catch((e) => {
-      this.logger.warn(`Failed to delete S3 object after DB deletion: ${row.key}`, e);
+        if (row) {
+          await repo.delete({ id: row.id });
+        }
+      });
+    } catch (e) {
+      this.logger.warn(`Failed to delete image from DB: key=${key}`, e);
+      throw new InternalServerErrorException("Failed to delete image");
+    }
+
+    this.s3Service.deleteObjects([key]).catch((e) => {
+      this.logger.warn(`Failed to delete S3 object after DB deletion: ${key}`, e);
     });
 
     this.emitThumbnailUpdated(userId).catch((e) =>
@@ -355,6 +426,7 @@ export class RestaurantService {
     const byMime: Record<string, string> = {
       "image/jpeg": "jpg",
       "image/png": "png",
+      "image/webp": "webp",
     };
 
     const fromMime = byMime[this.normalizeContentType(contentType)];
@@ -363,22 +435,30 @@ export class RestaurantService {
     throw new BadRequestException(`Invalid content type: ${contentType}`);
   }
 
-  private async resolveKeyForView(key: string): Promise<string> {
-    const expiresInSeconds = this.s3Service.isTempKey(key) ? 300 : 60 * 60 * 24;
-    return this.s3Service.createGetPresignedUrl({ key, expiresInSeconds });
+  private resolveKeyForView(key: string): string {
+    return this.s3Service.getPublicUrl(key);
   }
 
   private extractKeyFromUrl(imageUrl: string): string | null {
     const trimmed = imageUrl.trim();
     if (!trimmed) return null;
 
+    const cleanupKey = (k: string): string => {
+      const noQuery = k.split(/[?#]/)[0] ?? "";
+      const noLeadingSlash = noQuery.replace(/^\/+/, "");
+      const bucketPrefix = `${this.s3Service.getBucket()}/`;
+      const withoutBucket = noLeadingSlash.startsWith(bucketPrefix)
+        ? noLeadingSlash.slice(bucketPrefix.length)
+        : noLeadingSlash;
+      return withoutBucket.trim();
+    };
+
     try {
       const url = new URL(trimmed);
       const path = url.pathname.replace(/^\/+/, "");
-      const bucketPrefix = `${this.s3Service.getBucket()}/`;
-      return path.startsWith(bucketPrefix) ? path.slice(bucketPrefix.length) : path;
+      return cleanupKey(path);
     } catch {
-      return null;
+      return cleanupKey(trimmed);
     }
   }
 }

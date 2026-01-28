@@ -1,13 +1,15 @@
+import { optimizeImage } from "../lib/optimize-image";
+
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
-export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE";
+import { ALLOWED_IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_MB } from "@shared/types";
 
-export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
-export const DEFAULT_MAX_SIZE_MB = 7;
-export const DEFAULT_ACCEPT = ALLOWED_IMAGE_TYPES.join(",");
+export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE" | "OPTIMIZE_FAILED";
 
-export const validateImageFile = (file: File, maxSizeMB: number = DEFAULT_MAX_SIZE_MB): ImageAttachError | null => {
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+export const DEFAULT_ACCEPT = ALLOWED_IMAGE_MIME_TYPES.join(",");
+
+export const validateImageFile = (file: File, maxSizeMB: number = MAX_IMAGE_FILE_SIZE_MB): ImageAttachError | null => {
+  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
     return "INVALID_TYPE";
   }
   if (file.size > maxSizeMB * 1024 * 1024) {
@@ -22,7 +24,7 @@ type UseImageAttachmentOptions = {
 };
 
 export const useImageAttachment = (options: UseImageAttachmentOptions = {}) => {
-  const { accept = DEFAULT_ACCEPT, maxSizeMB = DEFAULT_MAX_SIZE_MB } = options;
+  const { accept = DEFAULT_ACCEPT, maxSizeMB = MAX_IMAGE_FILE_SIZE_MB } = options;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const objectUrlRef = useRef<string | null>(null);
@@ -51,7 +53,7 @@ export const useImageAttachment = (options: UseImageAttachmentOptions = {}) => {
   }, []);
 
   const handleFile = useCallback(
-    (nextFile: File | null) => {
+    async (nextFile: File | null) => {
       if (!nextFile) return;
 
       const validationError = validateImageFile(nextFile, maxSizeMB);
@@ -63,11 +65,17 @@ export const useImageAttachment = (options: UseImageAttachmentOptions = {}) => {
 
       clear();
 
-      const objectUrl = URL.createObjectURL(nextFile);
-      objectUrlRef.current = objectUrl;
+      try {
+        const optimized = await optimizeImage(nextFile);
 
-      setFile(nextFile);
-      setPreviewUrl(objectUrl);
+        const objectUrl = URL.createObjectURL(optimized);
+        objectUrlRef.current = objectUrl;
+
+        setFile(optimized);
+        setPreviewUrl(objectUrl);
+      } catch {
+        setError("OPTIMIZE_FAILED");
+      }
     },
     [clear, maxSizeMB],
   );

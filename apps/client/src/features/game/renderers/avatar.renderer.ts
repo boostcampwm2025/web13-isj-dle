@@ -181,7 +181,7 @@ export class AvatarRenderer {
 
     const text = document.createElement("span");
     text.className =
-      "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-none font-bold mt-[-1px]";
+      "thumbnail-text flex h-full w-full items-center justify-center text-[8px] leading-[10px] font-bold";
     button.append(img, text);
 
     this.updateThumbnailButtonNode(button, userId, isMe);

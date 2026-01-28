@@ -7,6 +7,7 @@ import {
   GetObjectCommand,
   type GetObjectCommandOutput,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
   type S3ClientConfig,
@@ -112,7 +113,7 @@ export class S3Service {
     });
   }
 
-  async putObject({ key, body, contentType }: PutObjectParams): Promise<void> {
+  async putObject({ key, body, contentType, cacheControl }: PutObjectParams): Promise<void> {
     return this.withS3Metrics("putObject", async () => {
       await this.client.send(
         new PutObjectCommand({
@@ -120,6 +121,7 @@ export class S3Service {
           Key: key,
           Body: body,
           ContentType: contentType,
+          CacheControl: cacheControl,
         }),
       );
 
@@ -213,6 +215,32 @@ export class S3Service {
       recordMetric("error");
       throw e;
     }
+  }
+
+  async listObjects(prefix: string, maxKeys = 1000): Promise<{ key: string; continuationToken?: string }[]> {
+    const result: { key: string }[] = [];
+    let continuationToken: string | undefined;
+
+    do {
+      const res = await this.client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          MaxKeys: Math.min(maxKeys - result.length, 1000),
+          ContinuationToken: continuationToken,
+        }),
+      );
+
+      for (const obj of res.Contents ?? []) {
+        if (obj.Key) {
+          result.push({ key: obj.Key });
+        }
+      }
+
+      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } while (continuationToken && result.length < maxKeys);
+
+    return result;
   }
 
   private normalizePrefix(prefix: string): string {

@@ -3,6 +3,8 @@ export type RestaurantImage = {
   url: string;
   userId: string;
   nickname: string;
+  likes: number;
+  likedByMe: boolean;
   createdAt: string;
 };
 
