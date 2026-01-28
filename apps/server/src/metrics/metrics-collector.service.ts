@@ -24,7 +24,7 @@ export class MetricsCollectorService {
         this.metricsService.reconcileUsersByRoom(roomType, count);
       }
 
-      const knownRoomTypes = ["lobby", "desk_zone", "mogakco", "meeting", "other"];
+      const knownRoomTypes = ["lobby", "desk_zone", "mogakco", "meeting", "restaurant", "other"];
       for (const roomType of knownRoomTypes) {
         if (!usersByRoom.has(roomType)) {
           this.metricsService.reconcileUsersByRoom(roomType, 0);
