@@ -10,6 +10,7 @@ import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
 
+import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 
 const MESSAGE_SYNC = 0;
@@ -260,12 +261,12 @@ export class YjsService implements OnModuleDestroy {
     this.logger.log("🛑 Yjs WebSocket Server closed");
   }
 
-  @OnEvent("user.leaving-room")
-  handleUserLeavingRoom(payload: { roomId: string }): void {
+  @OnEvent(UserInternalEvent.LEAVING_ROOM)
+  handleUserLeavingRoom(payload: UserLeavingRoomPayload): void {
     const { roomId } = payload;
 
     setTimeout(() => {
-      const usersInRoom = this.userManager.getRoomSessions(roomId as any);
+      const usersInRoom = this.userManager.getRoomSessions(roomId);
 
       if (usersInRoom.length === 0) {
         const sanitizedRoomId = roomId.replace(/[\s()]/g, "-");

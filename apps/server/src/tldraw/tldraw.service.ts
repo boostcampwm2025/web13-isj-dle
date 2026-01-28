@@ -6,6 +6,7 @@ import { createTLSchema, defaultBindingSchemas, defaultShapeSchemas } from "@tld
 import { IncomingMessage, Server } from "http";
 import { RawData, WebSocket, WebSocketServer } from "ws";
 
+import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 
 @Injectable()
@@ -113,12 +114,12 @@ export class TldrawService implements OnModuleDestroy {
     return room;
   }
 
-  @OnEvent("user.leaving-room")
-  handleUserLeavingRoom(payload: { roomId: string }): void {
+  @OnEvent(UserInternalEvent.LEAVING_ROOM)
+  handleUserLeavingRoom(payload: UserLeavingRoomPayload): void {
     const { roomId } = payload;
 
     setTimeout(() => {
-      const usersInRoom = this.userManager.getRoomSessions(roomId as any);
+      const usersInRoom = this.userManager.getRoomSessions(roomId);
 
       if (usersInRoom.length === 0) {
         this.cleanupRoom(roomId);

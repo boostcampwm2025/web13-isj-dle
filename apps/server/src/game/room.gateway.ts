@@ -8,6 +8,7 @@ import { Server, Socket } from "socket.io";
 import { KnockService } from "../knock/knock.service";
 import { StopwatchGateway } from "../stopwatch/stopwatch.gateway";
 import { TimerService } from "../timer/timer.service";
+import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 
 const isTimerRoomId = (roomId: RoomType): boolean => roomId.startsWith("meeting");
@@ -85,7 +86,7 @@ export class RoomGateway {
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
 
-      this.eventEmitter.emit("user.leaving-room", { roomId: previousRoomId });
+      this.eventEmitter.emit(UserInternalEvent.LEAVING_ROOM, { roomId: previousRoomId });
 
       this.cleanupTimerAfterLeave(previousRoomId);
       this.cleanupStopwatchAfterLeave(previousRoomId, client.id);
@@ -130,8 +131,8 @@ export class RoomGateway {
     }
   }
 
-  @OnEvent("user.leaving-room")
-  handleUserLeavingRoom({ roomId }: { roomId: RoomType }) {
+  @OnEvent(UserInternalEvent.LEAVING_ROOM)
+  handleUserLeavingRoom({ roomId }: UserLeavingRoomPayload) {
     this.cleanupTimerAfterLeave(roomId);
   }
 
