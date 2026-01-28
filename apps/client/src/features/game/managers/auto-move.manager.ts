@@ -1,26 +1,10 @@
 import type { GameScene } from "../core";
-import { AUTO_MOVE_DURATION } from "../model/game.constants";
+import { AUTO_MOVE_BLOCKED, AUTO_MOVE_DURATION } from "../model/game.constants";
 import type { TilePoint } from "../model/game.types";
 import { getDirBetween, tileToWorld, worldToTile } from "../utils";
 import EasyStar from "easystarjs";
 
 import type { AvatarDirection } from "@shared/types";
-
-const BLOCKED: TilePoint[] = [
-  { x: 51, y: 63 },
-  { x: 51, y: 64 },
-  { x: 64, y: 63 },
-  { x: 64, y: 64 },
-  { x: 77, y: 63 },
-  { x: 77, y: 64 },
-
-  { x: 51, y: 75 },
-  { x: 51, y: 76 },
-  { x: 64, y: 75 },
-  { x: 64, y: 76 },
-  { x: 77, y: 75 },
-  { x: 77, y: 76 },
-];
 
 export class AutoMoveManager {
   private scene: GameScene;
@@ -79,7 +63,7 @@ export class AutoMoveManager {
       }
     });
 
-    for (const point of BLOCKED) {
+    for (const point of AUTO_MOVE_BLOCKED) {
       if (point.y < 0 || point.y >= grid.length) continue;
       if (point.x < 0 || point.x >= grid[0].length) continue;
       grid[point.y][point.x] = 1;

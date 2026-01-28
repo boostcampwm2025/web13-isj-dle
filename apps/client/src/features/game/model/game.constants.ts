@@ -1,3 +1,5 @@
+import type { TilePoint } from "./game.types";
+
 import { type AvatarDirection, TILE_SIZE } from "@shared/types";
 
 export const TMJ_URL = "/assets/maps/world.tmj";
@@ -41,3 +43,19 @@ export const SIT_FRAME: Record<AvatarDirection, number> = {
   right: 120,
   up: 1,
 };
+
+export const AUTO_MOVE_BLOCKED: TilePoint[] = [
+  { x: 51, y: 63 },
+  { x: 51, y: 64 },
+  { x: 64, y: 63 },
+  { x: 64, y: 64 },
+  { x: 77, y: 63 },
+  { x: 77, y: 64 },
+
+  { x: 51, y: 75 },
+  { x: 51, y: 76 },
+  { x: 64, y: 75 },
+  { x: 64, y: 76 },
+  { x: 77, y: 75 },
+  { x: 77, y: 76 },
+];
