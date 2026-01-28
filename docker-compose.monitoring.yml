@@ -29,8 +29,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme}
-      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/ # dev에서는 주석 처리
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true # dev에서는 주석 처리
+      - GF_SERVER_ROOT_URL=https://www.moyo.asia/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_AUTH_ANONYMOUS_ENABLED=false
       - GF_USERS_ALLOW_SIGN_UP=false
     depends_on:
@@ -64,4 +64,5 @@ volumes:
 
 networks:
   moyo-network:
-    external: true
+    name: moyo-network
+    driver: bridge
