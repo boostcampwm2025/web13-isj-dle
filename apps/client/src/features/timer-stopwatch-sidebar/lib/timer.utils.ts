@@ -23,7 +23,7 @@ export const calculateTimerRemainingSeconds = (
   nowMs: number = Date.now(),
 ): number => {
   if (startedAt === null) return pausedTimeSec;
-  const elapsed = Math.floor((nowMs - startedAt) / 1000);
+  const elapsed = Math.max(0, Math.floor((nowMs - startedAt) / 1000));
   return Math.max(0, initialTimeSec - elapsed);
 };
 
@@ -33,6 +33,6 @@ export const calculateStopwatchElapsedSeconds = (
   nowMs: number = Date.now(),
 ): number => {
   if (startedAt === null) return pausedTimeSec;
-  const elapsed = Math.floor((nowMs - startedAt) / 1000);
+  const elapsed = Math.max(0, Math.floor((nowMs - startedAt) / 1000));
   return pausedTimeSec + Math.max(0, elapsed);
 };
