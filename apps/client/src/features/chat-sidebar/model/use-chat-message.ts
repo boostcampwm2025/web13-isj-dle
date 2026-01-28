@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { JOIN_SUFFIX, LEAVE_SUFFIX, useChatStore } from "@entities/chat";
 import { useUserStore } from "@entities/user";
-import { type ReceivedChatMessage, useChat } from "@livekit/components-react";
+import type { ReceivedChatMessage } from "@livekit/components-react";
 
 type BoundaryChatMessage = ReceivedChatMessage & {
   contactId: string | null;
@@ -13,11 +13,11 @@ export const useChatMessage = () => {
 
   const chatMessages = useChatStore((s) => s.chatMessages);
   const systemMessages = useChatStore((s) => s.systemMessages);
+  const send = useChatStore((s) => s.send);
+  const isSending = useChatStore((s) => s.isSending);
 
   const currentRoomId = useUserStore((s) => s.user?.avatar.currentRoomId ?? null);
   const myContactId = useUserStore((s) => s.user?.contactId ?? null);
-
-  const { isSending, send } = useChat();
 
   const parseMessage = (msg: ReceivedChatMessage): BoundaryChatMessage => {
     const parsed: unknown = JSON.parse(msg.message);
@@ -113,6 +113,7 @@ export const useChatMessage = () => {
     if (!text.trim()) return;
 
     const isLobby = currentRoomId === "lobby";
+    if (!send) return;
     await send(
       JSON.stringify({
         text,

@@ -44,6 +44,10 @@ export const useVideoConference = () => {
   const resetStopwatch = useTimerStopwatchStore((state) => state.resetStopwatch);
   const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const prevRoomIdRef = useRef<string | null>(null);
+  const [prevRoomInfo, setPrevRoomInfo] = useState<{
+    currentRoomId: string | undefined;
+    contactId: string | null | undefined;
+  }>({ currentRoomId: undefined, contactId: undefined });
 
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const userId = useUserStore((state) => state.user?.id);
@@ -57,6 +61,26 @@ export const useVideoConference = () => {
 
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
+  const { roomId } = useLivekit();
+
+  const isLobbyOrDeskOrMeeting =
+    ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
+    (currentRoomId !== undefined && isMeetingRoomRange(currentRoomId));
+
+  if (
+    currentRoomId &&
+    userId &&
+    nickname &&
+    (prevRoomInfo.currentRoomId !== currentRoomId || prevRoomInfo.contactId !== contactId)
+  ) {
+    setPrevRoomInfo({ currentRoomId, contactId });
+    if (isLobbyOrDeskOrMeeting) {
+      if (mode !== null) setMode(null);
+    } else if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
+      setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+    }
+  }
+
   useEffect(() => {
     const actionKey: ActionKey = "view_mode";
     const viewModeHook = getHookByKey(actionKey);
@@ -69,11 +93,24 @@ export const useVideoConference = () => {
     }
   }, [addBottomNavKey, getHookByKey, mode, removeBottomNavKey]);
 
-  const { roomId } = useLivekit();
-
   useEffect(() => {
+    if (!currentRoomId || !userId || !nickname) return;
+
     const isCollaborationRoom = isCollaborationRoomType(roomId);
     const isTimerStopwatchRoom = isTimerStopwatchRoomType(roomId);
+    const isBreakoutActive = breakoutState?.isActive ?? false;
+
+    if (isLobbyOrDeskOrMeeting) {
+      removeSidebarKey("chat");
+    } else {
+      addSidebarKey("chat");
+    }
+
+    if (currentRoomId === "desk zone") {
+      addSidebarKey("deskZone");
+    } else {
+      removeSidebarKey("deskZone");
+    }
 
     if (mode !== null && isCollaborationRoom) {
       COLLABORATION_SIDEBAR_KEYS.forEach((key) => addSidebarKey(key));
@@ -87,11 +124,52 @@ export const useVideoConference = () => {
       removeSidebarKey(TIMER_STOPWATCH_SIDEBAR_KEY);
     }
 
-    return () => {
-      COLLABORATION_SIDEBAR_KEYS.forEach((key) => removeSidebarKey(key));
-      removeSidebarKey(TIMER_STOPWATCH_SIDEBAR_KEY);
-    };
-  }, [mode, roomId, addSidebarKey, removeSidebarKey]);
+    if (isSeminarRoom && isHost) {
+      addSidebarKey("host");
+    } else {
+      removeSidebarKey("host");
+    }
+
+    if (isSeminarRoom && isBreakoutActive && !isHost) {
+      addSidebarKey("participant");
+    } else {
+      removeSidebarKey("participant");
+    }
+
+    // restaurant 사이드바
+    if (currentRoomId === "restaurant") {
+      addSidebarKey("restaurant");
+    } else {
+      removeSidebarKey("restaurant");
+    }
+
+    if (currentRoomId.startsWith("meeting") && !isMeetingRoomRange(currentRoomId)) {
+      addSidebarKey("meeting");
+    } else {
+      removeSidebarKey("meeting");
+    }
+
+    const isInBreakoutRoom = roomId?.startsWith(COLLABORATION_ROOM_PREFIX.BREAKOUT) ?? false;
+    if (isInBreakoutRoom) {
+      addBottomNavKey("leave");
+    } else {
+      removeBottomNavKey("leave");
+    }
+  }, [
+    currentRoomId,
+    userId,
+    nickname,
+    isLobbyOrDeskOrMeeting,
+    removeSidebarKey,
+    addSidebarKey,
+    addBottomNavKey,
+    removeBottomNavKey,
+    mode,
+    roomId,
+    isSeminarRoom,
+    isHost,
+    breakoutState?.isActive,
+  ]);
 
   useEffect(() => {
     const isTimerStopwatchRoom = isTimerStopwatchRoomType(roomId);
@@ -103,63 +181,6 @@ export const useVideoConference = () => {
 
     prevRoomIdRef.current = roomId;
   }, [roomId, resetTimer, resetStopwatch]);
-
-  useEffect(() => {
-    if (!currentRoomId || !userId || !nickname) return;
-
-    const setup = () => {
-      if (
-        ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
-        isMeetingRoomRange(currentRoomId)
-      ) {
-        if (mode !== null) setMode(null);
-        removeSidebarKey("chat");
-      } else {
-        if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
-          setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
-        }
-        addSidebarKey("chat");
-      }
-
-      if (currentRoomId === "desk zone") {
-        addSidebarKey("deskZone");
-      } else {
-        removeSidebarKey("deskZone");
-      }
-
-      if (currentRoomId === "restaurant") {
-        addSidebarKey("restaurant");
-      } else {
-        removeSidebarKey("restaurant");
-      }
-
-      if (currentRoomId.startsWith("meeting") && !isMeetingRoomRange(currentRoomId)) {
-        addSidebarKey("meeting");
-      } else {
-        removeSidebarKey("meeting");
-      }
-    };
-
-    setup();
-  }, [currentRoomId, userId, nickname, contactId, removeSidebarKey, addSidebarKey, mode]);
-
-  useEffect(() => {
-    if (isSeminarRoom && isHost) {
-      addSidebarKey("host");
-    } else {
-      removeSidebarKey("host");
-    }
-  }, [isSeminarRoom, isHost, addSidebarKey, removeSidebarKey]);
-
-  useEffect(() => {
-    const isBreakoutActive = breakoutState?.isActive ?? false;
-
-    if (isSeminarRoom && isBreakoutActive && !isHost) {
-      addSidebarKey("participant");
-    } else {
-      removeSidebarKey("participant");
-    }
-  }, [isSeminarRoom, breakoutState?.isActive, isHost, addSidebarKey, removeSidebarKey]);
 
   return {
     mode,

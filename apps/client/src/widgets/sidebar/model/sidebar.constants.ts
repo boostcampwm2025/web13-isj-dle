@@ -2,9 +2,9 @@ import {
   Blocks,
   BookOpen,
   Briefcase,
+  Compass,
   Crown,
   Images,
-  Megaphone,
   MessageCircleMore,
   PanelsTopLeft,
   Presentation,
@@ -20,8 +20,8 @@ import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
 import { GuideSidebar } from "@features/guide-sidebar";
 import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
 import { MeetingSidebar } from "@features/meeting-sidebar";
-import { NoticeSidebar } from "@features/notice-sidebar";
 import { RestaurantSidebar } from "@features/restaurant-sidebar";
+import { SpaceMoveSidebar } from "@features/space-move-sidebar";
 import { UserListSidebar } from "@features/user-list-sidebar";
 import type { SidebarItem, SidebarKey } from "@shared/config";
 
@@ -35,10 +35,10 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     Icon: Users,
     Panel: UserListSidebar,
   },
-  notices: {
-    title: "공지사항",
-    Icon: Megaphone,
-    Panel: NoticeSidebar,
+  spaceMove: {
+    title: "공간 자동 이동",
+    Icon: Compass,
+    Panel: SpaceMoveSidebar,
   },
   guide: {
     title: "이용 가이드",

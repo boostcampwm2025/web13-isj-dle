@@ -4,7 +4,7 @@ import type { ComponentType } from "react";
 
 export type SidebarKey =
   | "users"
-  | "notices"
+  | "spaceMove"
   | "guide"
   | "collaboration-tool"
   | "timer-stopwatch"
@@ -17,7 +17,7 @@ export type SidebarKey =
 
 export const SIDEBAR_KEY_ORDER: Record<SidebarKey, number> = {
   users: 0,
-  notices: 1,
+  spaceMove: 1,
   guide: 2,
   chat: 3,
   "collaboration-tool": 4,

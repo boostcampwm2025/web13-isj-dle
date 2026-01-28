@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 
 import { KnockEventType, RoomEventType, type RoomJoinPayload, RoomType, UserEventType } from "@shared/types";
@@ -8,6 +8,7 @@ import { Server, Socket } from "socket.io";
 import { KnockService } from "../knock/knock.service";
 import { StopwatchGateway } from "../stopwatch/stopwatch.gateway";
 import { TimerService } from "../timer/timer.service";
+import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
 import { UserManager } from "../user/user-manager.service";
 
 const isTimerRoomId = (roomId: RoomType): boolean => roomId.startsWith("meeting");
@@ -28,6 +29,7 @@ export class RoomGateway {
     private readonly knockService: KnockService,
     private readonly timerService: TimerService,
     private readonly stopwatchGateway: StopwatchGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
@@ -84,6 +86,8 @@ export class RoomGateway {
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
 
+      this.eventEmitter.emit(UserInternalEvent.LEAVING_ROOM, { roomId: previousRoomId });
+
       this.cleanupTimerAfterLeave(previousRoomId);
       this.cleanupStopwatchAfterLeave(previousRoomId, client.id);
 
@@ -127,8 +131,8 @@ export class RoomGateway {
     }
   }
 
-  @OnEvent("user.leaving-room")
-  handleUserLeavingRoom({ roomId }: { roomId: RoomType }) {
+  @OnEvent(UserInternalEvent.LEAVING_ROOM)
+  handleUserLeavingRoom({ roomId }: UserLeavingRoomPayload) {
     this.cleanupTimerAfterLeave(roomId);
   }
 

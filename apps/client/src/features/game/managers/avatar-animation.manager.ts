@@ -1,4 +1,4 @@
-import { IDLE_FRAME, SIT_FRAME, WALK_FRAME } from "../model/game.constants";
+import { IDLE_FRAME, MOVE_FRAME, SIT_FRAME } from "../model/game.constants";
 import Phaser from "phaser";
 
 import { AVATAR_ASSETS, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
@@ -22,11 +22,20 @@ export class AvatarAnimationManager {
     directions.forEach((dir) => {
       this.scene.anims.create({
         key: `walk-${assetKey}-${dir}`,
-        frames: WALK_FRAME[dir].map((frame) => ({
+        frames: MOVE_FRAME[dir].map((frame) => ({
           key: assetKey,
           frame,
         })),
         frameRate: 10,
+        repeat: -1,
+      });
+      this.scene.anims.create({
+        key: `run-${assetKey}-${dir}`,
+        frames: MOVE_FRAME[dir].map((frame) => ({
+          key: assetKey,
+          frame,
+        })),
+        frameRate: 20,
         repeat: -1,
       });
       this.scene.anims.create({
@@ -45,6 +54,11 @@ export class AvatarAnimationManager {
 
   toWalk(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection): void {
     const key = `walk-${sprite.texture.key}-${dir}`;
+    sprite.anims.play(key, true);
+  }
+
+  toRun(sprite: Phaser.GameObjects.Sprite, dir: AvatarDirection): void {
+    const key = `run-${sprite.texture.key}-${dir}`;
     sprite.anims.play(key, true);
   }
 

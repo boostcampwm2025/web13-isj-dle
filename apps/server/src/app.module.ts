@@ -8,6 +8,7 @@ import { GameModule } from "./game/game.module";
 import { LecternModule } from "./lectern/lectern.module";
 import { LivekitModule } from "./livekit/livekit.module";
 import { MeetingModule } from "./meeting/meeting.module";
+import { MetricsModule } from "./metrics/metrics.module";
 import { RestaurantModule } from "./restaurant/restaurant.module";
 import { TldrawModule } from "./tldraw/tldraw.module";
 import { UserModule } from "./user/user.module";
@@ -42,6 +43,7 @@ import { YjsModule } from "./yjs/yjs.module";
     TldrawModule,
     RestaurantModule,
     MeetingModule,
+    MetricsModule,
   ],
   controllers: [AppController],
 })

@@ -1,4 +1,5 @@
 import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 
 import type { IncomingMessage } from "http";
 import type { Server } from "http";
@@ -8,6 +9,9 @@ import { type WebSocket, WebSocketServer } from "ws";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
+
+import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
+import { UserManager } from "../user/user-manager.service";
 
 const MESSAGE_SYNC = 0;
 const MESSAGE_AWARENESS = 1;
@@ -25,7 +29,9 @@ export class YjsService implements OnModuleDestroy {
 
   private awarenessStates: Map<string, awarenessProtocol.Awareness> = new Map();
 
-  constructor() {
+  private clientIds: Map<WebSocket, number> = new Map();
+
+  constructor(private readonly userManager: UserManager) {
     this.wss = new WebSocketServer({ noServer: true });
   }
 
@@ -116,21 +122,18 @@ export class YjsService implements OnModuleDestroy {
   }
 
   private removeClientFromRoom(roomName: string, ws: WebSocket, awareness: awarenessProtocol.Awareness): void {
+    const clientId = this.clientIds.get(ws);
+    if (clientId !== undefined) {
+      awarenessProtocol.removeAwarenessStates(awareness, [clientId], null);
+      this.clientIds.delete(ws);
+    }
+
     const room = this.rooms.get(roomName);
     if (room) {
       room.delete(ws);
 
       if (room.size === 0) {
         this.rooms.delete(roomName);
-
-        const doc = this.docs.get(roomName);
-        if (doc) {
-          doc.destroy();
-          this.docs.delete(roomName);
-        }
-
-        awareness.destroy();
-        this.awarenessStates.delete(roomName);
       }
     }
   }
@@ -160,7 +163,23 @@ export class YjsService implements OnModuleDestroy {
         }
 
         case MESSAGE_AWARENESS: {
-          awarenessProtocol.applyAwarenessUpdate(awareness, decoding.readVarUint8Array(decoder), ws);
+          const update = decoding.readVarUint8Array(decoder);
+          awarenessProtocol.applyAwarenessUpdate(awareness, update, ws);
+
+          try {
+            const updateDecoder = decoding.createDecoder(update);
+            const len = decoding.readVarUint(updateDecoder);
+            for (let i = 0; i < len; i++) {
+              const clientId = decoding.readVarUint(updateDecoder);
+              if (!this.clientIds.has(ws)) {
+                this.clientIds.set(ws, clientId);
+              }
+              decoding.readVarUint(updateDecoder);
+              decoding.readVarString(updateDecoder);
+            }
+          } catch (error) {
+            this.logger.warn("Failed to parse awareness update for clientId tracking", error);
+          }
           break;
         }
 
@@ -240,5 +259,37 @@ export class YjsService implements OnModuleDestroy {
     this.awarenessStates.clear();
     this.rooms.clear();
     this.logger.log("🛑 Yjs WebSocket Server closed");
+  }
+
+  @OnEvent(UserInternalEvent.LEAVING_ROOM)
+  handleUserLeavingRoom(payload: UserLeavingRoomPayload): void {
+    const { roomId } = payload;
+
+    setTimeout(() => {
+      const usersInRoom = this.userManager.getRoomSessions(roomId);
+
+      if (usersInRoom.length === 0) {
+        const sanitizedRoomId = roomId.replace(/[\s()]/g, "-");
+        const yjsRoomName = `code-editor-${sanitizedRoomId}`;
+
+        this.cleanupRoom(yjsRoomName);
+      }
+    }, 100);
+  }
+
+  private cleanupRoom(roomName: string): void {
+    const doc = this.docs.get(roomName);
+    if (doc) {
+      doc.destroy();
+      this.docs.delete(roomName);
+    }
+
+    const awareness = this.awarenessStates.get(roomName);
+    if (awareness) {
+      awareness.destroy();
+      this.awarenessStates.delete(roomName);
+    }
+
+    this.rooms.delete(roomName);
   }
 }

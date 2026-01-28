@@ -1,3 +1,5 @@
+import type { TilePoint } from "./game.types";
+
 import { type AvatarDirection, TILE_SIZE } from "@shared/types";
 
 export const TMJ_URL = "/assets/maps/world.tmj";
@@ -6,8 +8,10 @@ export const GAME_SCENE_KEY = "GameScene";
 
 export const AVATAR_FRAME_WIDTH = 16;
 export const AVATAR_FRAME_HEIGHT = 32;
-export const AVATAR_MOVE_SPEED = 120;
+export const AVATAR_WALK_SPEED = 120;
+export const AVATAR_RUN_SPEED = 220;
 export const AVATAR_SNAP_SPEED = 0.25;
+export const AUTO_MOVE_DURATION = 70;
 export const NICKNAME_OFFSET_Y = 20;
 export const RESTAURANT_THUMBNAIL_OFFSET_Y = 10;
 
@@ -26,7 +30,7 @@ export const IDLE_FRAME: Record<AvatarDirection, number> = {
   up: 1,
 };
 
-export const WALK_FRAME: Record<AvatarDirection, number[]> = {
+export const MOVE_FRAME: Record<AvatarDirection, number[]> = {
   down: [66, 67, 68, 69, 70, 71],
   left: [60, 61, 62, 63, 64, 65],
   right: [48, 49, 50, 51, 52, 53],
@@ -39,3 +43,19 @@ export const SIT_FRAME: Record<AvatarDirection, number> = {
   right: 120,
   up: 1,
 };
+
+export const AUTO_MOVE_BLOCKED: TilePoint[] = [
+  { x: 51, y: 63 },
+  { x: 51, y: 64 },
+  { x: 64, y: 63 },
+  { x: 64, y: 64 },
+  { x: 77, y: 63 },
+  { x: 77, y: 64 },
+
+  { x: 51, y: 75 },
+  { x: 51, y: 76 },
+  { x: 64, y: 75 },
+  { x: 64, y: 76 },
+  { x: 77, y: 75 },
+  { x: 77, y: 76 },
+];

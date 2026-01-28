@@ -3,26 +3,16 @@ import useSidebarState from "../model/use-sidebar-state";
 import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 
-import { useBindChat } from "@entities/chat";
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
-import { useUserStore } from "@entities/user";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 
 const MAX_BADGE_COUNT = 9;
 
 const Sidebar = () => {
-  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
-  const contactId = useUserStore((state) => state.user?.contactId);
-  const initialRoomName = useMemo(() => {
-    if (!currentRoomId) return "알 수 없는";
-    return currentRoomId === "lobby" ? "" : currentRoomId;
-  }, [currentRoomId]);
-  useBindChat(initialRoomName, currentRoomId === "lobby" ? (contactId ?? null) : null);
-
   const { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
@@ -44,9 +34,26 @@ const Sidebar = () => {
               <div className="text-xl font-semibold">{currentPanel.title}</div>
               <hr className="my-2 text-gray-500" />
               <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
-                <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
-                  <currentPanel.Panel />
-                </Suspense>
+                {(() => {
+                  const CollaborationPanel = SIDEBAR_MAP["collaboration-tool"]?.Panel;
+                  const hasCollaborationTool = sidebarKeys.includes("collaboration-tool") && CollaborationPanel;
+                  return (
+                    <>
+                      {hasCollaborationTool && (
+                        <div className={validCurrentKey === "collaboration-tool" ? "h-full" : "hidden"}>
+                          <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                            <CollaborationPanel />
+                          </Suspense>
+                        </div>
+                      )}
+                      {validCurrentKey !== "collaboration-tool" && (
+                        <Suspense fallback={<div className="p-4 text-gray-400">Loading...</div>}>
+                          <currentPanel.Panel />
+                        </Suspense>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           ) : (

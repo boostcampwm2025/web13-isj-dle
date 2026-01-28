@@ -26,7 +26,7 @@ const ChatSidebar = () => {
           );
         })}
       </ul>
-      <div className="flex gap-2 border-t border-gray-800 pt-2">
+      <div className="flex gap-2 border-t border-gray-800 pt-2 text-black">
         <textarea
           className="w-full resize-none rounded-md border border-gray-300 px-2 py-1 focus:border-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           disabled={isSending}

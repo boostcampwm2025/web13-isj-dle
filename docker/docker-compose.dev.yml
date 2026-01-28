@@ -1,0 +1,33 @@
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
+    container_name: moyo-server-dev
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    networks:
+      - moyo-network-dev
+
+  client:
+    build:
+      context: ..
+      dockerfile: docker/client.dev.Dockerfile
+    container_name: moyo-client-dev
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - moyo-network-dev
+
+networks:
+  moyo-network-dev:
+    driver: bridge
