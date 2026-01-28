@@ -38,7 +38,7 @@ const ChatSidebar = () => {
           onKeyUp={(ev) => ev.stopPropagation()}
         />
         <button
-          className="relative inline-flex cursor-pointer items-center justify-center p-0"
+          className="relative inline-flex items-center justify-center p-0"
           disabled={isSending}
           onClick={sendMessage}
         >

@@ -67,7 +67,7 @@ const Sidebar = () => {
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
         <button
-          className="mb-2 flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
+          className="mb-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
           onClick={toggleSidebar}
           title={isOpen ? "사이드바 닫기" : "사이드바 열기"}
         >

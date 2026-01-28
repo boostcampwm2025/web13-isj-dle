@@ -45,7 +45,7 @@ export class RestaurantImageManager {
     const button = document.createElement("button");
     button.type = "button";
     button.className =
-      "w-[10px] h-[10px] rounded-[2px] bg-white/90 border border-black/30 flex items-center justify-center cursor-pointer p-0";
+      "w-[10px] h-[10px] rounded-[2px] bg-white/90 border border-black/30 flex items-center justify-center p-0";
 
     const img = document.createElement("img");
     img.className = "thumbnail-img hidden w-full h-full rounded-[2px] object-cover";

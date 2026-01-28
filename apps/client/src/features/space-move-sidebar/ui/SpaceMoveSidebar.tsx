@@ -15,7 +15,7 @@ const SpaceMoveSidebar = () => {
             key={room}
             onClick={() => handleMoveSpace(room as MovableRoom)}
             title={name}
-            className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left transition hover:border-gray-300 hover:bg-gray-50 active:scale-[0.99]"
+            className="group flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left transition hover:border-gray-300 hover:bg-gray-50 active:scale-[0.99]"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-700 group-hover:bg-gray-200">
               <IconComponent size={ICON_SIZE} />

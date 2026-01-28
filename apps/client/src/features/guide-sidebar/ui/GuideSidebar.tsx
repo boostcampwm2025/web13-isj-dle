@@ -81,7 +81,7 @@ const GuideSidebar = () => {
         <button
           type="button"
           onClick={handleReport}
-          className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
         >
           <ExternalLink size={SUB_ICON_SIZE} />
           오류 신고 및 개선 요청하기

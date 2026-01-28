@@ -24,7 +24,7 @@ const DailyScrum = () => {
           <div className="text-xs text-gray-500">{questions.length > 0 ? `${questions.length}개 표시 중` : ""}</div>
           <button
             onClick={handleQuestions}
-            className="cursor-pointer rounded-xl bg-amber-300 px-3 py-1 text-sm font-semibold text-amber-950 hover:bg-amber-400 active:scale-[0.95]"
+            className="rounded-xl bg-amber-300 px-3 py-1 text-sm font-semibold text-amber-950 hover:bg-amber-400 active:scale-[0.95]"
           >
             랜덤 질문 받기
           </button>
@@ -44,7 +44,7 @@ const DailyScrum = () => {
           <div>
             <button
               onClick={resetQuestions}
-              className="mb-2 cursor-pointer rounded-xl bg-amber-100 px-3 py-1 text-xs text-amber-800 hover:bg-amber-200"
+              className="mb-2 rounded-xl bg-amber-100 px-3 py-1 text-xs text-amber-800 hover:bg-amber-200"
             >
               질문 초기화
             </button>
