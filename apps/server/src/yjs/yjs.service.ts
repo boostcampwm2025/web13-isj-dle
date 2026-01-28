@@ -28,6 +28,8 @@ export class YjsService implements OnModuleDestroy {
 
   private awarenessStates: Map<string, awarenessProtocol.Awareness> = new Map();
 
+  private clientIds: Map<WebSocket, number> = new Map();
+
   constructor(private readonly userManager: UserManager) {
     this.wss = new WebSocketServer({ noServer: true });
   }
@@ -118,7 +120,13 @@ export class YjsService implements OnModuleDestroy {
     this.rooms.get(roomName)!.add(ws);
   }
 
-  private removeClientFromRoom(roomName: string, ws: WebSocket, _awareness: awarenessProtocol.Awareness): void {
+  private removeClientFromRoom(roomName: string, ws: WebSocket, awareness: awarenessProtocol.Awareness): void {
+    const clientId = this.clientIds.get(ws);
+    if (clientId !== undefined) {
+      awarenessProtocol.removeAwarenessStates(awareness, [clientId], null);
+      this.clientIds.delete(ws);
+    }
+
     const room = this.rooms.get(roomName);
     if (room) {
       room.delete(ws);
@@ -154,7 +162,23 @@ export class YjsService implements OnModuleDestroy {
         }
 
         case MESSAGE_AWARENESS: {
-          awarenessProtocol.applyAwarenessUpdate(awareness, decoding.readVarUint8Array(decoder), ws);
+          const update = decoding.readVarUint8Array(decoder);
+          awarenessProtocol.applyAwarenessUpdate(awareness, update, ws);
+
+          try {
+            const updateDecoder = decoding.createDecoder(update);
+            const len = decoding.readVarUint(updateDecoder);
+            for (let i = 0; i < len; i++) {
+              const clientId = decoding.readVarUint(updateDecoder);
+              if (!this.clientIds.has(ws)) {
+                this.clientIds.set(ws, clientId);
+              }
+              decoding.readVarUint(updateDecoder);
+              decoding.readVarString(updateDecoder);
+            }
+          } catch (error) {
+            this.logger.warn("Failed to parse awareness update for clientId tracking", error);
+          }
           break;
         }
 
