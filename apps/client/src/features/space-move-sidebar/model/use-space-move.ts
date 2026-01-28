@@ -19,15 +19,7 @@ export const useSpaceMove = () => {
       setGameScene(scene);
     };
 
-    if (game.scene.isActive(GAME_SCENE_KEY)) {
-      setup();
-    } else {
-      const onStart = () => {
-        setup();
-        game.events.off("scene-start", onStart);
-      };
-      game.events.on("scene-start", onStart);
-    }
+    setup();
   }, [game]);
 
   const handleMoveSpace = (room: MovableRoom) => {
