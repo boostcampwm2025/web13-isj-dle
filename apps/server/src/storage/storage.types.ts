@@ -12,6 +12,7 @@ export type PutObjectParams = {
   key: string;
   body: Buffer;
   contentType: string;
+  cacheControl?: string;
 };
 
 export type CopyObjectParams = {

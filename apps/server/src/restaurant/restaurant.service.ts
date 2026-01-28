@@ -290,6 +290,7 @@ export class RestaurantService {
       key,
       body: file.buffer,
       contentType,
+      cacheControl: "public, max-age=604800",
     });
 
     try {

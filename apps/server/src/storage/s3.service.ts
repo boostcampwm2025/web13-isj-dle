@@ -108,13 +108,14 @@ export class S3Service {
     return this.readBodyToBuffer(res.Body);
   }
 
-  async putObject({ key, body, contentType }: PutObjectParams): Promise<void> {
+  async putObject({ key, body, contentType, cacheControl }: PutObjectParams): Promise<void> {
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
         Body: body,
         ContentType: contentType,
+        CacheControl: cacheControl,
       }),
     );
   }
