@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        app: [client, server]
+        app: [ client, server ]
 
     steps:
       - name: Checkout code
@@ -61,7 +61,7 @@ jobs:
   deploy:
     name: Deploy to Server
     needs: build-and-push
-    runs-on: [self-hosted, moyo]
+    runs-on: [ self-hosted, moyo ]
 
     steps:
       - name: Checkout code
@@ -89,6 +89,9 @@ jobs:
           cd /opt/moyo
 
           export $(grep -E '^(GITHUB_REPOSITORY|IMAGE_TAG)=' .env | xargs)
+          
+          echo "📊 Stopping monitoring stack..."
+          sudo docker compose -f docker-compose.monitoring.yml down || true
 
           echo "🐳 Pulling Docker images..."
           sudo docker compose pull
@@ -119,14 +122,14 @@ jobs:
 
             sleep $RETRY_INTERVAL
           done
+          
+          echo "📊 Starting monitoring stack..."
+          sudo docker compose -f docker-compose.monitoring.yml up -d
 
           echo "♻️  Restarting client..."
           sudo docker compose down client
           sudo docker compose up -d client
-
-          echo "📊 Starting monitoring stack..."
-          sudo docker compose -f docker-compose.monitoring.yml up -d
-
+          
           echo "🧹 Cleaning up old images..."
           sudo docker image prune -af --filter "until=24h"
 

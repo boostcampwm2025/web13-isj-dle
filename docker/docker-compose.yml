@@ -54,4 +54,5 @@ services:
 
 networks:
   moyo-network:
+    name: moyo-network
     driver: bridge
