@@ -162,6 +162,7 @@ export class RestaurantService {
       const image = await imageRepository.findOne({
         where: { id: imageId },
         select: { id: true, likes: true, likedBy: true },
+        lock: { mode: "pessimistic_write" },
       });
 
       if (!image) {
