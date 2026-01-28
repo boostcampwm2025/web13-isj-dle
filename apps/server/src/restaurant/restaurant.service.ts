@@ -4,7 +4,11 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import {
   ALLOWED_IMAGE_MIME_TYPES,
+  EXT_TO_MIME,
+  IMAGE_EXTENSIONS,
+  IMAGE_MIME_TYPES,
   MAX_IMAGES_PER_USER,
+  MIME_TO_EXT,
   type RestaurantImage,
   RestaurantImageEventType,
   type RestaurantImageFeedResponse,
@@ -40,7 +44,7 @@ export class RestaurantService {
 
   validateContentType(contentType: string): void {
     const normalized = this.normalizeContentType(contentType);
-    if (!ALLOWED_MIME_TYPES.has(normalized)) {
+    if (!ALLOWED_MIME_TYPES.has(normalized as IMAGE_MIME_TYPES)) {
       throw new BadRequestException(
         `Invalid content type: ${contentType}. Allowed: ${[...ALLOWED_MIME_TYPES].join(", ")}`,
       );
@@ -48,26 +52,25 @@ export class RestaurantService {
   }
 
   private validateImageMagicBytes(buffer: Buffer, contentType: string): void {
-    const ct = this.normalizeContentType(contentType);
+    const ct = this.normalizeContentType(contentType) as IMAGE_MIME_TYPES;
     if (!buffer || buffer.length === 0) {
       throw new BadRequestException("Invalid image: empty file");
     }
 
-    if (ct === "image/png") {
+    if (ct === IMAGE_MIME_TYPES.PNG) {
       const pngSig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
       const ok = buffer.length >= pngSig.length && pngSig.every((b, i) => buffer[i] === b);
       if (!ok) throw new BadRequestException("Invalid PNG file signature");
       return;
     }
 
-    if (ct === "image/jpeg") {
+    if (ct === IMAGE_MIME_TYPES.JPEG) {
       const ok = buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
       if (!ok) throw new BadRequestException("Invalid JPEG file signature");
       return;
     }
 
-    if (ct === "image/webp") {
-      // WebP: RIFF....WEBP (bytes 0-3: "RIFF", bytes 8-11: "WEBP")
+    if (ct === IMAGE_MIME_TYPES.WEBP) {
       const ok =
         buffer.length >= 12 &&
         buffer[0] === 0x52 &&
@@ -85,27 +88,24 @@ export class RestaurantService {
     throw new BadRequestException(`Invalid content type: ${contentType}`);
   }
 
-  private extractExtensionFromKey(key: string): "jpg" | "png" | "webp" | null {
+  private extractExtensionFromKey(key: string): Exclude<IMAGE_EXTENSIONS, "jpeg"> | null {
     const ext = key.split(".").pop()?.toLowerCase();
-    if (ext === "jpg") return "jpg";
-    if (ext === "png") return "png";
-    if (ext === "webp") return "webp";
+    if (ext === IMAGE_EXTENSIONS.JPG || ext === IMAGE_EXTENSIONS.JPEG) return IMAGE_EXTENSIONS.JPG;
+    if (ext === IMAGE_EXTENSIONS.PNG) return IMAGE_EXTENSIONS.PNG;
+    if (ext === IMAGE_EXTENSIONS.WEBP) return IMAGE_EXTENSIONS.WEBP;
     return null;
   }
 
   private async validateTempObjectSignature(key: string, finalKey: string): Promise<void> {
     const ext = this.extractExtensionFromKey(finalKey);
     if (!ext) {
-      throw new BadRequestException("Invalid key extension (allowed: .jpg, .png, .webp)");
+      throw new BadRequestException(
+        `Invalid key extension (allowed: .${IMAGE_EXTENSIONS.JPG}, .${IMAGE_EXTENSIONS.PNG}, .${IMAGE_EXTENSIONS.WEBP})`,
+      );
     }
 
     const prefix = await this.s3Service.getObjectPrefixBytes(key, 16);
-    const contentTypeMap: Record<string, string> = {
-      jpg: "image/jpeg",
-      png: "image/png",
-      webp: "image/webp",
-    };
-    this.validateImageMagicBytes(prefix, contentTypeMap[ext]);
+    this.validateImageMagicBytes(prefix, EXT_TO_MIME[ext]);
   }
 
   private validateKeyOwnership(userId: string, key: string): void {
@@ -423,13 +423,7 @@ export class RestaurantService {
   }
 
   private pickExtension(contentType: string): string {
-    const byMime: Record<string, string> = {
-      "image/jpeg": "jpg",
-      "image/png": "png",
-      "image/webp": "webp",
-    };
-
-    const fromMime = byMime[this.normalizeContentType(contentType)];
+    const fromMime = MIME_TO_EXT[this.normalizeContentType(contentType) as IMAGE_MIME_TYPES];
     if (fromMime) return fromMime;
 
     throw new BadRequestException(`Invalid content type: ${contentType}`);

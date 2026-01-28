@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 
-import { ALLOWED_IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_BYTES } from "@shared/types";
+import { ALLOWED_IMAGE_MIME_TYPES, IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_BYTES } from "@shared/types";
 import { memoryStorage } from "multer";
 
 import { ConfirmImageDto } from "./dto/confirm-image.dto";
@@ -111,7 +111,7 @@ export class RestaurantController {
       limits: { fileSize: MAX_IMAGE_FILE_SIZE_BYTES },
       fileFilter: (_req, file, callback) => {
         const contentType = (file.mimetype ?? "").split(";")[0].trim().toLowerCase();
-        if (!ALLOWED_IMAGE_MIME_TYPES.includes(contentType)) {
+        if (!ALLOWED_IMAGE_MIME_TYPES.includes(contentType as IMAGE_MIME_TYPES)) {
           callback(
             new BadRequestException(
               `Invalid file type: ${file.mimetype}. Allowed: ${ALLOWED_IMAGE_MIME_TYPES.join(", ")}`,
