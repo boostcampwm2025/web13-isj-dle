@@ -5,6 +5,6 @@ datasources:
     type: prometheus
     uid: prometheus
     access: proxy
-    url: http://moyo-prometheus:9090
+    url: http://moyo-prometheus-dev:9090
     isDefault: true
     editable: false
