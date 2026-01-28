@@ -135,7 +135,7 @@ export const TimerStopwatchSidebar = () => {
   const startStopButtonStyle = activeControl.isRunning ? TIMER_BUTTON_STYLES.running : TIMER_BUTTON_STYLES.stopped;
 
   return (
-    <div className="h-full w-full overflow-y-auto p-3">
+    <div className="h-full w-full overflow-y-auto">
       <div className="mx-auto w-full max-w-sm">
         <div className="rounded-2xl">
           <ModeToggle mode={mode} onModeChange={handleModeChange} />

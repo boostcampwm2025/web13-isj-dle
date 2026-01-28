@@ -9,7 +9,7 @@ const SpaceMoveSidebar = () => {
 
   return (
     <div className="flex h-full w-full flex-col bg-white">
-      <div className="scrollbar-hide flex flex-1 flex-col gap-2 space-y-2 overflow-y-auto">
+      <div className="scrollbar-hide flex flex-1 flex-col gap-4 overflow-y-auto pb-4">
         {Object.entries(MOVE_ROOM_MAP).map(([room, { name, icon: IconComponent }]) => (
           <button
             key={room}

@@ -32,8 +32,8 @@ const Sidebar = () => {
           {currentPanel ? (
             <div className="h-full w-full">
               <div className="text-xl font-semibold">{currentPanel.title}</div>
-              <hr className="my-2 text-gray-500" />
-              <div className="h-[calc(100%-2.5rem)] overflow-y-auto">
+              <hr className="mt-2 mb-4 text-gray-500" />
+              <div className="h-[calc(100%-3.5rem)] overflow-y-auto">
                 {(() => {
                   const CollaborationPanel = SIDEBAR_MAP["collaboration-tool"]?.Panel;
                   const hasCollaborationTool = sidebarKeys.includes("collaboration-tool") && CollaborationPanel;
