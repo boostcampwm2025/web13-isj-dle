@@ -13,6 +13,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 
+import { ALLOWED_IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_BYTES } from "@shared/types";
 import { memoryStorage } from "multer";
 
 import { ConfirmImageDto } from "./dto/confirm-image.dto";
@@ -20,9 +21,6 @@ import { DeleteImageDto } from "./dto/delete-image.dto";
 import { PresignImageDto } from "./dto/presign-image.dto";
 import { UpdateImageDto } from "./dto/update-image.dto";
 import { RestaurantService } from "./restaurant.service";
-
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_FILE_SIZE = 7 * 1024 * 1024;
 
 @Controller("restaurant")
 export class RestaurantController {
@@ -110,12 +108,14 @@ export class RestaurantController {
   @UseInterceptors(
     FileInterceptor("image", {
       storage: memoryStorage(),
-      limits: { fileSize: MAX_FILE_SIZE },
+      limits: { fileSize: MAX_IMAGE_FILE_SIZE_BYTES },
       fileFilter: (_req, file, callback) => {
         const contentType = (file.mimetype ?? "").split(";")[0].trim().toLowerCase();
-        if (!ALLOWED_MIME_TYPES.includes(contentType)) {
+        if (!ALLOWED_IMAGE_MIME_TYPES.includes(contentType)) {
           callback(
-            new BadRequestException(`Invalid file type: ${file.mimetype}. Allowed: ${ALLOWED_MIME_TYPES.join(", ")}`),
+            new BadRequestException(
+              `Invalid file type: ${file.mimetype}. Allowed: ${ALLOWED_IMAGE_MIME_TYPES.join(", ")}`,
+            ),
             false,
           );
           return;

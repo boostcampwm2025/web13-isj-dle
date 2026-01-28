@@ -12,5 +12,6 @@ export * from "./livekit.types";
 export * from "./lectern.types";
 export * from "./knock.types";
 export * from "./restaurant-image.types";
+export * from "./restaurant-image.constants";
 export * from "./restaurant-image-event.types";
 export * from "./meeting.types";

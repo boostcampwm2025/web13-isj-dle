@@ -1,6 +1,4 @@
-const DEFAULT_MAX_WIDTH = 800;
-const DEFAULT_MAX_HEIGHT = 800;
-const DEFAULT_QUALITY = 0.75;
+import { IMAGE_OPTIMIZE_MAX_HEIGHT, IMAGE_OPTIMIZE_MAX_WIDTH, IMAGE_OPTIMIZE_QUALITY } from "@shared/types";
 
 type OptimizeImageOptions = {
   maxWidth?: number;
@@ -9,7 +7,11 @@ type OptimizeImageOptions = {
 };
 
 export const optimizeImage = async (file: File, options: OptimizeImageOptions = {}): Promise<File> => {
-  const { maxWidth = DEFAULT_MAX_WIDTH, maxHeight = DEFAULT_MAX_HEIGHT, quality = DEFAULT_QUALITY } = options;
+  const {
+    maxWidth = IMAGE_OPTIMIZE_MAX_WIDTH,
+    maxHeight = IMAGE_OPTIMIZE_MAX_HEIGHT,
+    quality = IMAGE_OPTIMIZE_QUALITY,
+  } = options;
 
   const bitmap = await createImageBitmap(file);
   const { width, height } = bitmap;

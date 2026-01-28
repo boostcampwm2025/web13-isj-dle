@@ -3,6 +3,8 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  MAX_IMAGES_PER_USER,
   type RestaurantImage,
   RestaurantImageEventType,
   type RestaurantImageFeedResponse,
@@ -16,8 +18,7 @@ import { S3Service } from "../storage/s3.service";
 import { UserManager } from "../user/user-manager.service";
 import { RestaurantImageEntity } from "./restaurant-image.entity";
 
-const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_IMAGES_PER_USER = 50;
+const ALLOWED_MIME_TYPES = new Set(ALLOWED_IMAGE_MIME_TYPES);
 
 @Injectable()
 export class RestaurantService {
