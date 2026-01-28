@@ -64,4 +64,5 @@ volumes:
 
 networks:
   moyo-network:
-    external: true
+    name: moyo-network
+    driver: bridge
