@@ -189,7 +189,7 @@ export class GameScene extends Phaser.Scene {
   update() {
     if (!this.avatar) return;
 
-    this.autoMoveManager.easystar.calculate();
+    if (this.autoMoveManager.target) this.autoMoveManager.calculate();
 
     this.networkSyncManager.emitPlayerPosition(
       this.avatar.sprite.x,
@@ -216,7 +216,7 @@ export class GameScene extends Phaser.Scene {
 
     const inputDirection = this.inputManager.getNextDirection();
 
-    if (this.autoMoveManager.isAutoMoving) {
+    if (this.autoMoveManager.isMoving) {
       if (!inputDirection) return;
       this.autoMoveManager.cancelByUser();
     }

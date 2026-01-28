@@ -10,12 +10,24 @@ export class AutoMoveManager {
   private scene: GameScene;
   private navGrid: number[][] | null = null;
   private autoMoveTween?: Phaser.Tweens.Tween;
-  private lastTargetTile?: TilePoint;
-  easystar = new EasyStar.js();
-  isAutoMoving = false;
+  private targetTile?: TilePoint;
+  private easystar = new EasyStar.js();
+  private isAutoMoving = false;
 
   constructor(scene: GameScene) {
     this.scene = scene;
+  }
+
+  get target(): TilePoint | undefined {
+    return this.targetTile;
+  }
+
+  get isMoving(): boolean {
+    return this.isAutoMoving;
+  }
+
+  calculate(): void {
+    this.easystar.calculate();
   }
 
   movePlayer({ x, y, direction }: { x: number; y: number; direction: AvatarDirection }): void {
@@ -25,11 +37,11 @@ export class AutoMoveManager {
     const from = worldToTile(this.scene.avatarEntity.sprite.x, this.scene.avatarEntity.sprite.y);
     const to = worldToTile(x, y);
 
-    if (this.isAutoMoving && this.lastTargetTile && this.lastTargetTile.x === to.x && this.lastTargetTile.y === to.y) {
+    if (this.isAutoMoving && this.targetTile && this.targetTile.x === to.x && this.targetTile.y === to.y) {
       return;
     }
 
-    this.lastTargetTile = to;
+    this.targetTile = to;
 
     if (this.isAutoMoving) {
       this.cancelAutoMove();
@@ -89,7 +101,7 @@ export class AutoMoveManager {
 
       if (i >= steps.length) {
         this.isAutoMoving = false;
-        this.lastTargetTile = undefined;
+        this.targetTile = undefined;
 
         this.scene.avatarEntity.direction = finalDirection;
 
@@ -142,6 +154,6 @@ export class AutoMoveManager {
   cancelByUser() {
     if (!this.isAutoMoving) return;
     this.cancelAutoMove();
-    this.lastTargetTile = undefined;
+    this.targetTile = undefined;
   }
 }
