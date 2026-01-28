@@ -19,7 +19,7 @@ export const MOVE_ROOM_MAP: Record<MovableRoom, MoveRoom> = {
   lobby: {
     name: "로비",
     icon: Home,
-    position: { x: 984, y: 696, direction: "up" },
+    position: { x: 600, y: 968, direction: "down" },
   },
   "desk zone": {
     name: "데스크존",
