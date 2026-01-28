@@ -50,6 +50,9 @@ importers:
       '@tldraw/tldraw':
         specifier: ^4.2.3
         version: 4.2.3(@floating-ui/dom@1.7.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      easystarjs:
+        specifier: ^0.4.4
+        version: 0.4.4
       livekit-client:
         specifier: ^2.16.1
         version: 2.16.1(@types/dom-mediacapture-record@1.0.22)
@@ -3729,6 +3732,9 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
+  easystarjs@0.4.4:
+    resolution: {integrity: sha512-ZSt0TkB8xuIXRIrKsM3jkmk1/cZUtyvf0DqOXf6wuKq9slx9UA5kkLtiaWhtmOQFJFKdabbvXwk6RO0znghArQ==}
+
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
@@ -4172,6 +4178,9 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  heap@0.2.6:
+    resolution: {integrity: sha512-MzzWcnfB1e4EG2vHi3dXHoBupmuXNZzx6pY6HldVS55JKKBoq3xOyzfSaZRkJp37HIhEYC78knabHff3zc4dQQ==}
 
   hermes-estree@0.25.1:
     resolution: {integrity: sha512-0wUoCcLp+5Ev5pDW2OriHC2MJCbwLwuRx+gAqMTOkGKJJiBCLjtrvy4PWUGn6MIVefecRpzoOZ/UV6iGdOr+Cw==}
@@ -10404,6 +10413,10 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
+  easystarjs@0.4.4:
+    dependencies:
+      heap: 0.2.6
+
   ee-first@1.1.1: {}
 
   electron-to-chromium@1.5.267: {}
@@ -10937,6 +10950,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  heap@0.2.6: {}
 
   hermes-estree@0.25.1: {}
 

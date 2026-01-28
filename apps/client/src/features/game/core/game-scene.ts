@@ -1,4 +1,5 @@
 import {
+  AutoMoveManager,
   AvatarAnimationManager,
   InputManager,
   LecternManager,
@@ -48,6 +49,7 @@ export class GameScene extends Phaser.Scene {
   private boundaryRenderer!: BoundaryRenderer;
   private lecternManager!: LecternManager;
   private restaurantImageManager!: RestaurantImageManager;
+  private autoMoveManager!: AutoMoveManager;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -81,6 +83,18 @@ export class GameScene extends Phaser.Scene {
 
   get nickname(): NicknameManager {
     return this.nicknameManager;
+  }
+
+  get avatarEntity(): AvatarEntity | undefined {
+    return this.avatar;
+  }
+
+  get animation(): AvatarAnimationManager {
+    return this.animationManager;
+  }
+
+  get autoMove(): AutoMoveManager {
+    return this.autoMoveManager;
   }
 
   movePlayer(x: number, y: number, direction: AvatarDirection, state: AvatarState): void {
@@ -167,10 +181,15 @@ export class GameScene extends Phaser.Scene {
     this.boundaryRenderer.initialize(this.mapObj.depthCount - 1);
     this.nicknameManager = new NicknameManager(this);
     this.restaurantImageManager = new RestaurantImageManager(this);
+
+    this.autoMoveManager = new AutoMoveManager(this);
+    this.autoMoveManager.setupPathFinding();
   }
 
   update() {
     if (!this.avatar) return;
+
+    if (this.autoMoveManager.target) this.autoMoveManager.calculate();
 
     this.networkSyncManager.emitPlayerPosition(
       this.avatar.sprite.x,
@@ -181,8 +200,6 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.nicknameManager.updatePosition(this.avatar.sprite.x, this.avatar.sprite.y);
-
-    const inputDirection = this.inputManager.getNextDirection();
 
     this.roomEntranceManager.checkRoomEntrance(this.avatar.sprite.x, this.avatar.sprite.y);
     this.restaurantImageManager.update({
@@ -196,6 +213,13 @@ export class GameScene extends Phaser.Scene {
       this.avatar.sprite.y,
       this.roomEntranceManager.getCurrentRoomId(),
     );
+
+    const inputDirection = this.inputManager.getNextDirection();
+
+    if (this.autoMoveManager.isMoving) {
+      if (!inputDirection) return;
+      this.autoMoveManager.cancelByUser();
+    }
 
     if (this.avatar.state === "sit") {
       const x = this.avatar.sprite.x;
@@ -233,9 +257,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (inputDirection) {
-      this.avatar.state = "walk";
+      this.avatar.state = this.inputManager.isShiftKeyPressed() ? "run" : "walk";
       this.avatar.direction = inputDirection;
-      this.animationManager.toWalk(this.avatar.sprite, inputDirection);
+      if (this.avatar.state === "run") {
+        this.animationManager.toRun(this.avatar.sprite, inputDirection);
+      } else {
+        this.animationManager.toWalk(this.avatar.sprite, inputDirection);
+      }
     } else {
       this.avatar.state = "idle";
       this.animationManager.toIdle(this.avatar.sprite, this.avatar.direction);

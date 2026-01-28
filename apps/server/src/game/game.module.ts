@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 
-import { NoticeModule } from "src/notice/notice.module";
 import { StopwatchModule } from "src/stopwatch/stopwatch.module";
 import { TimerModule } from "src/timer/timer.module";
 
@@ -16,7 +15,6 @@ import { RoomGateway } from "./room.gateway";
   imports: [
     EventEmitterModule.forRoot(),
     UserModule,
-    NoticeModule,
     BoundaryModule,
     TimerModule,
     StopwatchModule,
