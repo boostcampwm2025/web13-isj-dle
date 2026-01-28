@@ -14,16 +14,13 @@ import { Server, Socket } from "socket.io";
 import { BoundaryService } from "src/boundary/boundary.service";
 import { BoundaryTracker } from "src/boundary/boundaryTracker.service";
 
-import { UserManager } from "../user/user-manager.service";
+import { MetricsService } from "../metrics";
+import { UserInternalEvent } from "../user/user-event.types";
+import { UserService } from "../user/user.service";
 
 const BOUNDARY_TICK_MS = 100;
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(GameGateway.name);
@@ -31,10 +28,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private boundaryTick: NodeJS.Timeout | null = null;
 
   constructor(
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
     private readonly boundaryService: BoundaryService,
     private readonly boundaryTracker: BoundaryTracker,
     private readonly eventEmitter: EventEmitter2,
+    private readonly metricsService: MetricsService,
   ) {}
 
   afterInit() {
@@ -52,7 +50,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     try {
       client.setMaxListeners(20);
 
-      const user = this.userManager.createSession({ id: client.id });
+      const user = this.userService.createSession({ id: client.id });
 
       if (!user) {
         this.logger.error(`Failed to create session for client: ${client.id}`);
@@ -60,11 +58,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
-      await client.join(user.avatar.currentRoomId);
-      client.emit(UserEventType.USER_SYNC, { user, users: this.userManager.getAllSessions() });
-      client.broadcast.emit(UserEventType.USER_JOIN, { user });
-
+      this.metricsService.incrementWsConnections();
       this.logger.log(`✅ Client connected: ${client.id} ${user.nickname} (${user.avatar.assetKey})`);
+
+      await client.join(user.avatar.currentRoomId);
+      client.emit(UserEventType.USER_SYNC, { user, users: this.userService.getAllSessions() });
+      client.broadcast.emit(UserEventType.USER_JOIN, { user });
     } catch (err) {
       this.logger.error(`Failed to handle connection: ${client.id}`, err instanceof Error ? err.stack : String(err));
       client.disconnect();
@@ -73,25 +72,26 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleDisconnect(client: Socket) {
     try {
-      this.logger.log(`❌ Client disconnected: ${client.id}`);
-
-      const user = this.userManager.getSession(client.id);
+      const user = this.userService.getSession(client.id);
       const nickname = user?.nickname ?? "알 수 없음";
       const previousRoomId = user?.avatar.currentRoomId;
 
       this.boundaryTracker.clear(client.id);
 
-      this.eventEmitter.emit("user.disconnecting", { clientId: client.id, nickname });
+      this.eventEmitter.emit(UserInternalEvent.DISCONNECTING, { clientId: client.id, nickname });
 
-      const deleted = this.userManager.deleteSession(client.id);
+      const deleted = this.userService.deleteSession(client.id);
       if (!deleted) {
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
       }
 
+      this.metricsService.decrementWsConnections();
+      this.logger.log(`❌ Client disconnected: ${client.id}`);
+
       client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
 
       if (previousRoomId) {
-        this.eventEmitter.emit("user.leaving-room", { roomId: previousRoomId });
+        this.eventEmitter.emit(UserInternalEvent.LEAVING_ROOM, { roomId: previousRoomId });
       }
     } catch (err) {
       this.logger.error(`Error during disconnect for ${client.id}`, err instanceof Error ? err.stack : String(err));
@@ -104,7 +104,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   private runBoundaryTick() {
-    const lobbyUsers = this.userManager.getRoomSessions("lobby");
+    const lobbyUsers = this.userService.getRoomSessions("lobby");
     if (lobbyUsers.length === 0) return;
 
     const updates = new Map<string, string | null>();
@@ -136,7 +136,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (updates.size === 0) return;
 
     for (const [userId, contactId] of updates) {
-      this.userManager.updateSessionContactId(userId, contactId);
+      this.userService.updateSessionContactId(userId, contactId);
     }
 
     this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, Object.fromEntries(updates));

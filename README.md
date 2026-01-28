@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=blur&height=300&color=5cc3f4&text=Moyo&fontColor=5599E0&textBg=false" />
+  <img width="500" height="260" alt="image" src="https://github.com/user-attachments/assets/950b68e8-5b7e-41db-9ebb-5bc9b65f462c" />
 </div>
 
 ## 프로젝트 소개

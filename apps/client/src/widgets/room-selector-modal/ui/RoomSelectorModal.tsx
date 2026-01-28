@@ -24,7 +24,7 @@ export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: Room
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded border-0 bg-transparent text-2xl leading-none text-gray-600 transition-colors duration-200"
+          className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded border-0 bg-transparent text-2xl leading-none text-gray-600 transition-colors duration-200"
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = "#f3f4f6";
           }}
@@ -46,7 +46,7 @@ export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: Room
             <button
               key={room}
               onClick={() => onSelect(room as RoomType)}
-              className="cursor-pointer rounded-md border-2 border-transparent bg-gray-100 px-4 py-3 text-sm font-medium transition-all duration-200"
+              className="rounded-md border-2 border-transparent bg-gray-100 px-4 py-3 text-sm font-medium transition-all duration-200"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#e5e7eb";
                 e.currentTarget.style.borderColor = "#3b82f6";

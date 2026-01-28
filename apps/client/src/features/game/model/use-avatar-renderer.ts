@@ -3,6 +3,7 @@ import { GAME_SCENE_KEY } from "./game.constants";
 
 import { useEffect, useRef } from "react";
 
+import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 import { positionStore, useUserStore } from "@entities/user";
 import type { User } from "@shared/types";
 
@@ -80,11 +81,25 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
       }
     });
 
+    const unsubscribeThumbnails = useRestaurantImageStore.subscribe((state, prevState) => {
+      if (state.thumbnailUrlByUserId !== prevState.thumbnailUrlByUserId) {
+        renderAvatars();
+      }
+    });
+
+    const unsubscribeImageViewModal = useRestaurantImageViewStore.subscribe((state, prevState) => {
+      if (state.isOpen !== prevState.isOpen) {
+        gameScene.setInputEnabled(!state.isOpen);
+      }
+    });
+
     renderAvatars();
 
     return () => {
       unsubscribePosition();
       unsubscribeUsers();
+      unsubscribeThumbnails();
+      unsubscribeImageViewModal();
     };
   }, [game]);
 };

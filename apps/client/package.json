@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.66.9",
     "@livekit/components-react": "^2.9.17",
     "@livekit/components-styles": "^1.2.0",
     "@livekit/krisp-noise-filter": "^0.4.1",
@@ -17,6 +18,7 @@
     "@shared/types": "workspace:*",
     "@tldraw/sync": "^4.2.3",
     "@tldraw/tldraw": "^4.2.3",
+    "easystarjs": "^0.4.4",
     "livekit-client": "^2.16.1",
     "lucide-react": "^0.562.0",
     "monaco-editor": "^0.55.1",

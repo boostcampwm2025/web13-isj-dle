@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import type { AvatarDirection } from "@shared/types";
+import { type AvatarDirection, TILE_SIZE } from "@shared/types";
 
 export const getTilesAtWorld = (map: Phaser.Tilemaps.Tilemap | null, x: number, y: number): Phaser.Tilemaps.Tile[] => {
   if (!map) return [];
@@ -20,6 +20,29 @@ export const getTilesAtWorld = (map: Phaser.Tilemaps.Tilemap | null, x: number, 
   }
 
   return tiles;
+};
+
+export const worldToTile = (x: number, y: number): { x: number; y: number } => {
+  const tileX = Math.floor(x / TILE_SIZE);
+  const tileY = Math.floor(y / TILE_SIZE);
+  return { x: tileX, y: tileY };
+};
+
+export const tileToWorld = (tileX: number, tileY: number): { x: number; y: number } => {
+  const x = tileX * TILE_SIZE + TILE_SIZE / 2;
+  const y = tileY * TILE_SIZE + TILE_SIZE / 2;
+  return { x, y };
+};
+
+export const getDirBetween = (from: { x: number; y: number }, to: { x: number; y: number }): AvatarDirection => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return dx > 0 ? "right" : "left";
+  } else {
+    return dy > 0 ? "down" : "up";
+  }
 };
 
 export const getCoordinateTileAtWorld = (

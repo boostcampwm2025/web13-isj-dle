@@ -1,5 +1,10 @@
-import { DEFAULT_EDITOR_OPTIONS, type EditorLanguage } from "./code-editor.constants";
-import { type FileSystemItem } from "./file-explorer.utils";
+import {
+  DEFAULT_EDITOR_OPTIONS,
+  type EditorLanguage,
+  VALID_FILENAME_MESSAGE,
+  VALID_FILENAME_REGEX,
+} from "./code-editor.constants";
+import { type FileSystemItem, getLanguageFromFileName } from "./file-explorer.utils";
 import type * as Monaco from "monaco-editor";
 import type * as Y from "yjs";
 
@@ -37,11 +42,8 @@ export const useFileSystem = (
   const createItem = useCallback(
     (name: string, type: "file" | "folder", parentId: string | null) => {
       if (!ydocRef.current) return;
-      const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
-      if (!/^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)?$/.test(name)) {
-        alert(
-          "이름은 다음과 같은 조건이 충족되어야 합니다.\n- 영문자, 숫자, 밑줄(_), 대시(-), 점(.)만 포함할 수 있습니다.\n- 공백은 허용되지 않습니다.\n- 점(.)으로 시작하거나 끝날 수 없습니다.\n- 점(.)은 이름에 하나만 포함될 수 있습니다.",
-        );
+      if (!VALID_FILENAME_REGEX.test(name)) {
+        alert(VALID_FILENAME_MESSAGE);
         return;
       }
 
@@ -49,7 +51,7 @@ export const useFileSystem = (
       if (type === "file" && monaco) {
         const parts = name.split(".");
         if (parts.length === 1) {
-          finalName = `${name}.txt`;
+          finalName = name.endsWith(".") ? `${name}txt` : `${name}.txt`;
         } else {
           const ext = `.${parts[parts.length - 1]}`;
           const languages = monaco.languages.getLanguages();
@@ -57,20 +59,24 @@ export const useFileSystem = (
             return lang.extensions?.some((e: string) => e.toLowerCase() === ext.toLowerCase());
           });
           if (!isSupported) {
-            finalName = `${name}.txt`;
+            finalName = name.endsWith(".") ? `${name}txt` : `${name}.txt`;
           }
         }
+      }
+
+      const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
+      const items = fsMap.toJSON();
+      const isDuplicate = Object.values(items).some((item) => item.name === finalName && item.parentId === parentId);
+      if (isDuplicate) {
+        alert(`같은 이름의 항목이 이미 존재합니다.\n다른 이름을 사용해주세요. (${finalName})`);
+        return;
       }
 
       const id = crypto.randomUUID();
       const item: FileSystemItem = { id, name: finalName, type, parentId };
       fsMap.set(id, item);
-
-      if (type === "file") {
-        selectFile(id);
-      }
     },
-    [monaco, ydocRef, selectFile],
+    [monaco, ydocRef],
   );
 
   const deleteItem = useCallback(
@@ -106,13 +112,32 @@ export const useFileSystem = (
   const renameItem = useCallback(
     (id: string, newName: string) => {
       if (!ydocRef.current) return;
+      if (!VALID_FILENAME_REGEX.test(newName)) {
+        alert(VALID_FILENAME_MESSAGE);
+        return;
+      }
+
       const fsMap = ydocRef.current.getMap<FileSystemItem>("file-system");
-      const item = fsMap.get(id);
-      if (item) {
-        fsMap.set(id, { ...item, name: newName });
+      const renameItem = fsMap.get(id);
+      if (renameItem) {
+        const items = fsMap.toJSON();
+        const isDuplicate = Object.values(items).some(
+          (item) => item.name === newName && item.parentId === renameItem.parentId && item.id !== id,
+        );
+        if (isDuplicate) {
+          alert("같은 이름의 항목이 이미 존재합니다. 다른 이름을 사용해주세요.");
+          return;
+        }
+        fsMap.set(id, { ...renameItem, name: newName });
+        if (selectedFileId === id) {
+          const language = getLanguageFromFileName(newName, monaco);
+          if (language) {
+            setLanguage(language);
+          }
+        }
       }
     },
-    [ydocRef],
+    [ydocRef, selectedFileId, monaco, setLanguage],
   );
 
   return {

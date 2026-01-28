@@ -41,28 +41,12 @@ const FileExplorer = ({
     setExpandedFolders(newExpanded);
   };
 
-  const checkDuplicate = (name: string, parentId: string | null) => {
-    return Object.values(fileSystem).some((item) => item.parentId === parentId && item.name === name);
-  };
-
   const handleCreateRootSubmit = () => {
     if (newRootItemName.trim() && isCreatingRoot) {
-      if (checkDuplicate(newRootItemName, null)) {
-        alert("A file or folder with this name already exists in the root directory.");
-        return;
-      }
       createItem(newRootItemName, isCreatingRoot, null);
     }
     setIsCreatingRoot(null);
     setNewRootItemName("");
-  };
-
-  const handleNestedCreateItem = (name: string, type: "file" | "folder", parentId: string) => {
-    if (checkDuplicate(name, parentId)) {
-      alert("A file or folder with this name already exists in this folder.");
-      return;
-    }
-    createItem(name, type, parentId);
   };
 
   return (
@@ -74,14 +58,14 @@ const FileExplorer = ({
         <div className="flex space-x-1">
           <button
             onClick={() => setIsCreatingRoot("file")}
-            className={`cursor-pointer rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
+            className={`rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
             title="새 파일"
           >
             <FilePlus size={16} />
           </button>
           <button
             onClick={() => setIsCreatingRoot("folder")}
-            className={`cursor-pointer rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
+            className={`rounded p-1 ${THEME_COLORS[theme].textColor} ${THEME_COLORS[theme].hoverBg}`}
             title="새 폴더"
           >
             <FolderPlus size={16} />
@@ -127,7 +111,7 @@ const FileExplorer = ({
             onRename={renameItem}
             creatingState={creatingState}
             setCreatingState={setCreatingState}
-            onCreateItem={handleNestedCreateItem}
+            onCreateItem={createItem}
           />
         ))}
 

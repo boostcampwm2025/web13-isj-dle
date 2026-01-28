@@ -1,30 +1,30 @@
 import { Logger } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 
 import { KnockEventType, RoomEventType, type RoomJoinPayload, RoomType, UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
 import { KnockService } from "../knock/knock.service";
+import { StopwatchGateway } from "../stopwatch/stopwatch.gateway";
 import { TimerService } from "../timer/timer.service";
-import { UserManager } from "../user/user-manager.service";
+import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
+import { UserService } from "../user/user.service";
 
 const isTimerRoomId = (roomId: RoomType): boolean => roomId.startsWith("meeting");
+const isMogakcoRoom = (roomId: RoomType): boolean => roomId === "mogakco";
 
-@WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:5173", "http://localhost:3000"],
-    credentials: true,
-  },
-})
+@WebSocketGateway()
 export class RoomGateway {
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(RoomGateway.name);
 
   constructor(
-    private readonly userManager: UserManager,
+    private readonly userService: UserService,
     private readonly knockService: KnockService,
     private readonly timerService: TimerService,
+    private readonly stopwatchGateway: StopwatchGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
@@ -36,7 +36,7 @@ export class RoomGateway {
     }
 
     try {
-      const user = this.userManager.getSession(client.id);
+      const user = this.userService.getSession(client.id);
       if (!user) {
         this.logger.error(`❌ User session not found for client: ${client.id}`);
         client.emit("error", { message: "User session not found" });
@@ -61,29 +61,32 @@ export class RoomGateway {
           });
         }
 
-        this.userManager.updateSessionDeskStatus(client.id, null);
+        this.userService.updateSessionDeskStatus(client.id, null);
       }
 
-      const updated = this.userManager.updateSessionRoom(client.id, payload.roomId);
+      const updated = this.userService.updateSessionRoom(client.id, payload.roomId);
       if (!updated) {
         this.logger.error(`❌ Failed to update room for user: ${client.id}`);
         ack?.({ success: false });
         return;
       }
 
-      this.userManager.updateSessionContactId(client.id, null);
+      this.userService.updateSessionContactId(client.id, null);
 
       if (previousRoomId === "lobby") {
         this.server.emit("internal:boundary-clear", { userId: client.id });
-        this.userManager.updateSessionContactId(client.id, null);
+        this.userService.updateSessionContactId(client.id, null);
       }
 
       await client.leave(previousRoomId);
       await client.join(payload.roomId);
 
-      this.cleanupTimerAfterLeave(previousRoomId);
+      this.eventEmitter.emit(UserInternalEvent.LEAVING_ROOM, { roomId: previousRoomId });
 
-      const updatedUser = this.userManager.getSession(client.id);
+      this.cleanupTimerAfterLeave(previousRoomId);
+      this.cleanupStopwatchAfterLeave(previousRoomId, client.id);
+
+      const updatedUser = this.userService.getSession(client.id);
       if (!updatedUser) return;
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
@@ -93,18 +96,18 @@ export class RoomGateway {
 
       client.emit(UserEventType.USER_SYNC, {
         user: updatedUser,
-        users: this.userManager.getAllSessions(),
+        users: this.userService.getAllSessions(),
       });
 
       if (payload.roomId === "desk zone") {
-        this.userManager.updateSessionDeskStatus(client.id, "available");
+        this.userService.updateSessionDeskStatus(client.id, "available");
 
         this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
           userId: client.id,
           status: "available",
         });
 
-        const deskzoneUsers = this.userManager.getRoomSessions("desk zone");
+        const deskzoneUsers = this.userService.getRoomSessions("desk zone");
         for (const deskUser of deskzoneUsers) {
           if (deskUser.id !== client.id && deskUser.deskStatus) {
             client.emit(KnockEventType.DESK_STATUS_UPDATED, {
@@ -123,18 +126,24 @@ export class RoomGateway {
     }
   }
 
-  @OnEvent("user.leaving-room")
-  handleUserLeavingRoom({ roomId }: { roomId: RoomType }) {
+  @OnEvent(UserInternalEvent.LEAVING_ROOM)
+  handleUserLeavingRoom({ roomId }: UserLeavingRoomPayload) {
     this.cleanupTimerAfterLeave(roomId);
   }
 
   private cleanupTimerAfterLeave(roomId: RoomType) {
     if (!isTimerRoomId(roomId)) return;
 
-    const remaining = this.userManager.getRoomSessions(roomId).length;
+    const remaining = this.userService.getRoomSessions(roomId).length;
     if (remaining !== 0) return;
 
     this.timerService.deleteTimer(roomId);
+  }
+
+  private cleanupStopwatchAfterLeave(roomId: RoomType, userId: string) {
+    if (!isMogakcoRoom(roomId)) return;
+
+    this.stopwatchGateway.handleUserLeft(roomId, userId);
   }
 
   private endTalkIfNeeded(userId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {
@@ -142,11 +151,11 @@ export class RoomGateway {
 
     if (!partnerId) return;
 
-    const partner = this.userManager.getSession(partnerId);
+    const partner = this.userService.getSession(partnerId);
     if (!partner) return;
 
-    this.userManager.updateSessionDeskStatus(partnerId, "available");
-    this.userManager.updateSessionContactId(partnerId, null);
+    this.userService.updateSessionDeskStatus(partnerId, "available");
+    this.userService.updateSessionContactId(partnerId, null);
 
     this.server.to(partnerId).emit(KnockEventType.TALK_ENDED, {
       partnerUserId: userId,

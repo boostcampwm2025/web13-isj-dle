@@ -9,13 +9,15 @@ import { useSidebarStore } from "@widgets/sidebar";
 
 export const useBindChat = (initialRoomName: string, contactId: string | null) => {
   const room = useRoomContext();
-  const { chatMessages } = useChat();
+  const { chatMessages, send, isSending } = useChat();
 
   const roomName = useChatStore((s) => s.roomName);
   const reset = useChatStore((s) => s.reset);
   const addSystemMessage = useChatStore((s) => s.addSystemMessage);
   const setChatMessages = useChatStore((s) => s.setChatMessages);
   const incrementUnreadCount = useChatStore((s) => s.incrementUnreadCount);
+  const setSend = useChatStore((s) => s.setSend);
+  const setIsSending = useChatStore((s) => s.setIsSending);
 
   const isOpen = useSidebarStore((s) => s.isOpen);
   const currentKey = useSidebarStore((s) => s.currentKey);
@@ -100,6 +102,23 @@ export const useBindChat = (initialRoomName: string, contactId: string | null) =
     }
     prevMessageCountRef.current = chatMessages.length;
   }, [chatMessages, setChatMessages, isChatOpen, incrementUnreadCount]);
+
+  useEffect(() => {
+    if (!send) {
+      setSend(null);
+      return () => setSend(null);
+    }
+
+    const sendWrapper = async (message: string, options?: Parameters<typeof send>[1]) => {
+      await send(message, options);
+    };
+    setSend(sendWrapper);
+    return () => setSend(null);
+  }, [send, setSend]);
+
+  useEffect(() => {
+    setIsSending(isSending);
+  }, [isSending, setIsSending]);
 
   return null;
 };

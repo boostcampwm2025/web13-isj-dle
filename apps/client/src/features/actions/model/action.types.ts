@@ -3,7 +3,7 @@ import type { Socket } from "socket.io-client";
 
 import type { ReactNode } from "react";
 
-export type ActionKey = "camera" | "mic" | "screen_share" | "desk_zone" | "ai_note" | "leave" | "view_mode";
+export type ActionKey = "camera" | "mic" | "screen_share" | "desk_zone" | "leave" | "view_mode";
 
 export type ActionHook = () => {
   isOn?: boolean;

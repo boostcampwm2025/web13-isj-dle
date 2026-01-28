@@ -1,9 +1,9 @@
-import { SIDEBAR_MAP } from "./sidebar.constants";
 import { useSidebarStore } from "./sidebar.store";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useChatStore } from "@entities/chat";
+import { useRestaurantImageViewStore } from "@entities/restaurant-image";
 import type { SidebarKey } from "@shared/config";
 
 const useSidebarState = () => {
@@ -30,6 +30,15 @@ const useSidebarState = () => {
 
   const setIsOpen = useSidebarStore((s) => s.setIsOpen);
 
+  const isUploadRequested = useRestaurantImageViewStore((s) => s.isUploadRequested);
+
+  useEffect(() => {
+    if (isUploadRequested) {
+      setCurrentKey("restaurant");
+      setIsOpen(true);
+    }
+  }, [isUploadRequested, setCurrentKey, setIsOpen]);
+
   const handleTabClick = (key: SidebarKey) => {
     setCurrentKey(key);
     if (!isOpen) {
@@ -39,9 +48,15 @@ const useSidebarState = () => {
       resetChatUnreadCount();
     }
   };
-  const currentPanel = validCurrentKey ? SIDEBAR_MAP[validCurrentKey] : null;
 
-  return { sidebarKeys, validCurrentKey, isOpen, currentPanel, handleTabClick, toggleSidebar, openSidebarWithLastKey };
+  return {
+    sidebarKeys,
+    validCurrentKey,
+    isOpen,
+    handleTabClick,
+    toggleSidebar,
+    openSidebarWithLastKey,
+  };
 };
 
 export default useSidebarState;

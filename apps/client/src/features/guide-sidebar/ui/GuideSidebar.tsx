@@ -16,7 +16,9 @@ const GuideSidebar = () => {
         </div>
         <ul className={STYLES.list}>
           <li>WASD / 방향키로 이동</li>
+          <li>Shift 키로 달리기</li>
           <li>E 키로 의자·오브젝트 상호작용</li>
+          <li>마우스 휠로 화면 확대/축소</li>
           <li>다른 공간에 있는 아바타는 보이지 않음(사용자 목록에서 위치 확인 가능)</li>
         </ul>
       </section>
@@ -79,7 +81,7 @@ const GuideSidebar = () => {
         <button
           type="button"
           onClick={handleReport}
-          className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
         >
           <ExternalLink size={SUB_ICON_SIZE} />
           오류 신고 및 개선 요청하기
