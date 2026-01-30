@@ -61,9 +61,7 @@ export const useUploadRestaurantImageMutation = (userId: string | null) => {
       return uploadRestaurantImage(userId, file);
     },
     onSuccess: () => {
-      if (!userId) return;
-      queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
-      queryClient.invalidateQueries({ queryKey: restaurantImageKeys.feed() }).catch(() => undefined);
+      queryClient.invalidateQueries({ queryKey: ["restaurantImages"] });
     },
   });
 };
@@ -76,9 +74,7 @@ export const useDeleteRestaurantImageMutation = (userId: string | null) => {
       await deleteRestaurantImage(userId, imageUrl);
     },
     onSuccess: () => {
-      if (!userId) return;
-      queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
-      queryClient.invalidateQueries({ queryKey: restaurantImageKeys.feed() }).catch(() => undefined);
+      queryClient.invalidateQueries({ queryKey: ["restaurantImages"] });
     },
   });
 };
@@ -99,9 +95,7 @@ export const useReplaceRestaurantImageMutation = (userId: string | null) => {
       return replaceRestaurantImage(userId, imageUrl, presigned.imageUrl);
     },
     onSuccess: () => {
-      if (!userId) return;
-      queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
-      queryClient.invalidateQueries({ queryKey: restaurantImageKeys.feed() }).catch(() => undefined);
+      queryClient.invalidateQueries({ queryKey: ["restaurantImages"] });
     },
   });
 };
