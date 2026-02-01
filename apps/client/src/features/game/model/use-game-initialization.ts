@@ -1,8 +1,7 @@
 import { getGameConfig } from "./game.config";
 import { usePhaserGame } from "./use-phaser-game";
 
-import { useEffect, useRef } from "react";
-import type { RefObject } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 import { useAction } from "@features/actions";
 import { useWebSocket } from "@features/socket";

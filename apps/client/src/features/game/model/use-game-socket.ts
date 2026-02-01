@@ -1,4 +1,4 @@
-import type { GameScene } from "../core/game-scene";
+import type { GameScene } from "../core";
 import { GAME_SCENE_KEY } from "./game.constants";
 import type { Socket } from "socket.io-client";
 

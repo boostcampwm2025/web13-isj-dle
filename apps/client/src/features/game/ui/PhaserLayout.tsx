@@ -1,4 +1,4 @@
-import type { GameScene } from "../core/game-scene";
+import type { GameScene } from "../core";
 import { GAME_SCENE_KEY } from "../model/game.constants";
 import { useAvatarLoader } from "../model/use-avatar-loader";
 import { useAvatarRenderer } from "../model/use-avatar-renderer";
@@ -7,29 +7,30 @@ import { useGameRegistry } from "../model/use-game-registry";
 import { useGameSocket } from "../model/use-game-socket";
 import { usePhaserGame } from "../model/use-phaser-game";
 import { useRoomSelector } from "../model/use-room-selector";
+import { MinimapOverlay } from "./MinimapOverlay";
+import { RoomSelectorModal } from "./RoomSelectorModal";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { useCollaborationToolStore } from "@entities/collaboration-tool";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
-import type { DeskStatus } from "@shared/types";
-import { LecternEventType } from "@shared/types";
-import { RoomSelectorModal } from "@widgets/room-selector-modal";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { type DeskStatus, LecternEventType } from "@shared/types";
 
 interface PhaserLayoutProps {
-  children: React.ReactNode;
+  mode: VideoConferenceMode;
 }
 
-const PhaserLayout = ({ children }: PhaserLayoutProps) => {
+const PhaserLayout = ({ mode }: PhaserLayoutProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
-  const user = useUserStore((state) => state.user);
   const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
+  const user = useUserStore((state) => state.user);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
-
-  const { game } = useGameInitialization(containerRef);
+  const isCollaborationToolOpen = useCollaborationToolStore((state) => state.activeTool !== null);
 
   const { roomSelectorOpen, selectedRoomRange, openRoomSelector, handleCloseModal, handleRoomSelect } = useRoomSelector(
     joinRoom,
@@ -50,11 +51,15 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     [socket],
   );
 
+  const { game } = useGameInitialization(containerRef);
+
   const updateMyDeskStatus = useCallback(
     (status: DeskStatus | null) => {
       if (!game) return;
       const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-      scene?.nickname.updateIndicator(status);
+      if (scene?.isReady) {
+        scene.nickname.updateIndicator(status);
+      }
     },
     [game],
   );
@@ -81,16 +86,16 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   }, [game, user?.deskStatus]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
+    <>
       <div ref={containerRef} className="absolute inset-0 z-0" />
-      <div className="pointer-events-none absolute inset-0 z-10">{children}</div>
+      <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen} />
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}
         onSelect={handleRoomSelect}
         onClose={handleCloseModal}
       />
-    </div>
+    </>
   );
 };
 
