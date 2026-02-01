@@ -3,11 +3,11 @@ import { usePhaserGame } from "./use-phaser-game";
 
 import { type RefObject, useEffect, useRef } from "react";
 
-import { useAction } from "@features/actions";
+import { useActionStore } from "@features/actions";
 import { useWebSocket } from "@features/socket";
 
 export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | null>) => {
-  const { getHookByKey } = useAction();
+  const getHookByKey = useActionStore((state) => state.getHookByKey);
   const { socket } = useWebSocket();
   const { game, setGame } = usePhaserGame();
   const isInitializedRef = useRef<boolean>(false);

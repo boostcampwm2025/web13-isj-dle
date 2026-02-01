@@ -1,15 +1,22 @@
 import { useBottomNavStore } from "../model/bottom-nav.store";
+import { useBottomNav } from "../model/use-bottom-nav";
 
-import { useAction } from "@features/actions";
+import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { useActionStore, useBindAction } from "@features/actions";
 
 const BottomNav = () => {
-  const { getHookByKey } = useAction();
+  useBindAction();
+  const { mode, setMode } = useVideoConferenceModeStore();
+  useBottomNav(mode, setMode);
+  const getHookByKey = useActionStore((state) => state.getHookByKey);
   const bottomNavigation = useBottomNavStore((state) => state.bottomNavigation);
 
   return (
     <div className="pointer-events-auto fixed bottom-12 left-1/2 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
       {bottomNavigation.map((key) => {
-        const { title, icon, handleClick } = getHookByKey(key);
+        const hook = getHookByKey(key);
+        if (!hook) return null;
+        const { title, icon, handleClick } = hook;
 
         return (
           <div key={key} className="group relative">

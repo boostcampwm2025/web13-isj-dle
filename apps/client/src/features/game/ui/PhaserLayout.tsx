@@ -15,15 +15,13 @@ import { useCallback, useEffect, useRef } from "react";
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
+import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
 import { useWebSocket } from "@features/socket";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { type DeskStatus, LecternEventType } from "@shared/types";
 
-interface PhaserLayoutProps {
-  mode: VideoConferenceMode;
-}
-
-const PhaserLayout = ({ mode }: PhaserLayoutProps) => {
+const PhaserLayout = () => {
+  const mode = useVideoConferenceModeStore((state) => state.mode);
   const containerRef = useRef<HTMLDivElement>(null);
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();

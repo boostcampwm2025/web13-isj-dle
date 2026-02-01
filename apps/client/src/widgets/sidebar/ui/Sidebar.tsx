@@ -3,7 +3,7 @@ import useSidebarState from "../model/use-sidebar-state";
 import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
-import { Suspense } from "react";
+import { Suspense, memo } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
@@ -130,4 +130,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);

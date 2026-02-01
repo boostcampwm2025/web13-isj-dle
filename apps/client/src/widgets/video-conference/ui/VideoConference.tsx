@@ -1,0 +1,42 @@
+import { useLivekit } from "../model/use-livekit";
+import { useVideoConference } from "../model/use-video-conference";
+import NoiseFilter from "./NoiseFilter";
+
+import { memo } from "react";
+
+import { ChatDataBinder } from "@entities/chat";
+import { useUserStore } from "@entities/user";
+import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { VideoFullGrid } from "@features/video-full-grid";
+import { VideoThumbnail } from "@features/video-thumbnail";
+import { LiveKitRoom } from "@livekit/components-react";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import { useSidebarStore } from "@widgets/sidebar";
+
+const VideoConference = () => {
+  const { mode, setMode } = useVideoConferenceModeStore();
+  const isMicOn = useUserStore((state) => state.user?.micOn ?? false);
+  const isCameraOn = useUserStore((state) => state.user?.cameraOn ?? false);
+  const { token, serverUrl, roomId } = useLivekit();
+  useVideoConference(roomId);
+  const isSidebarOpen = useSidebarStore((state) => state.isOpen);
+
+  return (
+    <LiveKitRoom
+      data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
+      key={roomId || "empty"}
+      serverUrl={serverUrl || ""}
+      token={token || ""}
+      connect={!!token && !!serverUrl}
+      video={isCameraOn}
+      audio={isMicOn}
+    >
+      <NoiseFilter />
+      <ChatDataBinder />
+      {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />}
+      {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
+    </LiveKitRoom>
+  );
+};
+
+export default memo(VideoConference);
