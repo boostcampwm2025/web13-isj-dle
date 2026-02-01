@@ -3,7 +3,7 @@ import type { LocalParticipant } from "livekit-client";
 import { ParticipantEvent } from "livekit-client";
 import { ScreenShare, ScreenShareOff } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const useScreenShareAction: ActionHook = () => {
   const [isScreenShareOn, setIsScreenShareOn] = useState<boolean>(false);
@@ -27,16 +27,24 @@ export const useScreenShareAction: ActionHook = () => {
     };
   }, [localParticipant]);
 
-  const toggleScreenShare = async () => {
+  const toggleScreenShare = useCallback(async () => {
     const newState = !isScreenShareOn;
     await localParticipant?.setScreenShareEnabled(newState);
-  };
+  }, [isScreenShareOn, localParticipant]);
 
-  return {
-    title: "화면 공유",
-    isOn: isScreenShareOn,
-    icon: isScreenShareOn ? <ScreenShare color="green" /> : <ScreenShareOff color="red" />,
-    handleClick: toggleScreenShare,
-    setLocalParticipant,
-  };
+  const title = useMemo(() => (isScreenShareOn ? "화면 공유 끄기" : "화면 공유 켜기"), [isScreenShareOn]);
+  const icon = useMemo(() => {
+    return isScreenShareOn ? <ScreenShare color="green" /> : <ScreenShareOff color="red" />;
+  }, [isScreenShareOn]);
+
+  return useMemo(
+    () => ({
+      title,
+      isOn: isScreenShareOn,
+      icon,
+      handleClick: toggleScreenShare,
+      setLocalParticipant,
+    }),
+    [title, isScreenShareOn, icon, toggleScreenShare, setLocalParticipant],
+  );
 };
