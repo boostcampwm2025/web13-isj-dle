@@ -11,7 +11,7 @@ const MenuButton = ({ Icon, title, description, onClick }: MenuButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-lg border bg-white p-3 text-left transition-all hover:border-blue-500 hover:bg-blue-50"
+      className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white p-3 text-left transition-all hover:border-blue-500 hover:bg-blue-50"
     >
       <div className="flex items-center gap-3">
         <Icon size={18} className="text-blue-600" />
