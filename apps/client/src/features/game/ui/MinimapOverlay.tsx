@@ -8,6 +8,7 @@ import {
   MINIMAP_PADDING_Y,
   MINIMAP_WIDTH,
 } from "../model/minimap.constants";
+import { calculateMinimapScale } from "../model/minimap.utils";
 import { useMinimap, useMinimapToggle } from "../model/use-minimap";
 import { Tag, X } from "lucide-react";
 
@@ -92,13 +93,17 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
 
               {isMapReady &&
                 (() => {
-                  const scaleX = EXPANDED_MAP_WIDTH / mapSize.width;
-                  const scaleY = (EXPANDED_MAP_HEIGHT - MINIMAP_PADDING_Y * 2) / mapSize.height;
-                  const scale = Math.min(scaleX, scaleY);
-                  const scaledWidth = mapSize.width * scale;
-                  const scaledHeight = mapSize.height * scale;
-                  const mapOffsetX = (EXPANDED_MAP_WIDTH - scaledWidth) / 2;
-                  const mapOffsetY = (EXPANDED_MAP_HEIGHT - scaledHeight) / 2;
+                  const {
+                    scale,
+                    offsetX: mapOffsetX,
+                    offsetY: mapOffsetY,
+                  } = calculateMinimapScale(
+                    mapSize.width,
+                    mapSize.height,
+                    EXPANDED_MAP_WIDTH,
+                    EXPANDED_MAP_HEIGHT,
+                    MINIMAP_PADDING_Y,
+                  );
 
                   return LOCATION_AREAS.map((area, index) => {
                     const areaX = mapOffsetX + area.x * scale;

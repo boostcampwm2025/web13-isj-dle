@@ -7,6 +7,7 @@ import {
   MINIMAP_PADDING_Y,
   MINIMAP_WIDTH,
 } from "./minimap.constants";
+import { calculateMinimapScale } from "./minimap.utils";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -32,17 +33,13 @@ const renderTilemapToCanvas = (
   canvasHeight: number,
   paddingY: number,
 ) => {
-  const mapWidth = map.widthInPixels;
-  const mapHeight = map.heightInPixels;
-
-  const scaleX = canvasWidth / mapWidth;
-  const scaleY = (canvasHeight - paddingY * 2) / mapHeight;
-  const scale = Math.min(scaleX, scaleY);
-
-  const scaledWidth = mapWidth * scale;
-  const scaledHeight = mapHeight * scale;
-  const offsetX = (canvasWidth - scaledWidth) / 2;
-  const offsetY = (canvasHeight - scaledHeight) / 2;
+  const { scale, scaledWidth, scaledHeight, offsetX, offsetY } = calculateMinimapScale(
+    map.widthInPixels,
+    map.heightInPixels,
+    canvasWidth,
+    canvasHeight,
+    paddingY,
+  );
 
   ctx.imageSmoothingEnabled = false;
 
@@ -174,14 +171,13 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
 
     let active = true;
 
-    const scaleX = MINIMAP_WIDTH / mapSize.width;
-    const scaleY = (MINIMAP_HEIGHT - MINIMAP_PADDING_Y * 2) / mapSize.height;
-    const scale = Math.min(scaleX, scaleY);
-
-    const scaledWidth = mapSize.width * scale;
-    const scaledHeight = mapSize.height * scale;
-    const offsetX = (MINIMAP_WIDTH - scaledWidth) / 2;
-    const offsetY = (MINIMAP_HEIGHT - scaledHeight) / 2;
+    const { scale, scaledWidth, scaledHeight, offsetX, offsetY } = calculateMinimapScale(
+      mapSize.width,
+      mapSize.height,
+      MINIMAP_WIDTH,
+      MINIMAP_HEIGHT,
+      MINIMAP_PADDING_Y,
+    );
 
     const render = () => {
       if (!active) return;
@@ -235,14 +231,13 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
 
     let active = true;
 
-    const scaleX = EXPANDED_MAP_WIDTH / mapSize.width;
-    const scaleY = (EXPANDED_MAP_HEIGHT - MINIMAP_PADDING_Y * 2) / mapSize.height;
-    const scale = Math.min(scaleX, scaleY);
-
-    const scaledWidth = mapSize.width * scale;
-    const scaledHeight = mapSize.height * scale;
-    const offsetX = (EXPANDED_MAP_WIDTH - scaledWidth) / 2;
-    const offsetY = (EXPANDED_MAP_HEIGHT - scaledHeight) / 2;
+    const { scale, scaledWidth, scaledHeight, offsetX, offsetY } = calculateMinimapScale(
+      mapSize.width,
+      mapSize.height,
+      EXPANDED_MAP_WIDTH,
+      EXPANDED_MAP_HEIGHT,
+      MINIMAP_PADDING_Y,
+    );
 
     const render = () => {
       if (!active) return;
