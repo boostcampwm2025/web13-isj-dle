@@ -21,6 +21,7 @@ const Sidebar = () => {
 
   const prevKeysRef = useRef<SidebarKey[]>(sidebarKeys);
   const [newlyAddedKeys, setNewlyAddedKeys] = useState<Set<SidebarKey>>(new Set());
+  const [hoveredKey, setHoveredKey] = useState<SidebarKey | null>(null);
 
   useEffect(() => {
     const prevKeys = new Set(prevKeysRef.current);
@@ -76,24 +77,29 @@ const Sidebar = () => {
       </div>
 
       <div
-        className="pointer-events-auto absolute top-0 right-0 flex h-full flex-col bg-gray-300 px-2 py-2"
+        className="pointer-events-auto absolute top-0 right-0 flex h-full flex-col overflow-visible px-2 py-2"
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
-        <button
-          className="mb-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
-          onClick={toggleSidebar}
-          title={isOpen ? "사이드바 닫기" : "사이드바 열기"}
-        >
-          {isOpen ? (
-            <PanelLeftClose className="h-6 w-6 text-gray-600" />
-          ) : (
-            <PanelLeft className="h-6 w-6 text-gray-600" />
-          )}
-        </button>
+        <div className="absolute inset-0 bg-gray-300" />
+        <div className="group relative z-10 mb-2">
+          <button
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
+            onClick={toggleSidebar}
+          >
+            {isOpen ? (
+              <PanelLeftClose className="h-6 w-6 text-gray-600" />
+            ) : (
+              <PanelLeft className="h-6 w-6 text-gray-600" />
+            )}
+          </button>
+          <div className="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded-md bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100 after:absolute after:top-1/2 after:left-full after:-translate-y-1/2 after:border-4 after:border-transparent after:border-l-gray-800">
+            {isOpen ? "사이드바 닫기" : "사이드바 열기"}
+          </div>
+        </div>
 
-        <div className="mb-2 h-0.5 w-full bg-gray-400" />
+        <div className="relative z-10 mb-2 h-0.5 w-full bg-gray-400" />
 
-        <div className="relative flex-1">
+        <div className="relative z-10 flex-1">
           <div className="scrollbar-hide flex h-full flex-col gap-4 overflow-y-auto">
             {sidebarKeys.map((key) => {
               const sidebarItem = SIDEBAR_MAP[key];
@@ -103,13 +109,14 @@ const Sidebar = () => {
 
               if (key === "timer-stopwatch") {
                 return (
-                  <TimerProgressButton
-                    key={key}
-                    sidebarItem={sidebarItem}
-                    isActive={isActive}
-                    isNewlyAdded={newlyAddedKeys.has(key)}
-                    onClick={() => handleTabClick(key)}
-                  />
+                  <div key={key} onMouseEnter={() => setHoveredKey(key)} onMouseLeave={() => setHoveredKey(null)}>
+                    <TimerProgressButton
+                      sidebarItem={sidebarItem}
+                      isActive={isActive}
+                      isNewlyAdded={newlyAddedKeys.has(key)}
+                      onClick={() => handleTabClick(key)}
+                    />
+                  </div>
                 );
               }
 
@@ -122,7 +129,8 @@ const Sidebar = () => {
                     isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
                   } ${isNewlyAdded ? "animate-sidebar-tab-enter" : ""}`}
                   onClick={() => handleTabClick(key)}
-                  title={sidebarItem.title}
+                  onMouseEnter={() => setHoveredKey(key)}
+                  onMouseLeave={() => setHoveredKey(null)}
                 >
                   <IconComponent className="h-6 w-6" size={ICON_SIZE} />
                 </button>
@@ -130,8 +138,10 @@ const Sidebar = () => {
             })}
           </div>
 
-          {/* 배지를 overflow 컨테이너 밖에 별도로 렌더링 */}
           {sidebarKeys.map((key, index) => {
+            const sidebarItem = SIDEBAR_MAP[key];
+            if (!sidebarItem) return null;
+
             let badgeCount = 0;
             if (key === "deskZone" && knockCount > 0) {
               badgeCount = knockCount;
@@ -139,19 +149,32 @@ const Sidebar = () => {
               badgeCount = chatUnreadCount;
             }
 
-            if (badgeCount === 0) return null;
+            const isHovered = hoveredKey === key;
 
             return (
-              <span
-                key={`badge-${key}`}
-                className="pointer-events-none absolute flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
-                style={{
-                  top: `${index * (48 + 16)}px`,
-                  right: "-4px",
-                }}
+              <div
+                key={`overlay-${key}`}
+                className="pointer-events-none absolute left-0"
+                style={{ top: `${index * (48 + 16)}px` }}
               >
-                {badgeCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : badgeCount}
-              </span>
+                <div
+                  className={`absolute right-full mr-4 rounded-md bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white transition-opacity after:absolute after:top-1/2 after:left-full after:-translate-y-1/2 after:border-4 after:border-transparent after:border-l-gray-800 ${
+                    isHovered ? "opacity-100" : "opacity-0"
+                  }`}
+                  style={{ top: "24px", transform: "translateY(-50%)" }}
+                >
+                  {sidebarItem.title}
+                </div>
+
+                {badgeCount > 0 && (
+                  <span
+                    className="absolute flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
+                    style={{ top: 0, right: "-52px" }}
+                  >
+                    {badgeCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : badgeCount}
+                  </span>
+                )}
+              </div>
             );
           })}
         </div>
