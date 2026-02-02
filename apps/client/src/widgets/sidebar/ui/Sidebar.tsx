@@ -8,11 +8,14 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
 import type { SidebarKey } from "@shared/config";
-import { ICON_SIZE } from "@shared/config";
-import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
-
-const MAX_BADGE_COUNT = 9;
-const ANIMATION_DURATION = 500;
+import {
+  ANIMATION_DURATION,
+  ICON_SIZE,
+  MAX_BADGE_COUNT,
+  SIDEBAR_ANIMATION_DURATION,
+  SIDEBAR_CONTENT_WIDTH,
+  SIDEBAR_TAB_WIDTH,
+} from "@shared/config";
 
 const Sidebar = () => {
   const { sidebarKeys, validCurrentKey, isOpen, handleTabClick, toggleSidebar } = useSidebarState();
