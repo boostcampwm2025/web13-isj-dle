@@ -16,17 +16,18 @@ const MAX_SYNC_USERS = 200;
 export const useSyncImage = () => {
   const { socket, isConnected } = useWebSocket();
   const users = useUserStore((s) => s.users);
-  const me = useUserStore((s) => s.user);
+  const userId = useUserStore((s) => s.user?.id);
+  const currentRoomId = useUserStore((s) => s.user?.avatar.currentRoomId);
   const queryClient = useQueryClient();
 
   const restaurantUserIds = useMemo(() => {
     const ids = new Set<string>();
-    if (me?.avatar.currentRoomId === "restaurant") ids.add(me.id);
+    if (currentRoomId === "restaurant" && userId) ids.add(userId);
     for (const u of users) {
       if (u.avatar.currentRoomId === "restaurant") ids.add(u.id);
     }
     return Array.from(ids).slice(0, MAX_SYNC_USERS);
-  }, [me, users]);
+  }, [currentRoomId, userId, users]);
 
   const restaurantUserIdsKey = useMemo(
     () =>
@@ -42,22 +43,22 @@ export const useSyncImage = () => {
     if (!socket) return;
 
     const handleThumbnailUpdated = (payload: RestaurantThumbnailUpdatedPayload) => {
-      const userId = String(payload?.userId ?? "").trim();
-      if (!userId) return;
+      const payloadUserId = String(payload?.userId ?? "").trim();
+      if (!payloadUserId) return;
 
       const thumbnailUrl = payload.thumbnailUrl ?? null;
-      const current = useRestaurantImageStore.getState().getThumbnailUrlByUserId(userId);
+      const current = useRestaurantImageStore.getState().getThumbnailUrlByUserId(payloadUserId);
       if (current === thumbnailUrl) return;
 
       if (thumbnailUrl) {
-        useRestaurantImageStore.getState().setThumbnail(userId, thumbnailUrl);
+        useRestaurantImageStore.getState().setThumbnail(payloadUserId, thumbnailUrl);
       } else {
-        useRestaurantImageStore.getState().clearThumbnail(userId);
+        useRestaurantImageStore.getState().clearThumbnail(payloadUserId);
       }
 
       queryClient.invalidateQueries({ queryKey: restaurantImageKeys.feed() }).catch(() => undefined);
-      if (me?.id && userId === me.id) {
-        queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(me.id) }).catch(() => undefined);
+      if (userId && payloadUserId === userId) {
+        queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
       }
     };
 
@@ -82,7 +83,7 @@ export const useSyncImage = () => {
       socket.off(RestaurantImageEventType.THUMBNAIL_UPDATED, handleThumbnailUpdated);
       socket.off(RestaurantImageEventType.IMAGE_LIKE_UPDATED, handleLikeUpdated);
     };
-  }, [socket, queryClient, me?.id]);
+  }, [socket, queryClient, userId]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;

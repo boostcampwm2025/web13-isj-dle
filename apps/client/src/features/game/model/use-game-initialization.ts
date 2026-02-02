@@ -1,14 +1,13 @@
 import { getGameConfig } from "./game.config";
 import { usePhaserGame } from "./use-phaser-game";
 
-import { useEffect, useRef } from "react";
-import type { RefObject } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
-import { useAction } from "@features/actions";
+import { useActionStore } from "@features/actions";
 import { useWebSocket } from "@features/socket";
 
 export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | null>) => {
-  const { getHookByKey } = useAction();
+  const getHookByKey = useActionStore((state) => state.getHookByKey);
   const { socket } = useWebSocket();
   const { game, setGame } = usePhaserGame();
   const isInitializedRef = useRef<boolean>(false);
@@ -34,14 +33,12 @@ export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | n
 
   useEffect(() => {
     const deskZoneAction = getHookByKey("desk_zone");
-    if (!deskZoneAction || !deskZoneAction.setGame || !deskZoneAction.setSocket) return;
+    if (!deskZoneAction || !deskZoneAction.setGame) return;
 
     deskZoneAction.setGame(game);
-    deskZoneAction.setSocket(socket);
 
     return () => {
       deskZoneAction?.setGame?.(null);
-      deskZoneAction?.setSocket?.(null);
     };
   }, [getHookByKey, game, socket]);
 

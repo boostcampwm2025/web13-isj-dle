@@ -1,4 +1,4 @@
-import type { GameScene } from "../core/game-scene";
+import type { GameScene } from "../core";
 import { GAME_SCENE_KEY, ROOM_JOIN_TOAST_OPTIONS } from "../model/game.constants";
 import { DoorOpen } from "lucide-react";
 
