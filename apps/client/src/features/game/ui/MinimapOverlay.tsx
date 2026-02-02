@@ -1,6 +1,4 @@
 import {
-  EXPANDED_MAP_HEIGHT,
-  EXPANDED_MAP_WIDTH,
   LOCATION_AREAS,
   MINIMAP_HEADER,
   MINIMAP_HEIGHT,
@@ -26,7 +24,10 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   const { isExpanded, openMinimap, closeMinimap } = useMinimapToggle();
-  const { canvasRef, expandedCanvasRef, mapSize, isMapReady, playerPosition } = useMinimap({ game, isExpanded });
+  const { canvasRef, expandedCanvasRef, mapSize, isMapReady, playerPosition, expandedDimensions } = useMinimap({
+    game,
+    isExpanded,
+  });
 
   return (
     <>
@@ -86,8 +87,8 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
             <div className="relative">
               <canvas
                 ref={expandedCanvasRef}
-                width={EXPANDED_MAP_WIDTH}
-                height={EXPANDED_MAP_HEIGHT}
+                width={expandedDimensions.width}
+                height={expandedDimensions.height}
                 className="block"
               />
 
@@ -100,8 +101,8 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
                   } = calculateMinimapScale(
                     mapSize.width,
                     mapSize.height,
-                    EXPANDED_MAP_WIDTH,
-                    EXPANDED_MAP_HEIGHT,
+                    expandedDimensions.width,
+                    expandedDimensions.height,
                     MINIMAP_PADDING_Y,
                   );
 
@@ -116,7 +117,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
                     return (
                       <div
                         key={index}
-                        className="pointer-events-auto absolute cursor-pointer transition-all duration-200"
+                        className="pointer-events-auto absolute transition-all duration-200"
                         style={{
                           left: areaX,
                           top: areaY,

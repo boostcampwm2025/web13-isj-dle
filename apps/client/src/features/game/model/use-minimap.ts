@@ -1,15 +1,9 @@
 import type { GameScene } from "../core/game-scene";
 import { GAME_SCENE_KEY } from "./game.constants";
-import {
-  EXPANDED_MAP_HEIGHT,
-  EXPANDED_MAP_WIDTH,
-  MINIMAP_HEIGHT,
-  MINIMAP_PADDING_Y,
-  MINIMAP_WIDTH,
-} from "./minimap.constants";
+import { MINIMAP_HEIGHT, MINIMAP_PADDING_Y, MINIMAP_WIDTH, getExpandedMapDimensions } from "./minimap.constants";
 import { calculateMinimapScale } from "./minimap.utils";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface UseMinimapProps {
   game: Phaser.Game | null;
@@ -104,6 +98,11 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
   const [playerPosition, setPlayerPosition] = useState<PlayerPosition>({ x: 0, y: 0 });
 
+  const expandedDimensions = useMemo(() => {
+    if (!isExpanded) return { width: 0, height: 0 };
+    return getExpandedMapDimensions();
+  }, [isExpanded]);
+
   useEffect(() => {
     if (!game) return;
 
@@ -145,22 +144,22 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
   }, [game]);
 
   useEffect(() => {
-    if (!game || !isMapReady || !isExpanded) return;
+    if (!game || !isMapReady || !isExpanded || expandedDimensions.width === 0) return;
 
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
     if (!scene?.isReady || !scene?.mapInfo.map) return;
 
     const map = scene.mapInfo.map;
     const cacheCanvas = document.createElement("canvas");
-    cacheCanvas.width = EXPANDED_MAP_WIDTH;
-    cacheCanvas.height = EXPANDED_MAP_HEIGHT;
+    cacheCanvas.width = expandedDimensions.width;
+    cacheCanvas.height = expandedDimensions.height;
     const ctx = cacheCanvas.getContext("2d");
 
     if (ctx) {
-      renderTilemapToCanvas(ctx, map, EXPANDED_MAP_WIDTH, EXPANDED_MAP_HEIGHT, MINIMAP_PADDING_Y);
+      renderTilemapToCanvas(ctx, map, expandedDimensions.width, expandedDimensions.height, MINIMAP_PADDING_Y);
       expandedMapCacheRef.current = cacheCanvas;
     }
-  }, [game, isMapReady, isExpanded]);
+  }, [game, isMapReady, isExpanded, expandedDimensions]);
 
   useEffect(() => {
     if (!game || !isMapReady) return;
@@ -234,8 +233,8 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
     const { scale, scaledWidth, scaledHeight, offsetX, offsetY } = calculateMinimapScale(
       mapSize.width,
       mapSize.height,
-      EXPANDED_MAP_WIDTH,
-      EXPANDED_MAP_HEIGHT,
+      expandedDimensions.width,
+      expandedDimensions.height,
       MINIMAP_PADDING_Y,
     );
 
@@ -269,7 +268,7 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
       active = false;
       if (expandedRafRef.current) cancelAnimationFrame(expandedRafRef.current);
     };
-  }, [game, isMapReady, isExpanded, mapSize]);
+  }, [game, isMapReady, isExpanded, mapSize, expandedDimensions]);
 
   return {
     canvasRef,
@@ -277,6 +276,7 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
     mapSize,
     isMapReady,
     playerPosition,
+    expandedDimensions,
   };
 };
 

@@ -6,8 +6,14 @@ export const MINIMAP_HEADER = 24;
 export const MINIMAP_MARGIN = 16;
 export const MINIMAP_PADDING_Y = 8;
 
-export const EXPANDED_MAP_WIDTH = 600;
-export const EXPANDED_MAP_HEIGHT = 500;
+export const EXPANDED_MAP_HEIGHT_RATIO = 0.75;
+export const EXPANDED_MAP_ASPECT_RATIO = 600 / 500;
+
+export const getExpandedMapDimensions = () => {
+  const height = Math.min(window.innerHeight * EXPANDED_MAP_HEIGHT_RATIO, 700);
+  const width = height * EXPANDED_MAP_ASPECT_RATIO;
+  return { width: Math.round(width), height: Math.round(height) };
+};
 
 export interface LocationArea {
   name: string;
