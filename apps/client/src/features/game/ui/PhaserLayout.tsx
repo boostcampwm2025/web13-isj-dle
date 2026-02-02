@@ -9,6 +9,7 @@ import { usePhaserGame } from "../model/use-phaser-game";
 import { useRoomSelector } from "../model/use-room-selector";
 import { MinimapOverlay } from "./MinimapOverlay";
 import { RoomSelectorModal } from "./RoomSelectorModal";
+import { ZoomControl } from "./ZoomControl";
 
 import { useCallback, useEffect, useRef } from "react";
 
@@ -83,10 +84,21 @@ const PhaserLayout = () => {
     }
   }, [game, deskStatus]);
 
+  const handleZoomChange = useCallback(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.syncZoomFromStore();
+    }
+  }, [game]);
+
+  const isOverlayHidden = mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen;
+
   return (
     <>
       <div ref={containerRef} className="absolute inset-0 z-0" />
-      <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen} />
+      <ZoomControl isHidden={isOverlayHidden} onZoomChange={handleZoomChange} />
+      <MinimapOverlay game={game} isHidden={isOverlayHidden} />
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}
