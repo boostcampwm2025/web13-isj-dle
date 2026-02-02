@@ -68,6 +68,7 @@ export const ROOM_JOIN_TOAST_OPTIONS = {
   position: "top-center" as ToastPosition,
   duration: TOAST_DURATION,
   style: {
+    marginTop: "110px",
     background: "#EFF6FF",
     color: "#1E3A8A",
   },
