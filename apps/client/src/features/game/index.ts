@@ -11,4 +11,5 @@ export { useRoomSelector } from "./model/use-room-selector";
 export { GAME_REGISTRY_KEYS, getRegistryFunction } from "./model/game-registry.constants";
 export { useZoomStore } from "./model/zoom.store";
 export { ZOOM_LEVELS, ZOOM_PERCENTAGES, DEFAULT_ZOOM_INDEX } from "./model/zoom.constants";
+export { ZoomControl } from "./ui/ZoomControl";
 export * from "./utils";
