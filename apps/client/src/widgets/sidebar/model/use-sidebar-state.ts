@@ -40,6 +40,11 @@ const useSidebarState = () => {
   }, [isUploadRequested, setCurrentKey, setIsOpen]);
 
   const handleTabClick = (key: SidebarKey) => {
+    if (isOpen && validCurrentKey === key) {
+      setIsOpen(false);
+      return;
+    }
+
     setCurrentKey(key);
     if (!isOpen) {
       setIsOpen(true);

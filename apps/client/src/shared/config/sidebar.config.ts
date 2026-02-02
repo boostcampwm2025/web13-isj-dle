@@ -35,7 +35,9 @@ export type SidebarItem = {
   Panel: ComponentType;
 };
 
+export const MAX_BADGE_COUNT = 9;
 export const SIDEBAR_WIDTH = 350;
 export const SIDEBAR_TAB_WIDTH = 64;
 export const SIDEBAR_CONTENT_WIDTH = SIDEBAR_WIDTH - SIDEBAR_TAB_WIDTH;
 export const SIDEBAR_ANIMATION_DURATION = 300;
+export const SIDEBAR_TAB_ANIMATION_DURATION = 300;
