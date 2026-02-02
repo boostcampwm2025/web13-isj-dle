@@ -1,20 +1,19 @@
 import type { ActionHook } from "./action.types";
 import { Briefcase } from "lucide-react";
 import Phaser from "phaser";
-import type { Socket } from "socket.io-client";
 
 import { useCallback, useMemo, useState } from "react";
 
 import { positionStore, useUserStore } from "@entities/user";
 import { GAME_SCENE_KEY, GameScene, isSameTileAtWorld } from "@features/game";
-import { emitAck } from "@features/socket";
+import { emitAck, useWebSocket } from "@features/socket";
 import { type AvatarState, RoomEventType, type RoomType, UserEventType } from "@shared/types";
 
 export const useDeskZoneAction: ActionHook = () => {
   const userId = useUserStore((state) => state.user?.id || "");
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const [state, setState] = useState<AvatarState | null>("idle");
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const { socket } = useWebSocket();
   const [game, setGame] = useState<Phaser.Game | null>(null);
 
   positionStore.subscribe(() => {
@@ -26,6 +25,8 @@ export const useDeskZoneAction: ActionHook = () => {
 
   const handleClick = useCallback(async () => {
     if (!game || !socket || (currentRoomId === "desk zone" && state === "sit")) {
+      console.log("데스크 존으로 이동할 수 없습니다.");
+      console.log({ game, socket, currentRoomId, state });
       return;
     }
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
@@ -69,8 +70,7 @@ export const useDeskZoneAction: ActionHook = () => {
       icon,
       handleClick,
       setGame,
-      setSocket,
     }),
-    [title, icon, handleClick, setGame, setSocket],
+    [title, icon, handleClick, setGame],
   );
 };
