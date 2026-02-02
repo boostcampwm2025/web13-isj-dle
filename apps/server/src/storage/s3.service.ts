@@ -15,7 +15,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { MetricsService } from "../metrics";
-import type { CopyObjectParams, GetPresignParams, PutObjectParams, PutPresignParams } from "./storage.types";
+import type { CopyObjectParams, PutObjectParams, PutPresignParams } from "./storage.types";
 
 @Injectable()
 export class S3Service {
@@ -70,15 +70,6 @@ export class S3Service {
 
   async createPutPresignedUrl({ key, expiresInSeconds = 300 }: PutPresignParams): Promise<string> {
     const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-    });
-
-    return getSignedUrl(this.client, command, { expiresIn: expiresInSeconds });
-  }
-
-  async createGetPresignedUrl({ key, expiresInSeconds = 300 }: GetPresignParams): Promise<string> {
-    const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });

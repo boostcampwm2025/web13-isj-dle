@@ -1,5 +1,9 @@
+<img width="auto" alt="banner" src="https://github.com/user-attachments/assets/60c1af3f-ed7e-4cff-90b5-e9981270b05e" />
+
 <div align="center">
-  <img width="500" height="260" alt="image" src="https://github.com/user-attachments/assets/950b68e8-5b7e-41db-9ebb-5bc9b65f462c" />
+  <a href="https://www.moyo.asia">🚀 Live Demo</a>
+  <span>·</span>
+  <a href="https://github.com/boostcampwm2025/web13-isj-dle/wiki">📄 GitHub Wiki</a>
 </div>
 
 ## 프로젝트 소개
@@ -65,8 +69,6 @@ pnpm -F @shared/types build
 pnpm dev:client
 pnpm dev:server
 ```
-
-### 배포된 사이트: https://www.moyo.asia
 
 ### Infra Architecture
 <img width="5813" height="3015" alt="Scrum team skills chart - Page 1 (2)" src="https://github.com/user-attachments/assets/d6732e9e-1eee-40b1-a922-1eecc15871c4" />

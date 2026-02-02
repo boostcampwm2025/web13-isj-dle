@@ -7,37 +7,35 @@ import { LecternEventType } from "@shared/types";
 
 export const useBreakoutJoin = () => {
   const { socket } = useWebSocket();
-  const user = useUserStore((state) => state.user);
+  const userId = useUserStore((state) => state.user?.id);
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
   const currentBreakoutRoomId = useMemo(() => {
-    if (!breakoutState?.isActive || !user) return null;
-
-    const myRoom = breakoutState.rooms.find((room) => room.userIds.includes(user.id));
+    if (!breakoutState?.isActive || !userId) return null;
+    const myRoom = breakoutState.rooms.find((room) => room.userIds.includes(userId));
     return myRoom?.roomId ?? null;
-  }, [breakoutState, user]);
+  }, [breakoutState, userId]);
 
   const joinRoom = useCallback(
     (targetRoomId: string) => {
-      if (!socket || !user || !breakoutState?.hostRoomId) return;
-
+      if (!socket || !userId || !breakoutState?.hostRoomId) return;
       socket.emit(LecternEventType.BREAKOUT_JOIN, {
         hostRoomId: breakoutState.hostRoomId,
-        userId: user.id,
+        userId: userId,
         targetRoomId,
       });
     },
-    [socket, user, breakoutState],
+    [socket, userId, breakoutState],
   );
 
   const leaveToMainRoom = useCallback(() => {
-    if (!socket || !user || !breakoutState?.hostRoomId) return;
+    if (!socket || !userId || !breakoutState?.hostRoomId) return;
 
     socket.emit(LecternEventType.BREAKOUT_LEAVE, {
       hostRoomId: breakoutState.hostRoomId,
-      userId: user.id,
+      userId: userId,
     });
-  }, [socket, user, breakoutState]);
+  }, [socket, userId, breakoutState]);
 
   return {
     currentBreakoutRoomId,

@@ -1,7 +1,6 @@
 import type { Socket } from "socket.io-client";
 
-import type { AvatarDirection, AvatarState, DeskStatus, UserEventType } from "@shared/types";
-import { KnockEventType } from "@shared/types";
+import { type AvatarDirection, type AvatarState, type DeskStatus, KnockEventType, UserEventType } from "@shared/types";
 
 export class NetworkSyncManager {
   private socket?: Socket;
