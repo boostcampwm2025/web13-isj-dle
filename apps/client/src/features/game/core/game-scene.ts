@@ -18,6 +18,8 @@ import {
   TMJ_URL,
 } from "../model/game.constants";
 import type { AvatarEntity, MapObj } from "../model/game.types";
+import { DEFAULT_ZOOM_INDEX, ZOOM_LEVELS } from "../model/zoom.constants";
+import { useZoomStore } from "../model/zoom.store";
 import { AvatarRenderer, BoundaryRenderer } from "../renderers";
 import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTilesets } from "../utils";
 import Phaser from "phaser";
@@ -59,8 +61,8 @@ export class GameScene extends Phaser.Scene {
       map: null,
       depthCount: 0,
       zoom: {
-        index: 4,
-        levels: [1, 2, 3, 4, 5, 7, 9, 10],
+        index: DEFAULT_ZOOM_INDEX,
+        levels: [...ZOOM_LEVELS],
       },
     };
   }
@@ -144,10 +146,15 @@ export class GameScene extends Phaser.Scene {
         "wheel",
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
           if (dy == 0) return;
-          if (dy > 0) this.mapObj.zoom.index = Math.max(0, this.mapObj.zoom.index - 1);
-          else this.mapObj.zoom.index = Math.min(this.mapObj.zoom.levels.length - 1, this.mapObj.zoom.index + 1);
 
-          this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+          const zoomStore = useZoomStore.getState();
+          if (dy > 0) {
+            zoomStore.zoomOut();
+          } else {
+            zoomStore.zoomIn();
+          }
+          this.mapObj.zoom.index = zoomStore.zoomIndex;
+          this.cameras.main.setZoom(zoomStore.getZoomLevel());
         },
       );
 
