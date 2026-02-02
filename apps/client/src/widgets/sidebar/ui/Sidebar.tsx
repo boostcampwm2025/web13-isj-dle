@@ -3,19 +3,47 @@ import useSidebarState from "../model/use-sidebar-state";
 import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
+import type { SidebarKey } from "@shared/config";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 
 const MAX_BADGE_COUNT = 9;
+const ANIMATION_DURATION = 500;
 
 const Sidebar = () => {
   const { sidebarKeys, validCurrentKey, isOpen, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
+
+  const prevKeysRef = useRef<SidebarKey[]>(sidebarKeys);
+  const [newlyAddedKeys, setNewlyAddedKeys] = useState<Set<SidebarKey>>(new Set());
+
+  useEffect(() => {
+    const prevKeys = new Set(prevKeysRef.current);
+    const addedKeys = sidebarKeys.filter((key) => !prevKeys.has(key) && !newlyAddedKeys.has(key));
+
+    prevKeysRef.current = sidebarKeys;
+
+    if (addedKeys.length === 0) return;
+
+    setNewlyAddedKeys((prev) => new Set([...prev, ...addedKeys]));
+
+    const timer = setTimeout(() => {
+      setNewlyAddedKeys((prev) => {
+        const next = new Set(prev);
+        for (const key of addedKeys) {
+          next.delete(key);
+        }
+        return next;
+      });
+    }, ANIMATION_DURATION);
+
+    return () => clearTimeout(timer);
+  }, [sidebarKeys, newlyAddedKeys]);
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -79,18 +107,20 @@ const Sidebar = () => {
                     key={key}
                     sidebarItem={sidebarItem}
                     isActive={isActive}
+                    isNewlyAdded={newlyAddedKeys.has(key)}
                     onClick={() => handleTabClick(key)}
                   />
                 );
               }
 
               const IconComponent = sidebarItem.Icon;
+              const isNewlyAdded = newlyAddedKeys.has(key);
               return (
                 <button
                   key={key}
                   className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
                     isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
-                  }`}
+                  } ${isNewlyAdded ? "animate-sidebar-tab-enter" : ""}`}
                   onClick={() => handleTabClick(key)}
                   title={sidebarItem.title}
                 >

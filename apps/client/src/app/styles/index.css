@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+@keyframes sidebar-tab-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(10px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) translateY(-2px);
+  }
+  70% {
+    transform: scale(0.95) translateY(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@utility animate-sidebar-tab-enter {
+  animation: sidebar-tab-enter 0.4s ease-out;
+}
+
 @utility scrollbar-hide {
   -ms-overflow-style: none; /* IE/Edge */
   scrollbar-width: none; /* Firefox */
