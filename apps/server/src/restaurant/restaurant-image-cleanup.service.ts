@@ -11,7 +11,6 @@ import { RestaurantImageEntity } from "./restaurant-image.entity";
 
 const CLEANUP_BATCH_SIZE = 100;
 const S3_LIST_BATCH_SIZE = 500;
-const MAX_CONSECUTIVE_FAILURES = 3;
 const RESTAURANT_IMAGES_PREFIX = "restaurant-images/";
 
 const getTodayMidnightKST = (): Date => {
@@ -82,42 +81,38 @@ export class RestaurantImageCleanupService {
   }
 
   private async cleanupOrphanRecords(): Promise<void> {
-    let lastId = 0;
-    let consecutiveFailures = 0;
+    try {
+      const s3Objects = await this.s3Service.listObjects(RESTAURANT_IMAGES_PREFIX, S3_LIST_BATCH_SIZE);
+      const s3Keys = new Set(s3Objects.map((obj) => obj.key));
 
-    while (consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
-      const rows = await this.fetchBatch(lastId);
-      if (rows.length === 0) break;
+      let lastId = 0;
 
-      lastId = rows.at(-1)!.id;
+      while (true) {
+        const rows = await this.restaurantImageRepository
+          .createQueryBuilder("img")
+          .select(["img.id", "img.key"])
+          .where("img.id > :lastId", { lastId })
+          .orderBy("img.id", "ASC")
+          .limit(CLEANUP_BATCH_SIZE)
+          .getMany();
 
-      for (const row of rows) {
-        try {
-          const exists = await this.s3Service.objectExists(row.key);
-          if (!exists) {
-            await this.restaurantImageRepository.delete({ id: row.id });
+        if (rows.length === 0) break;
+
+        lastId = rows.at(-1)!.id;
+
+        const orphanIds = rows.filter((row) => !s3Keys.has(row.key)).map((row) => row.id);
+
+        if (orphanIds.length > 0) {
+          try {
+            await this.restaurantImageRepository.delete({ id: In(orphanIds) });
+          } catch (e) {
+            this.logger.error(`Failed to delete orphan DB records`, e instanceof Error ? e.stack : undefined);
           }
-          consecutiveFailures = 0;
-        } catch (e) {
-          consecutiveFailures++;
-          this.logger.error(
-            `Failed to process orphan record: key=${row.key}`,
-            e instanceof Error ? e.stack : undefined,
-          );
-          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) break;
         }
       }
+    } catch (e) {
+      this.logger.error("Failed to cleanup orphan records", e instanceof Error ? e.stack : undefined);
     }
-  }
-
-  private async fetchBatch(lastId: number): Promise<RestaurantImageEntity[]> {
-    return this.restaurantImageRepository
-      .createQueryBuilder("img")
-      .select(["img.id", "img.key"])
-      .where("img.id > :lastId", { lastId })
-      .orderBy("img.id", "ASC")
-      .limit(CLEANUP_BATCH_SIZE)
-      .getMany();
   }
 
   private async cleanupOrphanS3Files(): Promise<void> {
@@ -160,6 +155,7 @@ export class RestaurantImageCleanupService {
   }
 
   private emitThumbnailUpdated(userId: string): void {
+    // 삭제 후이므로 thumbnailUrl은 null (클라이언트가 다시 조회해야 함)
     this.eventEmitter.emit(RestaurantImageEventType.THUMBNAIL_UPDATED, { userId, thumbnailUrl: null });
   }
 }
