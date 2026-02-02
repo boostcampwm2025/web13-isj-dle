@@ -5,6 +5,8 @@ import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 import { useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 
+import { TIMER_COMPLETE_TOAST_ID } from "@shared/config";
+
 let lastNotifiedRunId: number | null = null;
 
 export const useTimerCompletionNotification = () => {
@@ -26,6 +28,6 @@ export const useTimerCompletionNotification = () => {
     lastNotifiedRunId = runId;
 
     playChime();
-    toast("타이머 시간이 종료되었습니다.", { id: "timer-complete" });
+    toast("타이머 시간이 종료되었습니다.", { id: TIMER_COMPLETE_TOAST_ID });
   }, [isCompleted]);
 };

@@ -1,9 +1,12 @@
 import type { GameScene } from "../core/game-scene";
 import { GAME_SCENE_KEY } from "../model/game.constants";
+import { DoorOpen } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { useUserStore } from "@entities/user";
+import { ICON_SIZE, ROOM_JOIN_TOAST_ID } from "@shared/config";
 
 interface MinimapOverlayProps {
   game: Phaser.Game | null;
@@ -24,6 +27,23 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
   const [isMapReady, setIsMapReady] = useState(false);
 
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+
+  useEffect(() => {
+    if (currentRoomId === "lobby") {
+      toast.dismiss(ROOM_JOIN_TOAST_ID);
+      return;
+    }
+    toast(`${currentRoomId}에 입장했습니다.`, {
+      id: ROOM_JOIN_TOAST_ID,
+      position: "top-center",
+      icon: <DoorOpen size={ICON_SIZE} className="text-blue-600" />,
+      duration: 3000,
+      style: {
+        background: "#EFF6FF",
+        color: "#1E3A8A",
+      },
+    });
+  }, [currentRoomId]);
 
   useEffect(() => {
     if (!game) return;
