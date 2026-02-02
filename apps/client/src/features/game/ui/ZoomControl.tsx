@@ -41,20 +41,20 @@ export const ZoomControl = ({ isHidden = false, onZoomChange }: ZoomControl) => 
       <button
         onClick={handleZoomIn}
         disabled={isMaxZoom}
-        className="flex h-8 w-10 items-center justify-center text-slate-300 transition-colors hover:bg-slate-700/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+        className="flex h-10 w-10 items-center justify-center text-slate-300 transition-colors hover:bg-slate-700/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
         title="확대"
       >
         <ZoomIn className="h-4 w-4" />
       </button>
 
-      <div className="flex h-8 w-10 items-center justify-center border-b border-slate-700/50 bg-slate-800/80 text-[11px] font-medium text-slate-300">
+      <div className="flex h-10 w-10 items-center justify-center border-t border-slate-700/50 bg-slate-800/80 text-[11px] font-medium text-slate-300">
         {getZoomPercentage()}%
       </div>
 
       <button
         onClick={handleZoomOut}
         disabled={isMinZoom}
-        className="flex h-8 w-10 items-center justify-center border-b border-slate-700/50 text-slate-300 transition-colors hover:bg-slate-700/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+        className="flex h-10 w-10 items-center justify-center border-t border-slate-700/50 text-slate-300 transition-colors hover:bg-slate-700/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
         title="축소"
       >
         <ZoomOut className="h-4 w-4" />
