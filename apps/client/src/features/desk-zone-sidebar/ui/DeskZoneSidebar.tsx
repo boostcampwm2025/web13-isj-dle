@@ -14,7 +14,8 @@ import { useUserStore } from "@entities/user";
 import { useKnock } from "@features/knock";
 
 const DeskZoneSidebar = () => {
-  const user = useUserStore((s) => s.user);
+  const userId = useUserStore((s) => s.user?.id);
+  const deskStatus = useUserStore((s) => s.user?.deskStatus);
   const users = useUserStore((s) => s.users);
   const receivedKnocks = useKnockStore((s) => s.receivedKnocks);
   const knockFailedMessage = useKnockStore((s) => s.knockFailedMessage);
@@ -29,8 +30,8 @@ const DeskZoneSidebar = () => {
   const deskZoneUsers = users.filter((u) => u.avatar.currentRoomId === "desk zone");
 
   const sortedUsers = [...deskZoneUsers].sort((a, b) => {
-    if (a.id === user?.id) return -1;
-    if (b.id === user?.id) return 1;
+    if (a.id === userId) return -1;
+    if (b.id === userId) return 1;
     return a.nickname.localeCompare(b.nickname);
   });
 
@@ -81,7 +82,7 @@ const DeskZoneSidebar = () => {
 
         <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
           {sortedUsers.map((u) => {
-            const isMe = u.id === user?.id;
+            const isMe = u.id === userId;
             const isSelected = selectedUserId === u.id;
 
             return (
@@ -94,7 +95,7 @@ const DeskZoneSidebar = () => {
                       <div>
                         <p className="mb-1 text-xs font-medium text-gray-500">내 상태 변경</p>
                         <MyStatusSelector
-                          currentStatus={user?.deskStatus ?? null}
+                          currentStatus={deskStatus ?? null}
                           onStatusChange={updateDeskStatus}
                           isTalking={isTalking}
                         />
@@ -103,7 +104,7 @@ const DeskZoneSidebar = () => {
                       <KnockButton
                         targetNickname={u.nickname}
                         targetDeskStatus={u.deskStatus}
-                        myDeskStatus={user?.deskStatus ?? null}
+                        myDeskStatus={deskStatus ?? null}
                         canKnock={canKnockTo(u.id)}
                         onClick={handleKnockClick}
                       />

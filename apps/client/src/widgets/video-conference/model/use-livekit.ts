@@ -1,4 +1,4 @@
-import { requestLivekitToken } from "../api/livekit.api";
+import { requestLivekitToken } from "../../../pages/room/api/livekit.api";
 
 import { useEffect, useMemo, useState } from "react";
 

@@ -4,7 +4,7 @@ import { SidebarTabBadge } from "./SidebarTabBadge";
 import { SidebarTabButton } from "./SidebarTabButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, memo, useEffect, useRef, useState } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
@@ -129,4 +129,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);
