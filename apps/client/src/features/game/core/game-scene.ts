@@ -147,14 +147,12 @@ export class GameScene extends Phaser.Scene {
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
           if (dy == 0) return;
 
-          const zoomStore = useZoomStore.getState();
           if (dy > 0) {
-            zoomStore.zoomOut();
+            useZoomStore.getState().zoomOut();
           } else {
-            zoomStore.zoomIn();
+            useZoomStore.getState().zoomIn();
           }
-          this.mapObj.zoom.index = zoomStore.zoomIndex;
-          this.cameras.main.setZoom(zoomStore.getZoomLevel());
+          this.syncZoomFromStore();
         },
       );
 
@@ -313,9 +311,15 @@ export class GameScene extends Phaser.Scene {
     this.nicknameManager.createNickname(spawn.x, spawn.y, user.nickname, user.deskStatus);
     this.nicknameManager.setDepth(Number.MAX_SAFE_INTEGER);
 
-    this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+    this.syncZoomFromStore();
     this.cameras.main.startFollow(sprite, false, 1, 1);
     this.cameras.main.setRoundPixels(true);
+  }
+
+  syncZoomFromStore(): void {
+    const zoomStore = useZoomStore.getState();
+    this.mapObj.zoom.index = zoomStore.zoomIndex;
+    this.cameras.main.setZoom(zoomStore.getZoomLevel());
   }
 
   renderAnotherAvatars(users: User[], currentUser?: User | null): void {

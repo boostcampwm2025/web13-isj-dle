@@ -12,6 +12,7 @@ import { useAction } from "@features/actions";
 import {
   GAME_SCENE_KEY,
   type GameScene,
+  ZoomControl,
   useAvatarLoader,
   useAvatarRenderer,
   useGameInitialization,
@@ -106,6 +107,13 @@ const RoomPage = () => {
   const { mode, setMode } = useVideoConference();
   const isSidebarOpen = useSidebarStore((state) => state.isOpen);
   const isCollaborationToolOpen = useCollaborationToolStore((state) => state.activeTool !== null);
+  const handleZoomChange = useCallback(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.syncZoomFromStore();
+    }
+  }, [game]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
@@ -129,6 +137,11 @@ const RoomPage = () => {
           {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
         </LiveKitRoom>
       </div>
+
+      <ZoomControl
+        isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen}
+        onZoomChange={handleZoomChange}
+      />
 
       <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen} />
 
