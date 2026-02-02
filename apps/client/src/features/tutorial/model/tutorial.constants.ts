@@ -117,3 +117,4 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
 ];
 
 export const TUTORIAL_STORAGE_KEY = "moyo-tutorial-completed";
+export const TUTORIAL_AUTO_START_DELAY = 1500;

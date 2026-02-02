@@ -1,0 +1,219 @@
+html,
+body {
+  overflow-x: hidden;
+}
+
+:root {
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --text: #1f2937;
+  --overlay: rgba(0, 0, 0, 0.5);
+  --highlight: rgba(59, 130, 246, 0.18);
+  --card-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
+}
+
+.shepherd-element {
+  max-width: 420px;
+  min-width: 320px;
+  overflow: visible;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: var(--card-shadow);
+  z-index: 100000;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* spacing */
+.shepherd-element[data-popper-placement^="top"] {
+  margin-bottom: 14px;
+}
+.shepherd-element[data-popper-placement^="bottom"] {
+  margin-top: 14px;
+}
+.shepherd-element[data-popper-placement^="left"] {
+  margin-right: 24px !important;
+  transform: translateX(-16px) !important;
+}
+.shepherd-element[data-popper-placement^="right"] {
+  margin-left: 12px;
+  transform: translateX(16px) !important;
+}
+
+/* header styling (show title in modal) */
+.shepherd-header {
+  display: block;
+  padding: 8px 28px 0 !important;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.shepherd-text {
+  white-space: pre-line;
+  padding: 36px 28px 20px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  text-align: center;
+}
+
+.shepherd-text p {
+  margin: 0;
+}
+
+.shepherd-content {
+  padding-top: 6px;
+}
+
+.shepherd-footer {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 24px;
+  background: transparent;
+  border-top: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.shepherd-button {
+  cursor: pointer;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background 120ms ease;
+  outline: none;
+}
+
+.shepherd-button:active {
+  transform: translateY(1px) scale(0.995);
+}
+.shepherd-button:focus {
+  box-shadow: 0 0 0 4px var(--highlight);
+  border-radius: 999px;
+}
+
+.shepherd-button-primary {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.18);
+}
+
+.shepherd-button-primary:hover {
+  filter: brightness(0.97);
+  transform: translateY(-1px);
+}
+
+.shepherd-button-secondary {
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #374151;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.shepherd-button-secondary:hover {
+  background: #f1f5f9;
+}
+
+.shepherd-button-skip {
+  padding: 6px 10px;
+  font-size: 13px;
+  background: none !important;
+  color: var(--muted) !important;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.shepherd-button-skip:hover {
+  color: #374151 !important;
+  text-decoration: underline;
+}
+
+.shepherd-footer:has(.shepherd-button-secondary) {
+  flex-direction: row;
+}
+.shepherd-footer:has(.shepherd-button-secondary) .shepherd-button-primary,
+.shepherd-footer:has(.shepherd-button-secondary) .shepherd-button-secondary {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .shepherd-footer {
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 18px 18px;
+  }
+  .shepherd-button-primary,
+  .shepherd-button-secondary {
+    width: 100%;
+  }
+}
+
+.shepherd-modal-overlay-container {
+  background: var(--overlay);
+}
+.shepherd-modal-overlay-container {
+  background: var(--overlay);
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  overflow: hidden;
+}
+
+.shepherd-target-highlight {
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.18);
+  border-radius: 10px;
+}
+
+.shepherd-arrow,
+.shepherd-arrow::before {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+}
+.shepherd-arrow::before {
+  content: "";
+  transform: rotate(45deg);
+  background: var(--bg);
+  box-shadow: -2px -2px 6px rgba(0, 0, 0, 0.06);
+}
+.shepherd-element[data-popper-placement^="top"] > .shepherd-arrow {
+  bottom: -8px;
+}
+.shepherd-element[data-popper-placement^="bottom"] > .shepherd-arrow {
+  top: -8px;
+}
+.shepherd-element[data-popper-placement^="left"] > .shepherd-arrow {
+  right: -8px;
+}
+.shepherd-element[data-popper-placement^="right"] > .shepherd-arrow {
+  left: -8px;
+}
+
+html.shepherd-active,
+body.shepherd-active {
+  overflow: hidden;
+}
+
+.shepherd-button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.tutorial-active,
+body.tutorial-active {
+  overflow: hidden !important;
+  height: 100%;
+  touch-action: none;
+}
