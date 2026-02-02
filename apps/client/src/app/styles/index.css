@@ -17,24 +17,22 @@
     }
 }
 
-
 @utility animate-sidebar-tab-enter {
-  animation: sidebar-tab-enter 0.3s ease-out;
+    animation: sidebar-tab-enter 0.3s ease-out;
 }
 
 @utility scrollbar-hide {
-  -ms-overflow-style: none; /* IE/Edge */
-  scrollbar-width: none; /* Firefox */
-
-  &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
-  }
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
 }
 
 button {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 button:disabled {
-  cursor: not-allowed;
+    cursor: not-allowed;
 }
