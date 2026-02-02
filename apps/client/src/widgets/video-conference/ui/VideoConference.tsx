@@ -11,7 +11,6 @@ import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
-import { useSidebarStore } from "@widgets/sidebar";
 
 const VideoConference = () => {
   const { mode, setMode } = useVideoConferenceModeStore();
@@ -19,7 +18,6 @@ const VideoConference = () => {
   const isCameraOn = useUserStore((state) => state.user?.cameraOn ?? false);
   const { token, serverUrl, roomId } = useLivekit();
   useVideoConference(roomId);
-  const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
   return (
     <LiveKitRoom
@@ -33,7 +31,7 @@ const VideoConference = () => {
     >
       <NoiseFilter />
       <ChatDataBinder />
-      {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />}
+      {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} />}
       {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
     </LiveKitRoom>
   );

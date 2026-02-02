@@ -12,7 +12,7 @@ const BottomNav = () => {
   const bottomNavigation = useBottomNavStore((state) => state.bottomNavigation);
 
   return (
-    <div className="pointer-events-auto fixed bottom-12 left-1/2 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
+    <div className="pointer-events-auto absolute bottom-12 left-1/2 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
       {bottomNavigation.map((key) => {
         const hook = getHookByKey(key);
         if (!hook) return null;

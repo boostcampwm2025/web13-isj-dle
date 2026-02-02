@@ -4,8 +4,9 @@ import { useKnockSocket } from "@features/knock";
 import { useSyncImage } from "@features/restaurant-sidebar/model";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
 import { BottomNav } from "@widgets/bottom-nav";
-import { Sidebar } from "@widgets/sidebar";
+import { Sidebar, useSidebarStore } from "@widgets/sidebar";
 import { VideoConference } from "@widgets/video-conference";
 
 const RoomPage = () => {
@@ -13,19 +14,26 @@ const RoomPage = () => {
   useSyncImage();
 
   const mode = useVideoConferenceModeStore((state) => state.mode);
+  const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <PhaserLayout />
+    <div className="relative h-screen w-screen overflow-hidden bg-gray-300">
+      <div
+        className="absolute inset-0 overflow-hidden rounded-r-2xl transition-[right] ease-in-out"
+        style={{
+          right: isSidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH,
+          transitionDuration: `${SIDEBAR_ANIMATION_DURATION}ms`,
+        }}
+      >
+        <PhaserLayout />
 
-      <div className="pointer-events-none absolute inset-0 z-10">
-        <VideoConference />
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <VideoConference />
+          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+        </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 z-20">
-        {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
-        <Sidebar />
-      </div>
+      <Sidebar />
     </div>
   );
 };
