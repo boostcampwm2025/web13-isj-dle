@@ -52,6 +52,8 @@ export class GameScene extends Phaser.Scene {
   private lecternManager!: LecternManager;
   private restaurantImageManager!: RestaurantImageManager;
   private autoMoveManager!: AutoMoveManager;
+  private lastZoomTime = 0;
+  private readonly ZOOM_THROTTLE_MS = 50;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -145,7 +147,11 @@ export class GameScene extends Phaser.Scene {
       this.input.on(
         "wheel",
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
-          if (dy == 0) return;
+          if (dy === 0) return;
+
+          const now = Date.now();
+          if (now - this.lastZoomTime < this.ZOOM_THROTTLE_MS) return;
+          this.lastZoomTime = now;
 
           if (dy > 0) {
             useZoomStore.getState().zoomOut();
