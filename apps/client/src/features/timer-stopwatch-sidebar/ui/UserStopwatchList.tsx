@@ -49,7 +49,7 @@ const StopwatchDisplay = ({ user, now }: { user: UserStopwatchState; now: number
 
 export const UserStopwatchList = () => {
   const userStopwatches = useStopwatchShareStore((state) => state.userStopwatches);
-  const currentUser = useUserStore((state) => state.user);
+  const userId = useUserStore((state) => state.user?.id);
 
   const [now, setNow] = useState(() => Date.now());
 
@@ -74,8 +74,8 @@ export const UserStopwatchList = () => {
   }
 
   const sortedUsers = [...userStopwatches].sort((a, b) => {
-    if (a.userId === currentUser?.id) return -1;
-    if (b.userId === currentUser?.id) return 1;
+    if (a.userId === userId) return -1;
+    if (b.userId === userId) return 1;
     return a.nickname.localeCompare(b.nickname);
   });
 
@@ -97,7 +97,7 @@ export const UserStopwatchList = () => {
 
       <ul className="space-y-1">
         {sortedUsers.map((user) => {
-          const isMe = user.userId === currentUser?.id;
+          const isMe = user.userId === userId;
           const displayName = truncateNickname(user.nickname);
 
           return (

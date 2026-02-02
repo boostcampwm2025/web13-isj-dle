@@ -26,8 +26,8 @@ const PhaserLayout = () => {
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
   const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
-  const user = useUserStore((state) => state.user);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+  const deskStatus = useUserStore((state) => state.user?.deskStatus);
   const isCollaborationToolOpen = useCollaborationToolStore((state) => state.activeTool !== null);
 
   const { roomSelectorOpen, selectedRoomRange, openRoomSelector, handleCloseModal, handleRoomSelect } = useRoomSelector(
@@ -79,9 +79,9 @@ const PhaserLayout = () => {
     if (!game) return;
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
     if (scene?.isReady) {
-      scene.nickname.updateIndicator(user?.deskStatus ?? null);
+      scene.nickname.updateIndicator(deskStatus ?? null);
     }
-  }, [game, user?.deskStatus]);
+  }, [game, deskStatus]);
 
   return (
     <>
