@@ -1,4 +1,4 @@
-import { GameScene } from "../core/game-scene";
+import { GameScene } from "../core";
 import Phaser from "phaser";
 
 export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.GameConfig => {

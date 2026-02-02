@@ -1,23 +1,29 @@
 import type { ActionHook } from "./action.types";
 import { Maximize } from "lucide-react";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 export const useViewModeAction: ActionHook = () => {
   const triggerRef = useRef<(() => void) | null>(null);
 
-  const toggleViewMode = () => {
+  const toggleViewMode = useCallback(() => {
     triggerRef.current?.();
-  };
+  }, []);
 
   const setTrigger = useCallback((fn: (() => void) | null) => {
     triggerRef.current = fn;
   }, []);
 
-  return {
-    title: "확대",
-    icon: <Maximize color="green" />,
-    handleClick: toggleViewMode,
-    setTrigger,
-  };
+  const title = useMemo(() => "확대", []);
+  const icon = useMemo(() => <Maximize color="green" />, []);
+
+  return useMemo(
+    () => ({
+      title,
+      icon,
+      handleClick: toggleViewMode,
+      setTrigger,
+    }),
+    [title, icon, toggleViewMode, setTrigger],
+  );
 };

@@ -11,8 +11,10 @@ import {
 import { calculateMinimapScale } from "../model/minimap.utils";
 import { useMinimap, useMinimapToggle } from "../model/use-minimap";
 import { Tag, X } from "lucide-react";
+import type { GameScene } from "../core";
+import { GAME_SCENE_KEY } from "../model/game.constants";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 

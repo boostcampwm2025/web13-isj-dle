@@ -1,14 +1,13 @@
-import { useLivekit } from "./use-livekit";
-
 import { useEffect, useRef, useState } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS, TIMER_STOPWATCH_SIDEBAR_KEY } from "@entities/collaboration-tool";
 import { useBreakoutStore } from "@entities/lectern";
 import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
-import { type ActionKey, useAction } from "@features/actions";
+import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
 import { useTimerStopwatchStore } from "@features/timer-stopwatch-sidebar";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { isMeetingRoomRange } from "@shared/config";
 import { useBottomNavStore } from "@widgets/bottom-nav";
 import { useSidebarStore } from "@widgets/sidebar";
@@ -34,15 +33,14 @@ const isTimerStopwatchRoomType = (roomId: string | null): boolean => {
   return roomId.startsWith(COLLABORATION_ROOM_PREFIX.MEETING) || roomId.startsWith(COLLABORATION_ROOM_PREFIX.MOGAKCO);
 };
 
-export const useVideoConference = () => {
-  const { getHookByKey } = useAction();
+export const useVideoConference = (roomId: string | null) => {
+  const { mode, setMode } = useVideoConferenceModeStore();
   const addBottomNavKey = useBottomNavStore((state) => state.addKey);
   const removeBottomNavKey = useBottomNavStore((state) => state.removeKey);
   const addSidebarKey = useSidebarStore((state) => state.addKey);
   const removeSidebarKey = useSidebarStore((state) => state.removeKey);
   const resetTimer = useTimerStopwatchStore((state) => state.resetTimer);
   const resetStopwatch = useTimerStopwatchStore((state) => state.resetStopwatch);
-  const [mode, setMode] = useState<VideoConferenceMode | null>(null);
   const prevRoomIdRef = useRef<string | null>(null);
   const [prevRoomInfo, setPrevRoomInfo] = useState<{
     currentRoomId: string | undefined;
@@ -61,7 +59,7 @@ export const useVideoConference = () => {
 
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
-  const { roomId } = useLivekit();
+  const { game } = usePhaserGame();
 
   const isLobbyOrDeskOrMeeting =
     ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
@@ -82,16 +80,10 @@ export const useVideoConference = () => {
   }
 
   useEffect(() => {
-    const actionKey: ActionKey = "view_mode";
-    const viewModeHook = getHookByKey(actionKey);
-    if (mode === VIDEO_CONFERENCE_MODE.THUMBNAIL) {
-      addBottomNavKey(actionKey);
-      viewModeHook.setTrigger?.(() => setMode(VIDEO_CONFERENCE_MODE.FULL_GRID));
-    } else {
-      removeBottomNavKey(actionKey);
-      viewModeHook.setTrigger?.(null);
-    }
-  }, [addBottomNavKey, getHookByKey, mode, removeBottomNavKey]);
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    scene.setInputEnabled(mode !== VIDEO_CONFERENCE_MODE.FULL_GRID);
+  }, [game, mode]);
 
   useEffect(() => {
     if (!currentRoomId || !userId || !nickname) return;
@@ -182,8 +174,5 @@ export const useVideoConference = () => {
     prevRoomIdRef.current = roomId;
   }, [roomId, resetTimer, resetStopwatch]);
 
-  return {
-    mode,
-    setMode,
-  };
+  return null;
 };

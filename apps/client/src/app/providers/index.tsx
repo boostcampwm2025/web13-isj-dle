@@ -1,4 +1,3 @@
-import { ActionProvider } from "@features/actions";
 import { PhaserProvider } from "@features/game";
 import { WebSocketProvider } from "@features/socket";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,9 +12,7 @@ const Providers = ({ children }: ProviderProps) => {
   return (
     <QueryClientProvider client={queryClient}>
       <WebSocketProvider>
-        <ActionProvider>
-          <PhaserProvider>{children}</PhaserProvider>
-        </ActionProvider>
+        <PhaserProvider>{children}</PhaserProvider>
       </WebSocketProvider>
     </QueryClientProvider>
   );
