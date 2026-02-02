@@ -1,4 +1,4 @@
-import { SIDEBAR_MAP } from "../model/sidebar.constants";
+import { SIDEBAR_MAP, TUTORIAL_VIRTUAL_TABS } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
 import { TimerProgressButton } from "./TimerProgressButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
@@ -7,6 +7,7 @@ import { Suspense } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
+import { TUTORIAL_STEPS, useTutorialStore } from "@features/tutorial";
 import { ICON_SIZE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_CONTENT_WIDTH, SIDEBAR_TAB_WIDTH } from "@shared/config";
 
@@ -16,6 +17,9 @@ const Sidebar = () => {
   const { sidebarKeys, validCurrentKey, isOpen, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
+
+  const { isActive: isTutorialActive, currentStep } = useTutorialStore();
+  const currentStepId = TUTORIAL_STEPS[currentStep]?.id;
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -48,7 +52,8 @@ const Sidebar = () => {
       </div>
 
       <div
-        className="pointer-events-auto absolute top-0 right-0 flex h-full flex-col bg-gray-300 px-2 py-2"
+        data-sidebar-tabs
+        className="pointer-events-auto absolute relative top-0 right-0 flex h-full flex-col bg-gray-300 px-2 py-2"
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
         <button
@@ -88,6 +93,7 @@ const Sidebar = () => {
               return (
                 <button
                   key={key}
+                  data-tutorial={`sidebar-${key}`}
                   className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
                     isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
                   }`}
@@ -100,7 +106,24 @@ const Sidebar = () => {
             })}
           </div>
 
-          {/* 배지를 overflow 컨테이너 밖에 별도로 렌더링 */}
+          {TUTORIAL_VIRTUAL_TABS.map((tab, idx) => {
+            const isVisible = isTutorialActive && currentStepId === tab.stepId;
+            const IconComponent = tab.icon;
+            return (
+              <div
+                key={tab.stepId}
+                data-tutorial={`sidebar-${tab.stepId.replace("sidebar-", "")}`}
+                className={`absolute left-0 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 ring-2 ring-blue-400 transition-opacity ${
+                  isVisible ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+                style={{ top: `${(sidebarKeys.length + idx) * (48 + 16)}px` }}
+                title={tab.label}
+              >
+                <IconComponent className="h-6 w-6 text-blue-600" />
+              </div>
+            );
+          })}
+
           {sidebarKeys.map((key, index) => {
             let badgeCount = 0;
             if (key === "deskZone" && knockCount > 0) {
