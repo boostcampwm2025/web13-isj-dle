@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const SCROLL_THRESHOLD = 100;
+const SCROLL_THRESHOLD = 50;
 
 interface UseChatScrollOptions {
   chatLength: number;
