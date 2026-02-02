@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useUserStore } from "@entities/user";
-import { ICON_SIZE, ROOM_JOIN_TOAST_ID } from "@shared/config";
+import { ICON_SIZE, ROOM_JOIN_TOAST_ID, isMeetingRoomRange } from "@shared/config";
 
 interface MinimapOverlayProps {
   game: Phaser.Game | null;
@@ -29,7 +29,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
 
   useEffect(() => {
-    if (currentRoomId === "lobby") {
+    if (!currentRoomId || currentRoomId === "lobby" || isMeetingRoomRange(currentRoomId)) {
       toast.dismiss(ROOM_JOIN_TOAST_ID);
       return;
     }
