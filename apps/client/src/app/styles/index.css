@@ -18,7 +18,7 @@
 }
 
 @utility animate-sidebar-tab-enter {
-    animation: sidebar-tab-enter 0.3s ease-out;
+    animation: sidebar-tab-enter 300ms ease-out;
 }
 
 @utility scrollbar-hide {

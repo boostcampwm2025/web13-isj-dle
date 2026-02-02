@@ -1,6 +1,7 @@
 import { SIDEBAR_MAP } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
-import { TimerProgressButton } from "./TimerProgressButton";
+import { SidebarTabBadge } from "./SidebarTabBadge";
+import { SidebarTabButton } from "./SidebarTabButton";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -9,11 +10,9 @@ import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
 import type { SidebarKey } from "@shared/config";
 import {
-  ANIMATION_DURATION,
-  ICON_SIZE,
-  MAX_BADGE_COUNT,
   SIDEBAR_ANIMATION_DURATION,
   SIDEBAR_CONTENT_WIDTH,
+  SIDEBAR_TAB_ANIMATION_DURATION,
   SIDEBAR_TAB_WIDTH,
 } from "@shared/config";
 
@@ -24,7 +23,6 @@ const Sidebar = () => {
 
   const prevKeysRef = useRef<SidebarKey[]>(sidebarKeys);
   const [newlyAddedKeys, setNewlyAddedKeys] = useState<Set<SidebarKey>>(new Set());
-  const [hoveredKey, setHoveredKey] = useState<SidebarKey | null>(null);
 
   useEffect(() => {
     const prevKeys = new Set(prevKeysRef.current);
@@ -44,10 +42,16 @@ const Sidebar = () => {
         }
         return next;
       });
-    }, ANIMATION_DURATION);
+    }, SIDEBAR_TAB_ANIMATION_DURATION);
 
     return () => clearTimeout(timer);
   }, [sidebarKeys, newlyAddedKeys]);
+
+  const getBadgeCount = (key: SidebarKey): number => {
+    if (key === "deskZone") return knockCount;
+    if (key === "chat") return chatUnreadCount;
+    return 0;
+  };
 
   return (
     <div className="fixed top-0 right-0 flex h-full text-black">
@@ -84,6 +88,7 @@ const Sidebar = () => {
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
         <div className="absolute inset-0 bg-gray-300" />
+
         <div className="group relative z-10 mb-2">
           <button
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
@@ -104,82 +109,20 @@ const Sidebar = () => {
 
         <div className="relative z-10 flex-1">
           <div className="scrollbar-hide flex h-full flex-col gap-4 overflow-y-auto">
-            {sidebarKeys.map((key) => {
-              const sidebarItem = SIDEBAR_MAP[key];
-              if (!sidebarItem) return null;
-
-              const isActive = isOpen && validCurrentKey === key;
-
-              if (key === "timer-stopwatch") {
-                return (
-                  <div key={key} onMouseEnter={() => setHoveredKey(key)} onMouseLeave={() => setHoveredKey(null)}>
-                    <TimerProgressButton
-                      sidebarItem={sidebarItem}
-                      isActive={isActive}
-                      isNewlyAdded={newlyAddedKeys.has(key)}
-                      onClick={() => handleTabClick(key)}
-                    />
-                  </div>
-                );
-              }
-
-              const IconComponent = sidebarItem.Icon;
-              const isNewlyAdded = newlyAddedKeys.has(key);
-              return (
-                <button
-                  key={key}
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"
-                  } ${isNewlyAdded ? "animate-sidebar-tab-enter" : ""}`}
-                  onClick={() => handleTabClick(key)}
-                  onMouseEnter={() => setHoveredKey(key)}
-                  onMouseLeave={() => setHoveredKey(null)}
-                >
-                  <IconComponent className="h-6 w-6" size={ICON_SIZE} />
-                </button>
-              );
-            })}
+            {sidebarKeys.map((key) => (
+              <SidebarTabButton
+                key={key}
+                tabKey={key}
+                isActive={isOpen && validCurrentKey === key}
+                isNewlyAdded={newlyAddedKeys.has(key)}
+                onClick={() => handleTabClick(key)}
+              />
+            ))}
           </div>
 
-          {sidebarKeys.map((key, index) => {
-            const sidebarItem = SIDEBAR_MAP[key];
-            if (!sidebarItem) return null;
-
-            let badgeCount = 0;
-            if (key === "deskZone" && knockCount > 0) {
-              badgeCount = knockCount;
-            } else if (key === "chat" && chatUnreadCount > 0) {
-              badgeCount = chatUnreadCount;
-            }
-
-            const isHovered = hoveredKey === key;
-
-            return (
-              <div
-                key={`overlay-${key}`}
-                className="pointer-events-none absolute left-0"
-                style={{ top: `${index * (48 + 16)}px` }}
-              >
-                <div
-                  className={`absolute right-full mr-4 rounded-md bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white transition-opacity after:absolute after:top-1/2 after:left-full after:-translate-y-1/2 after:border-4 after:border-transparent after:border-l-gray-800 ${
-                    isHovered ? "opacity-100" : "opacity-0"
-                  }`}
-                  style={{ top: "24px", transform: "translateY(-50%)" }}
-                >
-                  {sidebarItem.title}
-                </div>
-
-                {badgeCount > 0 && (
-                  <span
-                    className="absolute flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
-                    style={{ top: 0, right: "-52px" }}
-                  >
-                    {badgeCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : badgeCount}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+          {sidebarKeys.map((key, index) => (
+            <SidebarTabBadge key={`badge-${key}`} count={getBadgeCount(key)} index={index} />
+          ))}
         </div>
       </div>
     </div>
