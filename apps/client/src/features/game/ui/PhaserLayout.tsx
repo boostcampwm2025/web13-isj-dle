@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
+import { useTutorialStore } from "@features/tutorial";
 import type { DeskStatus } from "@shared/types";
 import { LecternEventType } from "@shared/types";
 import { RoomSelectorModal } from "@widgets/room-selector-modal";
@@ -79,6 +80,23 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
       scene.nickname.updateIndicator(user?.deskStatus ?? null);
     }
   }, [game, user?.deskStatus]);
+
+  useEffect(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (!scene) return;
+
+    const unsub = useTutorialStore.subscribe(
+      (s) => s.isActive,
+      (isActive) => {
+        scene.setInputEnabled(!isActive);
+      },
+    );
+
+    scene.setInputEnabled(!useTutorialStore.getState().isActive);
+
+    return () => unsub();
+  }, [game]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">

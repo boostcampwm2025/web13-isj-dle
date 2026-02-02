@@ -170,6 +170,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
 
   return (
     <div
+      data-tutorial="minimap"
       className="pointer-events-none fixed overflow-hidden rounded-lg border border-slate-600/50 bg-slate-900/90 shadow-xl backdrop-blur-sm transition-all duration-300"
       style={{
         bottom: MARGIN,

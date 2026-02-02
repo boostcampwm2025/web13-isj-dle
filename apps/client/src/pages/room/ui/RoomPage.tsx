@@ -24,6 +24,7 @@ import { MinimapOverlay } from "@features/game/ui/MinimapOverlay";
 import { useKnockSocket } from "@features/knock";
 import { useSyncImage } from "@features/restaurant-sidebar/model";
 import { useWebSocket } from "@features/socket";
+import { TutorialProvider } from "@features/tutorial";
 import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
@@ -108,42 +109,44 @@ const RoomPage = () => {
   const isCollaborationToolOpen = useCollaborationToolStore((state) => state.activeTool !== null);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <div ref={containerRef} className="absolute inset-0 z-0" />
+    <TutorialProvider autoStart={true}>
+      <div className="relative h-screen w-screen overflow-hidden">
+        <div ref={containerRef} className="absolute inset-0 z-0" />
 
-      <div className="pointer-events-none absolute inset-0 z-10">
-        <LiveKitRoom
-          data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
-          key={roomId || "empty"}
-          serverUrl={serverUrl || ""}
-          token={token || ""}
-          connect={!!token && !!serverUrl}
-          video={isCameraOn}
-          audio={isMicOn}
-        >
-          <NoiseFilter />
-          <ChatDataBinder />
-          {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && (
-            <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />
-          )}
-          {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
-        </LiveKitRoom>
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <LiveKitRoom
+            data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
+            key={roomId || "empty"}
+            serverUrl={serverUrl || ""}
+            token={token || ""}
+            connect={!!token && !!serverUrl}
+            video={isCameraOn}
+            audio={isMicOn}
+          >
+            <NoiseFilter />
+            <ChatDataBinder />
+            {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && (
+              <VideoFullGrid setMode={setMode} isSidebarOpen={isSidebarOpen} />
+            )}
+            {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
+          </LiveKitRoom>
+        </div>
+
+        <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen} />
+
+        <div className="pointer-events-none absolute inset-0 z-20">
+          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+          <Sidebar />
+        </div>
+
+        <RoomSelectorModal
+          isOpen={roomSelectorOpen}
+          roomRange={selectedRoomRange}
+          onSelect={handleRoomSelect}
+          onClose={handleCloseModal}
+        />
       </div>
-
-      <MinimapOverlay game={game} isHidden={mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen} />
-
-      <div className="pointer-events-none absolute inset-0 z-20">
-        {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
-        <Sidebar />
-      </div>
-
-      <RoomSelectorModal
-        isOpen={roomSelectorOpen}
-        roomRange={selectedRoomRange}
-        onSelect={handleRoomSelect}
-        onClose={handleCloseModal}
-      />
-    </div>
+    </TutorialProvider>
   );
 };
 
