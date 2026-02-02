@@ -1,6 +1,5 @@
 import { useCallback } from "react";
-
-import { toast } from "@shared/ui";
+import { toast } from "react-hot-toast";
 
 export const useInviteLink = () => {
   const handleInviteClick = useCallback(async () => {

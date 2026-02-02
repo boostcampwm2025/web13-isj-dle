@@ -3,8 +3,7 @@ import { isTimerCompleted } from "./timer-state";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 import { useEffect, useRef } from "react";
-
-import { toast } from "@shared/ui";
+import { toast } from "react-hot-toast";
 
 let lastNotifiedRunId: number | null = null;
 
