@@ -1,5 +1,7 @@
 import { Toaster } from "react-hot-toast";
 
+import { TOAST_DURATION } from "@shared/config";
+
 export const Toast = () => {
   return (
     <Toaster
@@ -9,7 +11,7 @@ export const Toast = () => {
         bottom: 20,
       }}
       toastOptions={{
-        duration: 3000,
+        duration: TOAST_DURATION,
         style: {
           background: "#ffffff",
           color: "#1f2937",

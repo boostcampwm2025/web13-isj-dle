@@ -1,5 +1,5 @@
 import type { GameScene } from "../core/game-scene";
-import { GAME_SCENE_KEY } from "../model/game.constants";
+import { GAME_SCENE_KEY, ROOM_JOIN_TOAST_OPTIONS } from "../model/game.constants";
 import { DoorOpen } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
@@ -33,15 +33,10 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
       toast.dismiss(ROOM_JOIN_TOAST_ID);
       return;
     }
+
     toast(`${currentRoomId}에 입장했습니다.`, {
-      id: ROOM_JOIN_TOAST_ID,
-      position: "top-center",
+      ...ROOM_JOIN_TOAST_OPTIONS,
       icon: <DoorOpen size={ICON_SIZE} className="text-blue-600" />,
-      duration: 3000,
-      style: {
-        background: "#EFF6FF",
-        color: "#1E3A8A",
-      },
     });
   }, [currentRoomId]);
 
