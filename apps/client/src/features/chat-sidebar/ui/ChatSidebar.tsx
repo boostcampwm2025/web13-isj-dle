@@ -9,7 +9,7 @@ const ICON_SIZE = 16;
 const ChatSidebar = () => {
   const { messages, isSending, send } = useChatMessage();
   const { ulRef, newChatCount, scrollToBottom, showNewMessageButton } = useChatScroll({ chatLength: messages.length });
-  const { textareaRef, handleKeyDown, handleInput, sendMessage } = useChatTextarea(send);
+  const { textareaRef, handleKeyDown, handleInput, sendMessage } = useChatTextarea(send, scrollToBottom);
 
   return (
     <div className="grid h-full w-full items-end">

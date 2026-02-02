@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useEffect, useRef } from "react";
 
-export const useChatTextarea = (send: (message: string) => Promise<void>) => {
+export const useChatTextarea = (send: (message: string) => Promise<void>, onAfterSend?: () => void) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const MAX_ROWS = 3;
   const LINE_HEIGHT = 20;
@@ -16,6 +16,7 @@ export const useChatTextarea = (send: (message: string) => Promise<void>) => {
       textareaRef.current.value = "";
       textareaRef.current.focus();
       resetHeight(textareaRef.current);
+      onAfterSend?.();
     }
   };
 
