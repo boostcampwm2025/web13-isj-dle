@@ -1,0 +1,49 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # 단계적으로 부하 증가하여 한계점 탐색
+    - duration: 30
+      arrivalRate: 1
+      name: "Phase 1: 1/s (예상 동시 20명)"
+    - duration: 30
+      arrivalRate: 2
+      name: "Phase 2: 2/s (예상 동시 40명)"
+    - duration: 30
+      arrivalRate: 3
+      name: "Phase 3: 3/s (예상 동시 60명)"
+    - duration: 30
+      arrivalRate: 4
+      name: "Phase 4: 4/s (예상 동시 80명)"
+    - duration: 30
+      arrivalRate: 5
+      name: "Phase 5: 5/s (예상 동시 100명) - 한계 예상"
+    - duration: 30
+      arrivalRate: 2
+      name: "Phase 6: Recovery (2/s)"
+  engines:
+    socketio-v3:
+      transports: [ "websocket" ]
+
+scenarios:
+  - name: "Stress test - lobby focus"
+    engine: socketio-v3
+    flow:
+      # 모든 사용자가 lobby에 집중
+      - emit:
+          channel: "room:join"
+          data:
+            roomId: "lobby"
+      - think: 1
+      # 이동 이벤트 (브로드캐스트 부하)
+      - loop:
+          - emit:
+              channel: "player:move"
+              data:
+                x: "{{ $randomNumber(400, 800) }}"
+                y: "{{ $randomNumber(800, 1100) }}"
+                direction: "down"
+                state: "walk"
+          - think: 0.2  # 더 빠른 이동
+        count: 15
+      # 20초간 연결 유지
+      - think: 20
