@@ -139,6 +139,11 @@ export const TimerStopwatchSidebar = () => {
         <div className="rounded-2xl">
           <ModeToggle mode={mode} onModeChange={handleModeChange} />
 
+          {isMeetingRoom && <SharedIndicator message="해당 회의실 참여자와 타이머/스톱워치 상태가 동기화됩니다" />}
+          {isMogakcoRoom && (
+            <SharedIndicator message="나의 타이머/스톱워치 상태가 참여자들에게 공유되고, 다른 참여자들의 상태도 확인할 수 있어요" />
+          )}
+
           <div className="mb-5 flex items-center justify-center gap-1">
             <TimeInput
               value={displayValues.hours}
@@ -237,6 +242,18 @@ const ModeToggle = ({ mode, onModeChange }: Readonly<ModeToggleProps>) => {
           </button>
         ))}
       </div>
+    </div>
+  );
+};
+
+interface SharedIndicatorProps {
+  readonly message: string;
+}
+
+const SharedIndicator = ({ message }: SharedIndicatorProps) => {
+  return (
+    <div className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
+      <span>{message}</span>
     </div>
   );
 };
