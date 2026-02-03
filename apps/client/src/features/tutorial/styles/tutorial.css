@@ -85,18 +85,17 @@ body {
   font-size: 15px;
   font-weight: 600;
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease,
-    background 120ms ease;
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 150ms ease,
+    background 150ms ease;
   outline: none;
 }
 
 .shepherd-button:active {
-  transform: translateY(1px) scale(0.995);
+  transform: scale(0.95);
 }
 .shepherd-button:focus {
-  box-shadow: 0 0 0 4px var(--highlight);
-  border-radius: 999px;
+  box-shadow: 0 0 0 3px var(--highlight);
 }
 
 .shepherd-button-primary {
