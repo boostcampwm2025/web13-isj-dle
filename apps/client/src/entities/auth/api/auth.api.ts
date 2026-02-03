@@ -10,14 +10,14 @@ export const authApi = {
     });
   },
 
-  updateAuthUser({ nickname, avatarAssetKey }: UpdateAuthUserPayload): Promise<Response> {
+  updateAuthUser(payload: UpdateAuthUserPayload): Promise<Response> {
     return fetch(`${SERVER_URL}/api/auth/update`, {
       method: "PUT",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname, avatarAssetKey }),
+      body: JSON.stringify(payload),
     });
   },
 
