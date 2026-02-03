@@ -63,7 +63,7 @@ const GuideSidebar = () => {
   return (
     <div className="scrollbar-hide h-full overflow-y-auto">
       <Breadcrumb currentPath={currentPath} goPath={goPath} goBack={goBack} />
-      {node.default || <div>내용을 불러올 수 없습니다.</div>}
+      <div className="p-2">{node.default || <div>내용을 불러올 수 없습니다.</div>}</div>
     </div>
   );
 };
