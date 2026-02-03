@@ -2,27 +2,27 @@ config:
   target: "http://localhost:3000"
   phases:
     # 단계적으로 부하 증가하여 한계점 탐색
-    - duration: 30
+    - duration: 20
       arrivalRate: 1
       name: "Phase 1: 1/s (예상 동시 20명)"
-    - duration: 30
+    - duration: 20
       arrivalRate: 2
       name: "Phase 2: 2/s (예상 동시 40명)"
-    - duration: 30
+    - duration: 20
       arrivalRate: 3
       name: "Phase 3: 3/s (예상 동시 60명)"
-    - duration: 30
+    - duration: 20
       arrivalRate: 4
       name: "Phase 4: 4/s (예상 동시 80명)"
-    - duration: 30
+    - duration: 20
       arrivalRate: 5
       name: "Phase 5: 5/s (예상 동시 100명) - 한계 예상"
-    - duration: 30
+    - duration: 20
       arrivalRate: 2
       name: "Phase 6: Recovery (2/s)"
   engines:
     socketio-v3:
-      transports: ["websocket"]
+      transports: [ "websocket" ]
 
 scenarios:
   - name: "Stress test - lobby focus"

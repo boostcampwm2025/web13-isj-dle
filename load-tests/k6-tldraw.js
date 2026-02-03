@@ -16,10 +16,10 @@ const syncLatency = new Trend("tldraw_sync_latency");
 export const options = {
   // 서버 스펙(1vCPU, 1GB)에 맞춰 보수적으로 설정
   stages: [
-    { duration: "20s", target: 5 }, // Warm up: 0 → 5 VU
-    { duration: "40s", target: 15 }, // Ramp up: 5 → 15 VU
-    { duration: "30s", target: 20 }, // Peak: 15 → 20 VU
-    { duration: "20s", target: 0 }, // Cool down: 20 → 0 VU
+    { duration: "15s", target: 20 }, // Warm up: 0 → 20 VU
+    { duration: "30s", target: 70 }, // Ramp up: 20 → 70 VU
+    { duration: "30s", target: 100 }, // Peak: 70 → 100 VU
+    { duration: "15s", target: 0 }, // Cool down: 100 → 0 VU
   ],
   thresholds: {
     tldraw_connection_time: ["p(95)<2000"], // 연결 시간 p95 < 2초

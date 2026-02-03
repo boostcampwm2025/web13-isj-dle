@@ -1,21 +1,21 @@
 config:
   target: "http://localhost:3000"
   phases:
-    - duration: 30
+    - duration: 15
       arrivalRate: 5
       name: "Warm up"
-    - duration: 60
+    - duration: 30
       arrivalRate: 20
       name: "Ramp up"
     - duration: 30
-      arrivalRate: 50
+      arrivalRate: 40
       name: "Peak load"
-    - duration: 30
+    - duration: 15
       arrivalRate: 10
       name: "Cool down"
   engines:
     socketio-v3:
-      transports: ["websocket"]
+      transports: [ "websocket" ]
 
 scenarios:
   - name: "User joins lobby and moves"

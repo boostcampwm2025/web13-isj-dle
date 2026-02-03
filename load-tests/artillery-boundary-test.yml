@@ -11,30 +11,30 @@ config:
   target: "http://localhost:3000"
   phases:
     # Phase 1: 기본 부하 (인접 계산 워밍업)
-    - duration: 30
+    - duration: 15
       arrivalRate: 1
       name: "Phase 1 - 분산 배치 (1/s)"
     # Phase 2: 밀집 부하 (인접 계산 부하 증가)
-    - duration: 60
+    - duration: 30
       arrivalRate: 2
       name: "Phase 2 - 밀집 배치 시작 (2/s)"
     # Phase 3: 최대 밀집 (최악의 케이스)
-    - duration: 60
+    - duration: 30
       arrivalRate: 3
       name: "Phase 3 - 고밀집 (3/s)"
     # Phase 4: 복구 확인
-    - duration: 30
+    - duration: 15
       arrivalRate: 1
       name: "Phase 4 - 복구 (1/s)"
   engines:
     socketio-v3:
-      transports: ["websocket"]
+      transports: [ "websocket" ]
 
 scenarios:
   # 시나리오 1: 밀집 배치 (boundary 알고리즘 부하 최대화)
   # 좁은 영역에 모든 사용자를 배치하여 인접 계산 부하 증가
   - name: "Dense clustering - boundary stress"
-    weight: 7  # 70%
+    weight: 7 # 70%
     engine: socketio-v3
     flow:
       - emit:
@@ -52,13 +52,13 @@ scenarios:
                 y: "{{ $randomNumber(900, 1000) }}"
                 direction: "{{ $randomItem(['up', 'down', 'left', 'right']) }}"
                 state: "walk"
-          - think: 0.1  # 100ms마다 이동 (boundary tick과 동기화)
-        count: 200  # 20초간 이동
+          - think: 0.1 # 100ms마다 이동 (boundary tick과 동기화)
+        count: 200 # 20초간 이동
       - think: 10
 
   # 시나리오 2: 분산 배치 (비교군)
   - name: "Scattered - baseline"
-    weight: 3  # 30%
+    weight: 3 # 30%
     engine: socketio-v3
     flow:
       - emit:

@@ -17,9 +17,9 @@ const tokenFailRate = new Rate("livekit_token_fail_rate");
 export const options = {
   stages: [
     { duration: "10s", target: 5 }, // Warm up
-    { duration: "30s", target: 20 }, // Ramp up
-    { duration: "30s", target: 50 }, // Peak - 200명 동시 입장 시뮬레이션
-    { duration: "20s", target: 0 }, // Cool down
+    { duration: "20s", target: 20 }, // Ramp up
+    { duration: "20s", target: 50 }, // Peak
+    { duration: "15s", target: 0 }, // Cool down
   ],
   thresholds: {
     livekit_token_generation_time: ["p(95)<500"], // 토큰 생성 p95 < 500ms
