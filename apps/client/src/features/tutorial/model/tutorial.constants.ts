@@ -112,7 +112,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: "complete",
     title: "준비 완료! 🎉",
-    text: "이제 MOYO를 자유롭게 이용해보세요.",
+    text: "이제 Moyo를 자유롭게 이용해보세요.",
   },
 ];
 
