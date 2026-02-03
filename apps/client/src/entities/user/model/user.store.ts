@@ -47,7 +47,7 @@ interface UserState {
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
   updateUser: (updated: UserUpdate) => void;
-  updateUserInfo: (updated: UpdateAuthUserPayload) => void;
+  updateUserInfo: (updated: UpdateAuthUserPayload & { userId: number }) => void;
   updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
   updateUserDeskStatus: (userId: string, status: DeskStatus | null) => void;
 

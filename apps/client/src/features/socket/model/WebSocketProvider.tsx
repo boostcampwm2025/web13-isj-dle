@@ -107,7 +107,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       updateUser({ id: userId, ...rest });
     };
 
-    const handleUserInfoUpdate = (data: UpdateAuthUserPayload) => {
+    const handleUserInfoUpdate = (data: UpdateAuthUserPayload & { userId: number }) => {
       updateUserInfo(data);
     };
 
