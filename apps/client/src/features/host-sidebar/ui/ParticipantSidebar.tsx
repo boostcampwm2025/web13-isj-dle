@@ -7,7 +7,7 @@ import { useBreakoutJoin } from "@features/host-sidebar";
 
 const ParticipantSidebar = () => {
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
-  const user = useUserStore((state) => state.user);
+  const userId = useUserStore((state) => state.user?.id);
   const { joinRoom, currentBreakoutRoomId } = useBreakoutJoin();
 
   if (!breakoutState?.isActive) {
@@ -18,7 +18,7 @@ const ParticipantSidebar = () => {
     );
   }
 
-  const isHost = breakoutState.hostId === user?.id;
+  const isHost = breakoutState.hostId === userId;
   const isRandom = breakoutState.config?.isRandom ?? false;
 
   return (

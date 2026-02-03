@@ -3,11 +3,6 @@ export type PutPresignParams = {
   expiresInSeconds?: number;
 };
 
-export type GetPresignParams = {
-  key: string;
-  expiresInSeconds?: number;
-};
-
 export type PutObjectParams = {
   key: string;
   body: Buffer;

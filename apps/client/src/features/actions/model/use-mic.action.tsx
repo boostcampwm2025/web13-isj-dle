@@ -2,7 +2,7 @@ import type { ActionHook } from "./action.types";
 import type { LocalParticipant } from "livekit-client";
 import { Mic, MicOff } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
@@ -29,20 +29,28 @@ export const useMicAction: ActionHook = () => {
     }
   }, [isMicOn, localParticipant]);
 
-  const toggleMic = async () => {
+  const toggleMic = useCallback(async () => {
     const newState = !isMicOn;
     await localParticipant?.setMicrophoneEnabled(newState);
     if (userId) {
       updateUser({ id: userId, micOn: newState });
     }
     socket?.emit(UserEventType.USER_UPDATE, { micOn: newState });
-  };
+  }, [isMicOn, localParticipant, userId, updateUser, socket]);
 
-  return {
-    title: "마이크 on/off",
-    isOn: isMicOn,
-    icon: isMicOn ? <Mic color="green" /> : <MicOff color="red" />,
-    handleClick: toggleMic,
-    setLocalParticipant,
-  };
+  const title = useMemo(() => (isMicOn ? "마이크 끄기" : "마이크 켜기"), [isMicOn]);
+  const icon = useMemo(() => {
+    return isMicOn ? <Mic color="green" /> : <MicOff color="red" />;
+  }, [isMicOn]);
+
+  return useMemo(
+    () => ({
+      title,
+      isOn: isMicOn,
+      icon,
+      handleClick: toggleMic,
+      setLocalParticipant,
+    }),
+    [title, isMicOn, icon, toggleMic, setLocalParticipant],
+  );
 };

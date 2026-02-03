@@ -27,16 +27,15 @@ import { useUserStore } from "@entities/user";
 
 export const TimerStopwatchSidebar = () => {
   const { mode, setMode } = useTimerStopwatchStore();
-  const user = useUserStore((state) => state.user);
-  const roomId = user?.avatar.currentRoomId ?? null;
-  const isMeetingRoom = roomId?.startsWith("meeting") ?? false;
-  const isMogakcoRoom = roomId === "mogakco";
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId ?? null);
+  const isMeetingRoom = currentRoomId?.startsWith("meeting") ?? false;
+  const isMogakcoRoom = currentRoomId === "mogakco";
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
-  const { syncStart, syncPause, syncReset, syncAddTime } = useTimerActions({ roomId, isMeetingRoom });
-  const { syncTimeState } = useTimeActions({ roomId, isMogakcoRoom });
-  useSyncStopwatch({ roomId, isMogakcoRoom });
+  const { syncStart, syncPause, syncReset, syncAddTime } = useTimerActions({ roomId: currentRoomId, isMeetingRoom });
+  const { syncTimeState } = useTimeActions({ roomId: currentRoomId, isMogakcoRoom });
+  useSyncStopwatch({ roomId: currentRoomId, isMogakcoRoom });
 
   const isTimerMode = mode === "timer";
   const activeControl = isTimerMode ? timer : stopwatch;

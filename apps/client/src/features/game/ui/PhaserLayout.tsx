@@ -1,4 +1,4 @@
-import type { GameScene } from "../core/game-scene";
+import type { GameScene } from "../core";
 import { GAME_SCENE_KEY } from "../model/game.constants";
 import { useAvatarLoader } from "../model/use-avatar-loader";
 import { useAvatarRenderer } from "../model/use-avatar-renderer";
@@ -7,30 +7,30 @@ import { useGameRegistry } from "../model/use-game-registry";
 import { useGameSocket } from "../model/use-game-socket";
 import { usePhaserGame } from "../model/use-phaser-game";
 import { useRoomSelector } from "../model/use-room-selector";
+import { MinimapOverlay } from "./MinimapOverlay";
+import { RoomSelectorModal } from "./RoomSelectorModal";
+import { ZoomControl } from "./ZoomControl";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { useCollaborationToolStore } from "@entities/collaboration-tool";
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
+import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
 import { useWebSocket } from "@features/socket";
 import { useTutorialStore } from "@features/tutorial";
-import type { DeskStatus } from "@shared/types";
-import { LecternEventType } from "@shared/types";
-import { RoomSelectorModal } from "@widgets/room-selector-modal";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import { type DeskStatus, LecternEventType } from "@shared/types";
 
-interface PhaserLayoutProps {
-  children: React.ReactNode;
-}
-
-const PhaserLayout = ({ children }: PhaserLayoutProps) => {
+const PhaserLayout = () => {
+  const mode = useVideoConferenceModeStore((state) => state.mode);
   const containerRef = useRef<HTMLDivElement>(null);
   const { joinRoom } = usePhaserGame();
   const { socket, isConnected } = useWebSocket();
-  const user = useUserStore((state) => state.user);
   const clearAllKnocks = useKnockStore((state) => state.clearAllKnocks);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
-
-  const { game } = useGameInitialization(containerRef);
+  const deskStatus = useUserStore((state) => state.user?.deskStatus);
+  const isCollaborationToolOpen = useCollaborationToolStore((state) => state.activeTool !== null);
 
   const { roomSelectorOpen, selectedRoomRange, openRoomSelector, handleCloseModal, handleRoomSelect } = useRoomSelector(
     joinRoom,
@@ -51,11 +51,15 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     [socket],
   );
 
+  const { game } = useGameInitialization(containerRef);
+
   const updateMyDeskStatus = useCallback(
     (status: DeskStatus | null) => {
       if (!game) return;
       const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-      scene?.nickname.updateIndicator(status);
+      if (scene?.isReady) {
+        scene.nickname.updateIndicator(status);
+      }
     },
     [game],
   );
@@ -77,19 +81,31 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
     if (!game) return;
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
     if (scene?.isReady) {
-      scene.nickname.updateIndicator(user?.deskStatus ?? null);
+      scene.nickname.updateIndicator(deskStatus ?? null);
     }
-  }, [game, user?.deskStatus]);
+  }, [game, deskStatus]);
+
+  const handleZoomChange = useCallback(() => {
+    if (!game) return;
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    if (scene?.isReady) {
+      scene.syncZoomFromStore();
+    }
+  }, [game]);
+
+  const isOverlayHidden = mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen;
 
   useEffect(() => {
     if (!game) return;
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-    if (!scene) return;
+    if (!scene?.isReady) return;
 
     const unsub = useTutorialStore.subscribe(
       (s) => s.isActive,
       (isActive) => {
-        scene.setInputEnabled(!isActive);
+        if (scene.isReady) {
+          scene.setInputEnabled(!isActive);
+        }
       },
     );
 
@@ -99,16 +115,17 @@ const PhaserLayout = ({ children }: PhaserLayoutProps) => {
   }, [game]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
+    <>
       <div ref={containerRef} className="absolute inset-0 z-0" />
-      <div className="pointer-events-none absolute inset-0 z-10">{children}</div>
+      <ZoomControl isHidden={isOverlayHidden} onZoomChange={handleZoomChange} />
+      <MinimapOverlay game={game} isHidden={isOverlayHidden} />
       <RoomSelectorModal
         isOpen={roomSelectorOpen}
         roomRange={selectedRoomRange}
         onSelect={handleRoomSelect}
         onClose={handleCloseModal}
       />
-    </div>
+    </>
   );
 };
 

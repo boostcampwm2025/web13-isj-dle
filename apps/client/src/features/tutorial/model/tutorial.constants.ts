@@ -12,7 +12,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: "welcome",
     title: "환영합니다! 👋",
-    text: "MOYO에 오신 것을 환영해요.\n간단한 튜토리얼로 주요 기능을 소개해드릴게요.",
+    text: "Moyo에 오신 것을 환영해요.\n간단한 튜토리얼로 주요 기능을 소개해드릴게요.",
   },
   {
     id: "minimap",

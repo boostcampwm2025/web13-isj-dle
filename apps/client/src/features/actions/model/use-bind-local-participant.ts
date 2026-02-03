@@ -1,17 +1,22 @@
-import { useAction } from "./use-action";
+import { useActionStore } from "./action.store";
 
 import { useEffect } from "react";
 
 import { useLocalParticipant } from "@livekit/components-react";
 
 export const useBindLocalParticipant = () => {
-  const { getHookByKey } = useAction();
+  const getHookByKey = useActionStore((state) => state.getHookByKey);
   const { localParticipant } = useLocalParticipant();
 
   useEffect(() => {
-    const { setLocalParticipant: setMicLocalParticipant } = getHookByKey("mic");
-    const { setLocalParticipant: setCameraLocalParticipant } = getHookByKey("camera");
-    const { setLocalParticipant: setScreenShareLocalParticipant } = getHookByKey("screen_share");
+    const micHook = getHookByKey("mic");
+    const cameraHook = getHookByKey("camera");
+    const screenShareHook = getHookByKey("screen_share");
+    if (!micHook || !cameraHook || !screenShareHook) return;
+
+    const { setLocalParticipant: setMicLocalParticipant } = micHook;
+    const { setLocalParticipant: setCameraLocalParticipant } = cameraHook;
+    const { setLocalParticipant: setScreenShareLocalParticipant } = screenShareHook;
 
     setMicLocalParticipant?.(localParticipant);
     setCameraLocalParticipant?.(localParticipant);
