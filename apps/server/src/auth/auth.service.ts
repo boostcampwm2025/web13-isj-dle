@@ -10,21 +10,9 @@ import { generateRandomAvatar } from "src/avatar/avatar.generator";
 import { generateUniqueNickname } from "src/nickname/nickname.generator";
 import { Repository } from "typeorm";
 
+import type { GithubUser, JWTPayload } from "./auth.types";
 import { AuthUserEntity } from "./auth_user.entity";
 import { UpdateAuthUserDto } from "./update-auth-user.dto";
-
-type GithubUser = {
-  id: number;
-  login: string;
-  avatar_url: string;
-};
-
-type JWTPayload = {
-  sub: string;
-  nickname: string;
-  avatarAssetKey: string;
-  createdAt: string;
-};
 
 @Injectable()
 export class AuthService {
