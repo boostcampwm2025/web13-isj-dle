@@ -1,20 +1,21 @@
-import { Body, Controller, Get, Post, Put, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Post, Put, Query, Redirect, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { CookieOptions, Request, Response } from "express";
+import type { CookieOptions, Response } from "express";
 
+import { Cookies } from "../common/decorators/cookie.decorator";
+import { OAUTH_STATE_COOKIE_NAME, SESSION_COOKIE_NAME } from "./auth.constants";
 import { AuthService } from "./auth.service";
 import { UpdateAuthUserDto } from "./update-auth-user.dto";
 
 @Controller("auth")
 export class AuthController {
   private readonly isProduction: boolean;
+  private readonly CLIENT_ORIGIN: string;
 
-  private readonly OAUTH_STATE_COOKIE_NAME = "oauth_state";
   private readonly OAUTH_STATE_COOKIE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
   private readonly OAUTH_STATE_COOKIE_OPTIONS: CookieOptions;
 
-  private readonly SESSION_COOKIE_NAME = "session";
   private readonly SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
   private readonly SESSION_COOKIE_OPTIONS: CookieOptions;
 
@@ -23,6 +24,7 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {
     this.isProduction = this.configService.get<string>("NODE_ENV") === "production";
+    this.CLIENT_ORIGIN = this.configService.get<string>("CLIENT_ORIGIN") || "http://localhost:5173";
     this.OAUTH_STATE_COOKIE_OPTIONS = {
       httpOnly: true,
       sameSite: this.isProduction ? "none" : "lax",
@@ -38,41 +40,51 @@ export class AuthController {
   }
 
   @Get("github")
-  githubLogin(@Res() res: Response) {
+  @Redirect()
+  githubLogin(@Res({ passthrough: true }) res: Response) {
     const { url, state } = this.authService.getGithubAuthorizeUrl();
 
-    res.cookie(this.OAUTH_STATE_COOKIE_NAME, state, this.OAUTH_STATE_COOKIE_OPTIONS);
+    res.cookie(OAUTH_STATE_COOKIE_NAME, state, this.OAUTH_STATE_COOKIE_OPTIONS);
 
-    return res.redirect(url);
+    return { url };
   }
 
   @Get("github/callback")
+  @Redirect()
   async githubCallback(
-    @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
+    @Cookies(OAUTH_STATE_COOKIE_NAME) oauth_state?: string,
     @Query("code") code?: string,
     @Query("state") state?: string,
   ) {
-    if (!code) return res.status(400).send("No code");
+    if (!code) return { url: this.CLIENT_ORIGIN + "/login?error=missing_code" };
 
-    const savedState = req.cookies?.oauth_state as string | undefined;
-    if (!state || !savedState || state !== savedState) {
-      return res.status(400).send("Invalid state");
+    if (!state || !oauth_state || state !== oauth_state) {
+      return { url: this.CLIENT_ORIGIN + "/login?error=invalid_state" };
     }
 
     const { jwt } = await this.authService.handleGithubCallback(code);
 
-    res.clearCookie(this.OAUTH_STATE_COOKIE_NAME);
-    res.cookie(this.SESSION_COOKIE_NAME, jwt, this.SESSION_COOKIE_OPTIONS);
+    res.clearCookie(OAUTH_STATE_COOKIE_NAME);
+    res.cookie(SESSION_COOKIE_NAME, jwt, this.SESSION_COOKIE_OPTIONS);
 
-    return res.redirect(process.env.CLIENT_ORIGIN!);
+    return { url: this.CLIENT_ORIGIN };
   }
 
   @Put("update")
-  async updateAuthUser(@Req() req: Request, @Res() res: Response, @Body() body: UpdateAuthUserDto) {
-    const authUser = await this.authService.getMeFromRequest(req);
+  async updateAuthUser(
+    @Res({ passthrough: true }) res: Response,
+    @Body() body: UpdateAuthUserDto,
+    @Cookies(SESSION_COOKIE_NAME) session?: string,
+  ) {
+    if (!session) {
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { error: "Unauthorized" };
+    }
+    const authUser = await this.authService.getMeBySession(session);
     if (!authUser) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { error: "Unauthorized" };
     }
 
     if (
@@ -81,32 +93,46 @@ export class AuthController {
       body.avatarAssetKey &&
       body.avatarAssetKey === authUser.avatarAssetKey
     ) {
-      return res.json({ user: authUser });
+      return { user: authUser };
     }
 
     const updatedUser = await this.authService.updateAuthUser(body);
 
-    return res.json({ user: updatedUser });
+    return { user: updatedUser };
   }
 
   @Get("tutorial/completed")
-  async tutorialCompleted(@Req() req: Request, @Res() res: Response) {
-    const authUser = await this.authService.getMeFromRequest(req);
+  async tutorialCompleted(@Res({ passthrough: true }) res: Response, @Cookies(SESSION_COOKIE_NAME) session?: string) {
+    if (!session) {
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { error: "Unauthorized" };
+    }
+    const authUser = await this.authService.getMeBySession(session);
     if (!authUser) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { error: "Unauthorized" };
     }
     await this.authService.tutorialCompleted(authUser.id);
-    return res.json({ ok: true });
+    return { ok: true };
   }
 
   @Get("me")
-  async me(@Req() req: Request) {
-    return this.authService.getMeFromRequest(req);
+  async me(@Res({ passthrough: true }) res: Response, @Cookies(SESSION_COOKIE_NAME) session?: string) {
+    if (!session) {
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { error: "Unauthorized" };
+    }
+    const authUser = await this.authService.getMeBySession(session);
+    if (!authUser) {
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { error: "Unauthorized" };
+    }
+    return { user: authUser };
   }
 
   @Post("logout")
-  logout(@Res() res: Response) {
-    res.clearCookie(this.SESSION_COOKIE_NAME);
-    return res.json({ ok: true });
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(SESSION_COOKIE_NAME);
+    return { ok: true };
   }
 }

@@ -5,7 +5,6 @@ import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import { AuthUser, UserEventType } from "@shared/types";
-import type { Request } from "express";
 import { generateRandomAvatar } from "src/avatar/avatar.generator";
 import { generateUniqueNickname } from "src/nickname/nickname.generator";
 import { Repository } from "typeorm";
@@ -118,12 +117,9 @@ export class AuthService {
     return this.authUserRepository.findOne({ where: { id } });
   }
 
-  async getMeFromRequest(req: Request): Promise<AuthUserEntity | null> {
-    const token = req.cookies.session as string | undefined;
-    if (!token) return null;
-
+  async getMeBySession(session: string): Promise<AuthUserEntity | null> {
     try {
-      const payload = await this.jwtService.verifyAsync<JWTPayload>(token);
+      const payload = await this.jwtService.verifyAsync<JWTPayload>(session);
       return this.getAuthUserById(Number(payload.sub));
     } catch {
       return null;
