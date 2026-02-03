@@ -1,6 +1,9 @@
-import { Participant, Track } from "livekit-client";
+import { LocalParticipant, Participant, Track } from "livekit-client";
 
-import { type TrackReference, VideoTrack, useIsSpeaking } from "@livekit/components-react";
+import { type TrackReference, VideoTrack, useTrackVolume } from "@livekit/components-react";
+
+const SPEAKING_THRESHOLD_LOCAL = 0.5;
+const SPEAKING_THRESHOLD_REMOTE = 0.5;
 
 interface ParticipantTileProps {
   participant?: Participant;
@@ -10,18 +13,27 @@ interface ParticipantTileProps {
 const ParticipantTile = ({ participant, trackRef }: ParticipantTileProps) => {
   const isScreenShare = !!trackRef;
   const targetParticipant = trackRef?.participant ?? participant;
-  const isSpeaking = useIsSpeaking(targetParticipant);
+  const isLocal = participant instanceof LocalParticipant;
+
+  const micPublication = targetParticipant?.getTrackPublication(Track.Source.Microphone);
+  const volume = useTrackVolume(
+    micPublication && targetParticipant
+      ? { participant: targetParticipant, source: Track.Source.Microphone, publication: micPublication }
+      : undefined,
+  );
+  const threshold = isLocal ? SPEAKING_THRESHOLD_LOCAL : SPEAKING_THRESHOLD_REMOTE;
+  const isSpeaking = volume > threshold;
 
   if (!targetParticipant) return null;
 
-  const publication = isScreenShare
+  const cameraPublication = isScreenShare
     ? trackRef?.publication
     : targetParticipant.getTrackPublication(Track.Source.Camera);
-  const hasVideo = publication?.track && !publication.isMuted;
+  const hasVideo = cameraPublication?.track && !cameraPublication.isMuted;
 
   const videoTrackRef = isScreenShare
     ? trackRef
-    : { participant: targetParticipant, source: Track.Source.Camera, publication: publication! };
+    : { participant: targetParticipant, source: Track.Source.Camera, publication: cameraPublication! };
 
   return (
     <div
@@ -29,7 +41,7 @@ const ParticipantTile = ({ participant, trackRef }: ParticipantTileProps) => {
         isScreenShare ? "ring-2 ring-blue-500" : ""
       } ${isSpeaking ? "ring-2 ring-green-500" : ""}`}
     >
-      {hasVideo && publication ? (
+      {hasVideo && cameraPublication ? (
         <VideoTrack trackRef={videoTrackRef} className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-2xl text-white">

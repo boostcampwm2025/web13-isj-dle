@@ -28,6 +28,13 @@ const VideoConference = () => {
       connect={!!token && !!serverUrl}
       video={isCameraOn}
       audio={isMicOn}
+      options={{
+        audioCaptureDefaults: {
+          echoCancellation: true,
+          autoGainControl: true,
+          noiseSuppression: false,
+        },
+      }}
     >
       <NoiseFilter />
       <ChatDataBinder />
