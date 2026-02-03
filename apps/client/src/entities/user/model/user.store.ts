@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import type { Avatar, AvatarDirection, AvatarState, DeskStatus, User } from "@shared/types";
+import type { Avatar, AvatarDirection, AvatarState, DeskStatus, UpdateAuthUserPayload, User } from "@shared/types";
 
 type UserUpdate = Partial<Omit<User, "avatar">> & {
   id: string;
@@ -47,6 +47,7 @@ interface UserState {
   addUser: (user: User) => void;
   removeUser: (userId: string) => void;
   updateUser: (updated: UserUpdate) => void;
+  updateUserInfo: (updated: UpdateAuthUserPayload) => void;
   updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
   updateUserDeskStatus: (userId: string, status: DeskStatus | null) => void;
 
@@ -143,6 +144,35 @@ export const useUserStore = create(
                   ...state.user,
                   ...updated,
                   avatar: updated.avatar ? { ...state.user.avatar, ...updated.avatar } : state.user.avatar,
+                }
+              : state.user,
+        };
+      }),
+
+    updateUserInfo: (updated) =>
+      set((state) => {
+        const updatedUsers = state.users.map((u) => {
+          if (u.userId === updated.userId) {
+            const newUser = {
+              ...u,
+              nickname: updated.nickname ?? u.nickname,
+              avatar: updated.avatarAssetKey ? { ...u.avatar, assetKey: updated.avatarAssetKey } : u.avatar,
+            };
+            return newUser;
+          }
+          return u;
+        });
+
+        return {
+          users: updatedUsers,
+          user:
+            state.user?.userId === updated.userId
+              ? {
+                  ...state.user,
+                  nickname: updated.nickname ?? state.user.nickname,
+                  avatar: updated.avatarAssetKey
+                    ? { ...state.user.avatar, assetKey: updated.avatarAssetKey }
+                    : state.user.avatar,
                 }
               : state.user,
         };

@@ -56,6 +56,9 @@ export class AvatarRenderer {
     let avatar = this.avatars.get(user.id);
     if (avatar) {
       avatar.setPosition(avatarModel.x, avatarModel.y);
+      if (avatar.texture.key !== avatarModel.assetKey) {
+        avatar.setTexture(avatarModel.assetKey);
+      }
     } else {
       avatar = this.scene.add.sprite(
         avatarModel.x,
@@ -81,6 +84,7 @@ export class AvatarRenderer {
 
     let nicknameText = this.nicknameTexts.get(user.id);
     if (nicknameText) {
+      nicknameText.node.querySelector("span:last-child")!.textContent = user.nickname;
       this.updateNicknamePosition(nicknameText, avatar);
       this.updateStatusIndicator(nicknameText, user.deskStatus);
     } else {

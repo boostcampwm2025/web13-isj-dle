@@ -56,6 +56,16 @@ export class NicknameManager {
     this.nicknameElement.setPosition(x, y - NICKNAME_OFFSET_Y);
   }
 
+  updateNickname(nickname: string, x: number, y: number): void {
+    if (!this.nicknameElement) return;
+    const div = this.nicknameElement.node as HTMLDivElement;
+    const textSpan = div.querySelector("span");
+    if (textSpan) {
+      textSpan.textContent = nickname;
+    }
+    this.nicknameElement.setPosition(x, y - NICKNAME_OFFSET_Y);
+  }
+
   updateIndicator(deskStatus: DeskStatus | null): void {
     if (!this.nicknameElement) return;
 
