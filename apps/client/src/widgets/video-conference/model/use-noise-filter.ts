@@ -1,45 +1,123 @@
-import type { ProcessorOptions, Room, TrackProcessor } from "livekit-client";
-import { Track } from "livekit-client";
+import type { LocalAudioTrack, ProcessorOptions, Room, TrackProcessor } from "livekit-client";
+import { RoomEvent, Track } from "livekit-client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-import { useLocalParticipant } from "@livekit/components-react";
 import { KrispNoiseFilter, type KrispNoiseFilterProcessor } from "@livekit/krisp-noise-filter";
 
+const MAX_APPLY_FAILURE = 2;
+
 export const useNoiseFilter = (room: Room | undefined) => {
-  const { localParticipant } = useLocalParticipant();
+  const processorRef = useRef<KrispNoiseFilterProcessor | null>(null);
+  const currentTrackRef = useRef<LocalAudioTrack | null>(null);
+  const isKrispDisabledRef = useRef(false);
+  const failureCountRef = useRef(0);
 
   useEffect(() => {
-    let processor: KrispNoiseFilterProcessor | null = null;
-    const audioTrack = localParticipant.getTrackPublication(Track.Source.Microphone);
+    if (!room) return;
 
-    const initNoiseFilter = async () => {
+    const getMicTrack = () => {
+      const pub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
+      return (pub?.track ?? null) as LocalAudioTrack | null;
+    };
+
+    const stopOnCurrentTrack = () => {
       try {
-        if (!room) return;
-
-        processor = KrispNoiseFilter();
-
-        await audioTrack?.track?.setProcessor(processor as TrackProcessor<Track.Kind, ProcessorOptions<Track.Kind>>);
+        currentTrackRef.current?.stopProcessor();
       } catch (error) {
-        console.error("Failed to initialize Krisp noise filter:", error);
+        console.debug("Failed to stop audio processor:", error);
+      } finally {
+        currentTrackRef.current = null;
       }
     };
 
-    if (room) {
-      void initNoiseFilter();
-    }
+    const destroyProcessor = async () => {
+      if (!processorRef.current) return;
+
+      try {
+        await processorRef.current.destroy();
+      } catch (error) {
+        console.debug("Failed to destroy Krisp noise filter processor:", error);
+      } finally {
+        processorRef.current = null;
+      }
+    };
+
+    const disableKrisp = async (reason: string) => {
+      if (isKrispDisabledRef.current) return;
+      isKrispDisabledRef.current = true;
+
+      stopOnCurrentTrack();
+      await destroyProcessor();
+      console.warn(`Krisp noise filter disabled (${reason})`);
+    };
+
+    const applyNoiseFilterIfNeeded = async () => {
+      const track = getMicTrack();
+      if (!track) return;
+
+      if (isKrispDisabledRef.current) return;
+
+      if (!processorRef.current) {
+        try {
+          processorRef.current = KrispNoiseFilter({
+            quality: "medium",
+            bufferOverflowMs: 200,
+            bufferDropMs: 800,
+            onBufferDrop: () => {
+              if (isKrispDisabledRef.current) return;
+              void disableKrisp("buffer drop");
+            },
+          });
+        } catch (error) {
+          console.error("Failed to initialize Krisp noise filter:", error);
+          void disableKrisp("init error");
+          return;
+        }
+      }
+
+      if (currentTrackRef.current === track) return;
+
+      stopOnCurrentTrack();
+
+      try {
+        await track.setProcessor(processorRef.current as TrackProcessor<Track.Kind, ProcessorOptions<Track.Kind>>);
+        currentTrackRef.current = track;
+        failureCountRef.current = 0;
+        console.log("Krisp noise filter applied");
+      } catch (error) {
+        console.error("Failed to apply Krisp noise filter:", error);
+        failureCountRef.current += 1;
+        if (failureCountRef.current >= MAX_APPLY_FAILURE) {
+          void disableKrisp("apply error");
+        }
+      }
+    };
+
+    const handleLocalTrackPublished = () => {
+      void applyNoiseFilterIfNeeded();
+    };
+
+    const handleLocalTrackUnpublished = () => {
+      stopOnCurrentTrack();
+    };
+
+    void applyNoiseFilterIfNeeded();
+
+    room.on(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
+    room.on(RoomEvent.LocalTrackUnpublished, handleLocalTrackUnpublished);
 
     return () => {
-      const cleanup = async () => {
-        if (processor) {
-          await processor.destroy();
-          audioTrack?.track?.stopProcessor();
-          processor = null;
-        }
-      };
-      void cleanup();
+      room.off(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
+      room.off(RoomEvent.LocalTrackUnpublished, handleLocalTrackUnpublished);
+
+      stopOnCurrentTrack();
+      void destroyProcessor();
+
+      isKrispDisabledRef.current = false;
+      failureCountRef.current = 0;
     };
-  }, [localParticipant, room]);
+  }, [room]);
 
   return null;
 };
