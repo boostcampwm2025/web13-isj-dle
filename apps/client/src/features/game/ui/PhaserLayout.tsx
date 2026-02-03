@@ -97,21 +97,40 @@ const PhaserLayout = () => {
 
   useEffect(() => {
     if (!game) return;
-    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-    if (!scene?.isReady) return;
+
+    const getScene = () => game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+
+    const syncInputState = () => {
+      const scene = getScene();
+      if (scene?.isReady) {
+        scene.setInputEnabled(!useTutorialStore.getState().isActive);
+      }
+    };
 
     const unsub = useTutorialStore.subscribe(
       (s) => s.isActive,
       (isActive) => {
-        if (scene.isReady) {
+        const scene = getScene();
+        if (scene?.isReady) {
           scene.setInputEnabled(!isActive);
         }
       },
     );
 
-    scene.setInputEnabled(!useTutorialStore.getState().isActive);
+    syncInputState();
 
-    return () => unsub();
+    const scene = getScene();
+    if (scene) {
+      scene.events.on("scene:ready", syncInputState);
+    }
+
+    return () => {
+      unsub();
+      const scene = getScene();
+      if (scene) {
+        scene.events.off("scene:ready", syncInputState);
+      }
+    };
   }, [game]);
 
   return (
