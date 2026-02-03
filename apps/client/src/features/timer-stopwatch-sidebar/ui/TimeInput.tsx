@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 interface TimeInputProps {
   value: number;
   onChange: (v: number) => void;
+  onCommit?: () => void;
   max: number;
   allowOverflow?: boolean;
   overflowBase?: number;
@@ -13,6 +14,7 @@ interface TimeInputProps {
 export const TimeInput = ({
   value,
   onChange,
+  onCommit,
   max,
   allowOverflow = false,
   overflowBase,
@@ -47,6 +49,13 @@ export const TimeInput = ({
   const handleBlur = () => {
     setIsFocused(false);
     setLocalValue("");
+    onCommit?.();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
   };
 
   const displayValue = value.toString().padStart(2, "0");
@@ -64,6 +73,7 @@ export const TimeInput = ({
       onChange={handleChange}
       onFocus={handleFocus}
       onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
       readOnly={!editable}
       className={`h-10 w-14 translate-y-0.5 bg-transparent text-center font-mono text-3xl font-semibold outline-none ${textColor} ${editable ? "cursor-text focus:rounded-md focus:border focus:border-blue-500" : "cursor-default"}`}
     />
