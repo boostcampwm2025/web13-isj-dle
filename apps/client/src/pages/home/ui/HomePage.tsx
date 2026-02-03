@@ -11,7 +11,7 @@ import { BottomNav } from "@widgets/bottom-nav";
 import { Sidebar, useSidebarStore } from "@widgets/sidebar";
 import { VideoConference } from "@widgets/video-conference";
 
-const RoomPage = () => {
+const HomePage = () => {
   useKnockSocket();
   useSyncImage();
 
@@ -43,4 +43,4 @@ const RoomPage = () => {
   );
 };
 
-export default RoomPage;
+export default HomePage;

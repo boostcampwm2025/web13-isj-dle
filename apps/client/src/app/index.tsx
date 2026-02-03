@@ -5,8 +5,8 @@ import "./styles/index.css";
 
 import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
 
+import { HomePage } from "@pages/home";
 import { LoginPage } from "@pages/login";
-import { RoomPage } from "@pages/room";
 import { ROUTE_PATHS } from "@shared/config";
 import { Toast } from "@shared/ui";
 
@@ -18,7 +18,7 @@ const App = () => {
     },
     {
       element: <RequireAuthGuard />,
-      children: [{ path: ROUTE_PATHS.HOME, element: <RoomPage /> }],
+      children: [{ path: ROUTE_PATHS.HOME, element: <HomePage /> }],
     },
     { path: "*", element: <Navigate to={ROUTE_PATHS.LOGIN} replace /> },
   ]);
