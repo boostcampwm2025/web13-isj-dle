@@ -63,6 +63,7 @@ interface UseTimerActionsReturn {
   syncPause: (pausedTimeSec: number) => void;
   syncReset: () => void;
   syncAddTime: (additionalSec: number) => void;
+  syncSetTime: (timeSec: number) => void;
 }
 
 export const useTimerActions = ({ roomId, isMeetingRoom }: UseTimerActionsProps): UseTimerActionsReturn => {
@@ -97,10 +98,19 @@ export const useTimerActions = ({ roomId, isMeetingRoom }: UseTimerActionsProps)
     [socket, roomId, isMeetingRoom],
   );
 
+  const syncSetTime = useCallback(
+    (timeSec: number) => {
+      if (!socket || !roomId || !isMeetingRoom) return;
+      socket.emit(TimerEventType.TIMER_SET_TIME, { roomId, timeSec });
+    },
+    [socket, roomId, isMeetingRoom],
+  );
+
   return {
     syncStart,
     syncPause,
     syncReset,
     syncAddTime,
+    syncSetTime,
   };
 };

@@ -33,7 +33,10 @@ export const TimerStopwatchSidebar = () => {
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
-  const { syncStart, syncPause, syncReset, syncAddTime } = useTimerActions({ roomId: currentRoomId, isMeetingRoom });
+  const { syncStart, syncPause, syncReset, syncAddTime, syncSetTime } = useTimerActions({
+    roomId: currentRoomId,
+    isMeetingRoom,
+  });
   const { syncTimeState } = useTimeActions({ roomId: currentRoomId, isMogakcoRoom });
   useSyncStopwatch({ roomId: currentRoomId, isMogakcoRoom });
 
@@ -127,6 +130,18 @@ export const TimerStopwatchSidebar = () => {
     syncCurrentState();
   };
 
+  const handleTimeCommit = () => {
+    if (!isTimerMode || timer.isRunning) return;
+
+    const { hours, minutes, seconds } = timer;
+    const totalSec = hmsToSeconds(hours, minutes, seconds);
+
+    if (isMeetingRoom) {
+      syncSetTime(totalSec);
+    }
+    syncCurrentState();
+  };
+
   const isEditable = isTimerMode && !timer.isRunning;
 
   const displayValues = isTimerMode ? secondsToHms(timer.timeSec) : secondsToHms(stopwatch.timeSec);
@@ -148,6 +163,7 @@ export const TimerStopwatchSidebar = () => {
             <TimeInput
               value={displayValues.hours}
               onChange={timer.setHours}
+              onCommit={handleTimeCommit}
               max={MAX_HOURS}
               editable={isEditable}
               isWarning={isTimerMode && timer.isWarning}
@@ -160,6 +176,7 @@ export const TimerStopwatchSidebar = () => {
             <TimeInput
               value={displayValues.minutes}
               onChange={timer.setMinutes}
+              onCommit={handleTimeCommit}
               max={MAX_MINUTES}
               allowOverflow
               overflowBase={60}
@@ -174,6 +191,7 @@ export const TimerStopwatchSidebar = () => {
             <TimeInput
               value={displayValues.seconds}
               onChange={timer.setSeconds}
+              onCommit={handleTimeCommit}
               max={MAX_SECONDS}
               allowOverflow
               overflowBase={60}
