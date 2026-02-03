@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 import { authApi } from "@entities/auth";
 import { AVATAR_ASSETS, type AuthUser, type AvatarAssetKey, type User } from "@shared/types";
@@ -22,8 +23,16 @@ const UserModifyPanel = ({ user, userId, onClose, setAuthUser }: UserModifyPanel
     setSaving(true);
     try {
       const response = await authApi.updateAuthUser({ userId, nickname, avatarAssetKey: assetKey });
-      setAuthUser(response.user);
+      if (!response.ok) throw new Error("Failed to update user");
+
+      const data = await response.json();
+      if (!data.user) throw new Error("No user data" + JSON.stringify(data));
+
+      setAuthUser(data.user);
       onClose();
+    } catch (error) {
+      console.error(error);
+      toast(`프로필 수정에 실패했어요. 다시 시도해 주세요.\n${error}`, { position: "top-right" });
     } finally {
       setSaving(false);
     }

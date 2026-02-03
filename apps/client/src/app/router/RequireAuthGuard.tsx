@@ -12,9 +12,17 @@ const RequireAuthGuard = () => {
 
     (async () => {
       try {
-        const user = await authApi.getMe();
+        const response = await authApi.getMe();
+        if (!response.ok) throw new Error("Failed to fetch user");
+
+        const data = await response.json();
+        if (!data.user) throw new Error("No user data" + JSON.stringify(data));
+
         if (!alive) return;
-        setAuthUser(user);
+        setAuthUser(data.user);
+      } catch (error) {
+        console.error(error);
+        setAuthUser(null);
       } finally {
         if (alive) setLoading(false);
       }

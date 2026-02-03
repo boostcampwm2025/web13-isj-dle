@@ -11,8 +11,12 @@ export const useTutorial = () => {
   const { isCompleted, isActive, setCompleted, setActive, setCurrentStep } = useTutorialStore();
 
   const markTutorialCompleted = useCallback(async () => {
-    setCompleted(true);
-    await authApi.tutorialCompleted();
+    try {
+      setCompleted(true);
+      await authApi.tutorialCompleted();
+    } catch (error) {
+      console.error("Failed to mark tutorial as completed:", error);
+    }
   }, [setCompleted]);
 
   const createTour = useCallback(() => {

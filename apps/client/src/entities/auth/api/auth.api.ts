@@ -1,84 +1,41 @@
 import { SERVER_URL } from "../../../shared/config/server.config";
 
-import type { AuthUser, UpdateAuthUserPayload } from "@shared/types";
+import type { UpdateAuthUserPayload } from "@shared/types";
 
 export const authApi = {
-  async getMe(): Promise<AuthUser | null> {
-    try {
-      const response = await fetch(`${SERVER_URL}/api/auth/me`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
-    } catch {
-      return null;
-    }
+  getMe(): Promise<Response> {
+    return fetch(`${SERVER_URL}/api/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
   },
 
-  async updateAuthUser({ userId, nickname, avatarAssetKey }: UpdateAuthUserPayload) {
-    try {
-      const response = await fetch(`${SERVER_URL}/api/auth/update`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId, nickname, avatarAssetKey }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update user");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("Failed to update user:", error);
-      return null;
-    }
+  updateAuthUser({ userId, nickname, avatarAssetKey }: UpdateAuthUserPayload): Promise<Response> {
+    return fetch(`${SERVER_URL}/api/auth/update`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, nickname, avatarAssetKey }),
+    });
   },
 
   loginWithGithub() {
     window.location.href = `${SERVER_URL}/api/auth/github`;
   },
 
-  async logout() {
-    try {
-      const response = await fetch(`${SERVER_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to logout");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("Failed to logout:", error);
-      return null;
-    }
+  logout(): Promise<Response> {
+    return fetch(`${SERVER_URL}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
   },
 
-  async tutorialCompleted() {
-    try {
-      const response = await fetch(`${SERVER_URL}/api/auth/tutorial/completed`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to mark tutorial as completed");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("Failed to mark tutorial as completed:", error);
-      return null;
-    }
+  tutorialCompleted(): Promise<Response> {
+    return fetch(`${SERVER_URL}/api/auth/tutorial/completed`, {
+      method: "GET",
+      credentials: "include",
+    });
   },
 };

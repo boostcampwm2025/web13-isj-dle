@@ -3,6 +3,7 @@ import UserModifyPanel from "./UserModifyPanel";
 import { Edit, LogOut, Mic, MicOff, Video, VideoOff } from "lucide-react";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import { authApi, useAuthStore } from "@entities/auth";
 import { useWebSocket } from "@features/socket";
@@ -34,11 +35,16 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
 
   const handleLogout = async () => {
     try {
-      await authApi.logout();
+      const response = await authApi.logout();
+      if (!response.ok) throw new Error("Failed to logout");
+
+      const data = await response.json();
+      if (!data.success) throw new Error("Logout unsuccessful");
       setAuthUser(null);
       socket?.disconnect();
     } catch (error) {
       console.error("Failed to logout:", error);
+      toast(`로그아웃에 실패했어요. 다시 시도해 주세요.\n${error}`, { position: "top-right" });
     }
   };
 
