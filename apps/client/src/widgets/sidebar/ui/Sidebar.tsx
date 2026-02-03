@@ -1,4 +1,4 @@
-import { SIDEBAR_MAP } from "../model/sidebar.constants";
+import { SIDEBAR_MAP, TUTORIAL_VIRTUAL_TABS } from "../model/sidebar.constants";
 import useSidebarState from "../model/use-sidebar-state";
 import { SidebarTabBadge } from "./SidebarTabBadge";
 import { SidebarTabButton } from "./SidebarTabButton";
@@ -8,19 +8,22 @@ import { Suspense, memo, useEffect, useRef, useState } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
-import type { SidebarKey } from "@shared/config";
+import { TUTORIAL_STEPS, useTutorialStore } from "@features/tutorial";
 import {
   SIDEBAR_ANIMATION_DURATION,
   SIDEBAR_CONTENT_WIDTH,
   SIDEBAR_TAB_ANIMATION_DURATION,
   SIDEBAR_TAB_WIDTH,
 } from "@shared/config";
+import type { SidebarKey } from "@shared/config";
 
 const Sidebar = () => {
   const { sidebarKeys, validCurrentKey, isOpen, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
 
+  const { isActive: isTutorialActive, currentStep } = useTutorialStore();
+  const currentStepId = TUTORIAL_STEPS[currentStep]?.id;
   const prevKeysRef = useRef<SidebarKey[]>(sidebarKeys);
   const [newlyAddedKeys, setNewlyAddedKeys] = useState<Set<SidebarKey>>(new Set());
 
@@ -84,7 +87,7 @@ const Sidebar = () => {
       </div>
 
       <div
-        className="pointer-events-auto absolute top-0 right-0 flex h-full flex-col overflow-visible px-2 py-2"
+        className="pointer-events-auto absolute top-0 right-0 flex h-full flex-col bg-gray-300 px-2 py-2"
         style={{ width: `${SIDEBAR_TAB_WIDTH}px` }}
       >
         <div className="absolute inset-0 bg-gray-300" />
@@ -119,6 +122,24 @@ const Sidebar = () => {
               />
             ))}
           </div>
+
+          {TUTORIAL_VIRTUAL_TABS.map((tab, idx) => {
+            const isVisible = isTutorialActive && currentStepId === tab.stepId;
+            const IconComponent = tab.icon;
+            return (
+              <div
+                key={tab.stepId}
+                data-tutorial={`sidebar-${tab.stepId.replace("sidebar-", "")}`}
+                className={`absolute left-0 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 ring-2 ring-blue-400 transition-opacity ${
+                  isVisible ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+                style={{ top: `${(sidebarKeys.length + idx) * (48 + 16)}px` }}
+                title={tab.label}
+              >
+                <IconComponent className="h-6 w-6 text-blue-600" />
+              </div>
+            );
+          })}
 
           {sidebarKeys.map((key, index) => (
             <SidebarTabBadge key={`badge-${key}`} count={getBadgeCount(key)} index={index} />

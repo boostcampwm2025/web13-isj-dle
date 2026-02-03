@@ -60,7 +60,12 @@ export const SidebarTabButton = memo(function SidebarTabButton({
 
   if (tabKey === "timer-stopwatch") {
     return (
-      <div ref={buttonRef} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+      <div
+        ref={buttonRef}
+        data-tutorial={`sidebar-${tabKey}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <TimerProgressButton
           sidebarItem={sidebarItem}
           isActive={isActive}
@@ -75,7 +80,12 @@ export const SidebarTabButton = memo(function SidebarTabButton({
   const IconComponent = sidebarItem.Icon;
 
   return (
-    <div ref={buttonRef} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+    <div
+      ref={buttonRef}
+      data-tutorial={`sidebar-${tabKey}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <button
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors ${
           isActive ? "bg-gray-200" : "bg-gray-100 hover:bg-gray-200"

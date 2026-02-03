@@ -10,12 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.66.9",
     "@livekit/components-react": "^2.9.17",
     "@livekit/components-styles": "^1.2.0",
     "@livekit/krisp-noise-filter": "^0.4.1",
     "@monaco-editor/react": "^4.7.0",
     "@shared/types": "workspace:*",
+    "@tanstack/react-query": "^5.66.9",
     "@tldraw/sync": "^4.2.3",
     "@tldraw/tldraw": "^4.2.3",
     "easystarjs": "^0.4.4",
@@ -26,6 +26,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
+    "shepherd.js": "^14.5.1",
     "socket.io-client": "^4.8.3",
     "y-monaco": "^0.1.6",
     "y-websocket": "^3.0.0",

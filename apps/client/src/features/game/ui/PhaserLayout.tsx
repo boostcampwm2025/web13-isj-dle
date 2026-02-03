@@ -18,6 +18,7 @@ import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
 import { useWebSocket } from "@features/socket";
+import { useTutorialStore } from "@features/tutorial";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { type DeskStatus, LecternEventType } from "@shared/types";
 
@@ -93,6 +94,44 @@ const PhaserLayout = () => {
   }, [game]);
 
   const isOverlayHidden = mode === VIDEO_CONFERENCE_MODE.FULL_GRID || isCollaborationToolOpen;
+
+  useEffect(() => {
+    if (!game) return;
+
+    const getScene = () => game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+
+    const syncInputState = () => {
+      const scene = getScene();
+      if (scene?.isReady) {
+        scene.setInputEnabled(!useTutorialStore.getState().isActive);
+      }
+    };
+
+    const unsub = useTutorialStore.subscribe(
+      (s) => s.isActive,
+      (isActive) => {
+        const scene = getScene();
+        if (scene?.isReady) {
+          scene.setInputEnabled(!isActive);
+        }
+      },
+    );
+
+    syncInputState();
+
+    const scene = getScene();
+    if (scene) {
+      scene.events.on("scene:ready", syncInputState);
+    }
+
+    return () => {
+      unsub();
+      const scene = getScene();
+      if (scene) {
+        scene.events.off("scene:ready", syncInputState);
+      }
+    };
+  }, [game]);
 
   return (
     <>

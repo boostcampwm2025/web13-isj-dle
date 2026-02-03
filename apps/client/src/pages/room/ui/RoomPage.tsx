@@ -2,6 +2,7 @@ import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
 import PhaserLayout from "@features/game/ui/PhaserLayout";
 import { useKnockSocket } from "@features/knock";
 import { useSyncImage } from "@features/restaurant-sidebar/model";
+import { TutorialProvider } from "@features/tutorial";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { SIDEBAR_ANIMATION_DURATION, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
@@ -17,24 +18,26 @@ const RoomPage = () => {
   const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-gray-300">
-      <div
-        className="absolute inset-0 overflow-hidden rounded-r-2xl transition-[right] ease-in-out"
-        style={{
-          right: isSidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH,
-          transitionDuration: `${SIDEBAR_ANIMATION_DURATION}ms`,
-        }}
-      >
-        <PhaserLayout />
+    <TutorialProvider autoStart={true}>
+      <div className="relative h-screen w-screen overflow-hidden bg-gray-300">
+        <div
+          className="absolute inset-0 overflow-hidden rounded-r-2xl transition-[right] ease-in-out"
+          style={{
+            right: isSidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH,
+            transitionDuration: `${SIDEBAR_ANIMATION_DURATION}ms`,
+          }}
+        >
+          <PhaserLayout />
 
-        <div className="pointer-events-none absolute inset-0 z-10">
-          <VideoConference />
-          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+          <div className="pointer-events-none absolute inset-0 z-10">
+            <VideoConference />
+            {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
+          </div>
         </div>
-      </div>
 
-      <Sidebar />
-    </div>
+        <Sidebar />
+      </div>
+    </TutorialProvider>
   );
 };
 
