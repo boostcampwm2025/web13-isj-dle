@@ -6,6 +6,9 @@ import { useEffect, useRef } from "react";
 import { KrispNoiseFilter, type KrispNoiseFilterProcessor } from "@livekit/krisp-noise-filter";
 
 const MAX_APPLY_FAILURE = 2;
+const KRISP_NOISE_FILTER_QUALITY = "medium";
+const KRISP_NOISE_FILTER_BUFFER_OVER_FLOW_MS = 200;
+const KRISP_NOISE_FILTER_BUFFER_DROP_MS = 800;
 
 export const useNoiseFilter = (room: Room | undefined) => {
   const processorRef = useRef<KrispNoiseFilterProcessor | null>(null);
@@ -25,7 +28,7 @@ export const useNoiseFilter = (room: Room | undefined) => {
       try {
         currentTrackRef.current?.stopProcessor();
       } catch (error) {
-        console.debug("Failed to stop audio processor:", error);
+        console.error("Failed to stop audio processor:", error);
       } finally {
         currentTrackRef.current = null;
       }
@@ -37,7 +40,7 @@ export const useNoiseFilter = (room: Room | undefined) => {
       try {
         await processorRef.current.destroy();
       } catch (error) {
-        console.debug("Failed to destroy Krisp noise filter processor:", error);
+        console.error("Failed to destroy Krisp noise filter processor:", error);
       } finally {
         processorRef.current = null;
       }
@@ -61,9 +64,9 @@ export const useNoiseFilter = (room: Room | undefined) => {
       if (!processorRef.current) {
         try {
           processorRef.current = KrispNoiseFilter({
-            quality: "medium",
-            bufferOverflowMs: 200,
-            bufferDropMs: 800,
+            quality: KRISP_NOISE_FILTER_QUALITY,
+            bufferOverflowMs: KRISP_NOISE_FILTER_BUFFER_OVER_FLOW_MS,
+            bufferDropMs: KRISP_NOISE_FILTER_BUFFER_DROP_MS,
             onBufferDrop: () => {
               if (isKrispDisabledRef.current) return;
               void disableKrisp("buffer drop");
@@ -84,7 +87,6 @@ export const useNoiseFilter = (room: Room | undefined) => {
         await track.setProcessor(processorRef.current as TrackProcessor<Track.Kind, ProcessorOptions<Track.Kind>>);
         currentTrackRef.current = track;
         failureCountRef.current = 0;
-        console.log("Krisp noise filter applied");
       } catch (error) {
         console.error("Failed to apply Krisp noise filter:", error);
         failureCountRef.current += 1;
