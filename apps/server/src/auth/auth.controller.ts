@@ -1,12 +1,15 @@
-import { Body, Controller, Get, HttpStatus, Post, Put, Query, Redirect, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Post, Put, Query, Redirect, Res, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { AuthUserResponse, SuccessResponse } from "@shared/types";
 import type { CookieOptions, Response } from "express";
 
+import { AuthUser } from "../common/decorators/auth-user.decorator";
 import { Cookies } from "../common/decorators/cookie.decorator";
+import { AuthGuard } from "../common/guards/auth.guard";
 import { OAUTH_STATE_COOKIE_NAME, SESSION_COOKIE_NAME } from "./auth.constants";
 import { AuthService } from "./auth.service";
+import { AuthUserEntity } from "./auth_user.entity";
 import { UpdateAuthUserDto } from "./update-auth-user.dto";
 
 @Controller("auth")
@@ -73,27 +76,13 @@ export class AuthController {
   }
 
   @Put("update")
+  @UseGuards(AuthGuard)
   async updateAuthUser(
     @Res({ passthrough: true }) res: Response,
     @Body() body: UpdateAuthUserDto,
-    @Cookies(SESSION_COOKIE_NAME) session?: string,
+    @AuthUser() authUser: AuthUserEntity,
   ): Promise<AuthUserResponse> {
-    if (!session) {
-      res.status(HttpStatus.UNAUTHORIZED);
-      return { error: "Unauthorized" };
-    }
-    const authUser = await this.authService.getMeBySession(session);
-    if (!authUser) {
-      res.status(HttpStatus.UNAUTHORIZED);
-      return { error: "Unauthorized" };
-    }
-
-    if (
-      body.nickname &&
-      body.nickname === authUser.nickname &&
-      body.avatarAssetKey &&
-      body.avatarAssetKey === authUser.avatarAssetKey
-    ) {
+    if (body.nickname === authUser.nickname && body.avatarAssetKey === authUser.avatarAssetKey) {
       return { user: authUser };
     }
 
@@ -108,37 +97,15 @@ export class AuthController {
   }
 
   @Get("tutorial/completed")
-  async tutorialCompleted(
-    @Res({ passthrough: true }) res: Response,
-    @Cookies(SESSION_COOKIE_NAME) session?: string,
-  ): Promise<SuccessResponse> {
-    if (!session) {
-      res.status(HttpStatus.UNAUTHORIZED);
-      return { success: false, error: "Unauthorized" };
-    }
-    const authUser = await this.authService.getMeBySession(session);
-    if (!authUser) {
-      res.status(HttpStatus.UNAUTHORIZED);
-      return { success: false, error: "Unauthorized" };
-    }
+  @UseGuards(AuthGuard)
+  async tutorialCompleted(@AuthUser() authUser: AuthUserEntity): Promise<SuccessResponse> {
     await this.authService.tutorialCompleted(authUser.id);
     return { success: true };
   }
 
   @Get("me")
-  async me(
-    @Res({ passthrough: true }) res: Response,
-    @Cookies(SESSION_COOKIE_NAME) session?: string,
-  ): Promise<AuthUserResponse> {
-    if (!session) {
-      res.status(HttpStatus.UNAUTHORIZED);
-      return { error: "Unauthorized" };
-    }
-    const authUser = await this.authService.getMeBySession(session);
-    if (!authUser) {
-      res.status(HttpStatus.UNAUTHORIZED);
-      return { error: "Unauthorized" };
-    }
+  @UseGuards(AuthGuard)
+  me(@AuthUser() authUser: AuthUserEntity): AuthUserResponse {
     return { user: authUser };
   }
 
