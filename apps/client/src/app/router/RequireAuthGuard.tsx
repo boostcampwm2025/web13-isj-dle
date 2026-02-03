@@ -5,7 +5,10 @@ import { authApi, useAuthStore } from "@entities/auth";
 import { ROUTE_PATHS } from "@shared/config";
 
 const RequireAuthGuard = () => {
-  const { setAuthUser, setLoading, isLoading, isAuthenticated } = useAuthStore();
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const isAuthenticated = useAuthStore((state) => !!state.authUser);
+  const setAuthUser = useAuthStore((state) => state.setAuthUser);
+  const setLoading = useAuthStore((state) => state.setLoading);
 
   useEffect(() => {
     let alive = true;
