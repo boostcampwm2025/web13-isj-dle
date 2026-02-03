@@ -69,23 +69,15 @@ export const TimerStopwatchSidebar = () => {
 
   const handleStart = () => {
     if (isTimerMode) {
-      const { startedAt, pausedTimeSec } = useTimerStopwatchStore.getState().timer;
       const { hours, minutes, seconds } = timer;
+      const total = hmsToSeconds(hours, minutes, seconds);
 
-      if (startedAt === null && pausedTimeSec === 0) {
-        const total = hmsToSeconds(hours, minutes, seconds);
-        if (total <= 0) return;
-        const now = Date.now();
-        timer.start();
-        if (isMeetingRoom) {
-          syncStart(total, now);
-        }
-      } else {
-        const now = Date.now();
-        timer.start();
-        if (isMeetingRoom) {
-          syncStart(pausedTimeSec, now);
-        }
+      if (total <= 0) return;
+
+      const now = Date.now();
+      timer.start();
+      if (isMeetingRoom) {
+        syncStart(total, now);
       }
     } else {
       stopwatch.start();
