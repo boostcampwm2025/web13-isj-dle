@@ -15,14 +15,11 @@ const RequireGuestGuard = () => {
 
     (async () => {
       try {
-        const response = await authApi.getMe();
-        if (!response.ok) throw new Error("Failed to fetch user");
-
-        const data = await response.json();
-        if (!data.user) throw new Error("No user data" + JSON.stringify(data));
+        const authUserResponse = await authApi.getMe();
+        if (!authUserResponse.user) throw new Error(`No user data: ${authUserResponse.error}`);
 
         if (!alive) return;
-        setAuthUser(data.user);
+        setAuthUser(authUserResponse.user);
       } catch (error) {
         console.error(error);
         setAuthUser(null);

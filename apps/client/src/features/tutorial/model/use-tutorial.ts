@@ -12,10 +12,12 @@ export const useTutorial = () => {
 
   const markTutorialCompleted = useCallback(async () => {
     try {
-      setCompleted(true);
-      await authApi.tutorialCompleted();
+      const response = await authApi.tutorialCompleted();
+      if (!response.success) throw new Error(`Failed to mark tutorial as completed: ${response.error}`);
     } catch (error) {
       console.error("Failed to mark tutorial as completed:", error);
+    } finally {
+      setCompleted(true);
     }
   }, [setCompleted]);
 

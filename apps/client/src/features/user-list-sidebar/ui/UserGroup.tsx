@@ -35,10 +35,8 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
   const handleLogout = async () => {
     try {
       const response = await authApi.logout();
-      if (!response.ok) throw new Error("Failed to logout");
+      if (!response.success) throw new Error(`Logout failed: ${response.error}`);
 
-      const data = await response.json();
-      if (!data.success) throw new Error("Logout unsuccessful");
       setAuthUser(null);
       socket?.disconnect();
     } catch (error) {

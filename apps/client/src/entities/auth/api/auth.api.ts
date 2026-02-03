@@ -1,41 +1,30 @@
-import { SERVER_URL } from "../../../shared/config/server.config";
-
-import type { UpdateAuthUserPayload } from "@shared/types";
+import { SERVER_URL } from "@shared/config";
+import { fetcher } from "@shared/lib/fetcher";
+import type { AuthUserResponse, SuccessResponse, UpdateAuthUserPayload } from "@shared/types";
 
 export const authApi = {
-  getMe(): Promise<Response> {
-    return fetch(`${SERVER_URL}/api/auth/me`, {
-      method: "GET",
-      credentials: "include",
-    });
-  },
-
-  updateAuthUser(payload: UpdateAuthUserPayload): Promise<Response> {
-    return fetch(`${SERVER_URL}/api/auth/update`, {
-      method: "PUT",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-  },
-
   loginWithGithub() {
     window.location.href = `${SERVER_URL}/api/auth/github`;
   },
 
-  logout(): Promise<Response> {
-    return fetch(`${SERVER_URL}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
+  getMe(): Promise<AuthUserResponse> {
+    return fetcher<AuthUserResponse>("/api/auth/me");
+  },
+
+  updateAuthUser(payload: UpdateAuthUserPayload): Promise<AuthUserResponse> {
+    return fetcher<AuthUserResponse>("/api/auth/update", {
+      method: "PUT",
+      body: JSON.stringify(payload),
     });
   },
 
-  tutorialCompleted(): Promise<Response> {
-    return fetch(`${SERVER_URL}/api/auth/tutorial/completed`, {
-      method: "GET",
-      credentials: "include",
+  logout(): Promise<SuccessResponse> {
+    return fetcher<SuccessResponse>("/api/auth/logout", {
+      method: "POST",
     });
+  },
+
+  tutorialCompleted(): Promise<SuccessResponse> {
+    return fetcher<SuccessResponse>("/api/auth/tutorial/completed");
   },
 };

@@ -21,13 +21,10 @@ const UserModifyPanel = ({ user, onClose, setAuthUser }: UserModifyPanelProps) =
     if (saving) return;
     setSaving(true);
     try {
-      const response = await authApi.updateAuthUser({ nickname, avatarAssetKey: assetKey });
-      if (!response.ok) throw new Error("Failed to update user");
+      const authUserResponse = await authApi.updateAuthUser({ nickname, avatarAssetKey: assetKey });
+      if (!authUserResponse.user) throw new Error(`No user data: ${authUserResponse.error}`);
 
-      const data = await response.json();
-      if (!data.user) throw new Error("No user data" + JSON.stringify(data));
-
-      setAuthUser(data.user);
+      setAuthUser(authUserResponse.user);
       onClose();
     } catch (error) {
       console.error(error);

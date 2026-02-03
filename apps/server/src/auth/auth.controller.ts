@@ -1,6 +1,7 @@
 import { Body, Controller, Get, HttpStatus, Post, Put, Query, Redirect, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import type { AuthUserResponse, SuccessResponse } from "@shared/types";
 import type { CookieOptions, Response } from "express";
 
 import { Cookies } from "../common/decorators/cookie.decorator";
@@ -76,7 +77,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: UpdateAuthUserDto,
     @Cookies(SESSION_COOKIE_NAME) session?: string,
-  ) {
+  ): Promise<AuthUserResponse> {
     if (!session) {
       res.status(HttpStatus.UNAUTHORIZED);
       return { error: "Unauthorized" };
@@ -98,26 +99,37 @@ export class AuthController {
 
     const updatedUser = await this.authService.updateAuthUser(authUser.id, body);
 
+    if (!updatedUser) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return { error: "Failed to update user" };
+    }
+
     return { user: updatedUser };
   }
 
   @Get("tutorial/completed")
-  async tutorialCompleted(@Res({ passthrough: true }) res: Response, @Cookies(SESSION_COOKIE_NAME) session?: string) {
+  async tutorialCompleted(
+    @Res({ passthrough: true }) res: Response,
+    @Cookies(SESSION_COOKIE_NAME) session?: string,
+  ): Promise<SuccessResponse> {
     if (!session) {
       res.status(HttpStatus.UNAUTHORIZED);
-      return { error: "Unauthorized" };
+      return { success: false, error: "Unauthorized" };
     }
     const authUser = await this.authService.getMeBySession(session);
     if (!authUser) {
       res.status(HttpStatus.UNAUTHORIZED);
-      return { error: "Unauthorized" };
+      return { success: false, error: "Unauthorized" };
     }
     await this.authService.tutorialCompleted(authUser.id);
-    return { ok: true };
+    return { success: true };
   }
 
   @Get("me")
-  async me(@Res({ passthrough: true }) res: Response, @Cookies(SESSION_COOKIE_NAME) session?: string) {
+  async me(
+    @Res({ passthrough: true }) res: Response,
+    @Cookies(SESSION_COOKIE_NAME) session?: string,
+  ): Promise<AuthUserResponse> {
     if (!session) {
       res.status(HttpStatus.UNAUTHORIZED);
       return { error: "Unauthorized" };
@@ -131,8 +143,8 @@ export class AuthController {
   }
 
   @Post("logout")
-  logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response): SuccessResponse {
     res.clearCookie(SESSION_COOKIE_NAME);
-    return { ok: true };
+    return { success: true };
   }
 }
