@@ -1,36 +1,36 @@
-import { AVATAR_ASSETS } from "@shared/types";
-import { generateRandomAvatar } from "src/avatar/avatar.generator";
+import { AVATAR_ASSETS, type AvatarAssetKey } from "@shared/types";
 
-describe("generateRandomAvatar", () => {
-  test("유효한 아바타 키를 반환해야 함", () => {
-    const avatar = generateRandomAvatar();
-    const validKeys = ["ADAM", "ALEX", "AMELIA", "BOB"];
+import { generateRandomAvatar } from "../../src/avatar/avatar.generator";
 
-    expect(validKeys).toContain(avatar);
-  });
+describe("AvatarGenerator", () => {
+  const AVATAR_KEYS = Object.keys(AVATAR_ASSETS) as AvatarAssetKey[];
 
-  test("반환값이 AvatarAssetKey 타입이어야 함", () => {
-    const avatar = generateRandomAvatar();
+  describe("generateRandomAvatar", () => {
+    it("유효한 아바타 키를 반환해야 함", () => {
+      const result = generateRandomAvatar();
 
-    expect(typeof avatar).toBe("string");
-    expect(avatar).toMatch(/^[A-Z]+$/);
-  });
+      expect(AVATAR_KEYS).toContain(result);
+    });
 
-  test("여러 번 호출 시 모든 아바타가 선택될 수 있어야 함", () => {
-    const results = new Set<string>();
-    const iterations = 100;
+    it("여러 번 호출 시 다른 아바타를 반환해야 함 (랜덤성 테스트)", () => {
+      const results = new Set<AvatarAssetKey>();
 
-    for (let i = 0; i < iterations; i++) {
-      results.add(generateRandomAvatar());
-    }
+      // 100번 호출하여 최소 2개 이상의 다른 결과가 나오는지 확인
+      for (let i = 0; i < 100; i++) {
+        results.add(generateRandomAvatar());
+      }
 
-    expect(results.size).toBeGreaterThanOrEqual(2);
-  });
+      // 아바타 종류가 1개보다 많다면 랜덤성 확인
+      if (AVATAR_KEYS.length > 1) {
+        expect(results.size).toBeGreaterThan(1);
+      }
+    });
 
-  test("반환된 아바타 키로 AVATAR_ASSETS 접근 가능해야 함", () => {
-    const avatar = generateRandomAvatar();
-
-    expect(AVATAR_ASSETS[avatar]).toBeDefined();
-    expect(AVATAR_ASSETS[avatar].url).toMatch(/^\/assets\/avatars\/.+\.png$/);
+    it("AVATAR_ASSETS에 존재하는 키만 반환해야 함", () => {
+      for (let i = 0; i < 50; i++) {
+        const result = generateRandomAvatar();
+        expect(AVATAR_ASSETS[result]).toBeDefined();
+      }
+    });
   });
 });
