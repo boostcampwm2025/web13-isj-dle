@@ -1,6 +1,7 @@
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
+import cookieParser from "cookie-parser";
 import type { Server } from "http";
 
 import { AppModule } from "./app.module";
@@ -10,6 +11,8 @@ import { YjsService } from "./yjs/yjs.service";
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
+
+  app.use(cookieParser());
 
   app.useWebSocketAdapter(new SocketIoAdapter(app));
 
