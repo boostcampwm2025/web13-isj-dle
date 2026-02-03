@@ -27,6 +27,7 @@
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
     "shepherd.js": "^14.5.1",
+    "react-router-dom": "^7.13.0",
     "socket.io-client": "^4.8.3",
     "y-monaco": "^0.1.6",
     "y-websocket": "^3.0.0",
@@ -48,6 +49,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
+    "vite-plugin-svgr": "^4.5.0",
     "vite-tsconfig-paths": "^6.0.3"
   }
 }
