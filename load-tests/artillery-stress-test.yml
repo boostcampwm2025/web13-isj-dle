@@ -22,7 +22,7 @@ config:
       name: "Phase 6: Recovery (2/s)"
   engines:
     socketio-v3:
-      transports: [ "websocket" ]
+      transports: ["websocket"]
 
 scenarios:
   - name: "Stress test - lobby focus"
@@ -43,7 +43,7 @@ scenarios:
                 y: "{{ $randomNumber(800, 1100) }}"
                 direction: "down"
                 state: "walk"
-          - think: 0.2  # 더 빠른 이동
+          - think: 0.2 # 더 빠른 이동
         count: 15
       # 20초간 연결 유지
       - think: 20
