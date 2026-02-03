@@ -1,168 +1,224 @@
+import { type EventEmitter2 } from "@nestjs/event-emitter";
+
 import { RestaurantImageCleanupService } from "../../src/restaurant/restaurant-image-cleanup.service";
 import { type S3Service } from "../../src/storage/s3.service";
 
 describe("RestaurantImageCleanupService", () => {
-  const makeService = (overrides?: { s3?: Partial<S3Service> }) => {
+  const createQueryBuilderMock = (getManyResult: unknown[] = []) => {
+    const mock = {
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue(getManyResult),
+    };
+    return mock;
+  };
+
+  const makeService = (overrides?: {
+    s3?: Partial<S3Service>;
+    queryBuilderMock?: ReturnType<typeof createQueryBuilderMock>;
+  }) => {
     const s3Service: Partial<S3Service> = {
-      objectExists: jest.fn(),
       listObjects: jest.fn().mockResolvedValue([]),
       deleteObjects: jest.fn().mockResolvedValue(undefined),
-      getTempPrefix: () => "temp/",
       ...overrides?.s3,
     };
 
+    const queryBuilderMock = overrides?.queryBuilderMock ?? createQueryBuilderMock();
+
     const restaurantImageRepository = {
       delete: jest.fn().mockResolvedValue(undefined),
-      createQueryBuilder: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      }),
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilderMock),
     };
 
-    const service = new RestaurantImageCleanupService(s3Service as S3Service, restaurantImageRepository as never);
+    const eventEmitter: Partial<EventEmitter2> = {
+      emit: jest.fn(),
+    };
 
-    return { service, s3Service, restaurantImageRepository };
+    const service = new RestaurantImageCleanupService(
+      s3Service as S3Service,
+      restaurantImageRepository as never,
+      eventEmitter as EventEmitter2,
+    );
+
+    return { service, s3Service, restaurantImageRepository, queryBuilderMock, eventEmitter };
   };
 
   describe("cleanupOrphanRecords (DB orphan 정리)", () => {
-    test("S3에 없는 파일의 DB 레코드를 삭제함", async () => {
-      const { service, s3Service, restaurantImageRepository } = makeService();
-
-      (service as never as { fetchBatch: jest.Mock }).fetchBatch = jest
-        .fn()
+    it("S3에 없는 파일의 DB 레코드를 삭제해야 함", async () => {
+      const queryBuilderMock = createQueryBuilderMock();
+      queryBuilderMock.getMany
         .mockResolvedValueOnce([
           { id: 1, key: "restaurant-images/u1/a.jpg" },
           { id: 2, key: "restaurant-images/u1/b.jpg" },
         ])
         .mockResolvedValueOnce([]);
 
-      (s3Service.objectExists as jest.Mock)
-        .mockResolvedValueOnce(false) // a.jpg 없음
-        .mockResolvedValueOnce(true); // b.jpg 존재
+      const { service, s3Service, restaurantImageRepository } = makeService({
+        s3: {
+          listObjects: jest.fn().mockResolvedValue([{ key: "restaurant-images/u1/b.jpg" }]),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+        queryBuilderMock,
+      });
 
-      const stats = await service.cleanupOrphanRecords();
+      await (service as never as { cleanupOrphanRecords: () => Promise<void> }).cleanupOrphanRecords();
 
-      expect(stats.deletedCount).toBe(1);
+      expect(s3Service.listObjects).toHaveBeenCalled();
       expect(restaurantImageRepository.delete).toHaveBeenCalledTimes(1);
     });
 
-    test("S3 연속 실패 시 정리를 중단함", async () => {
-      const { service, s3Service, restaurantImageRepository } = makeService();
+    it("S3 목록 조회 실패 시 에러 없이 처리해야 함", async () => {
+      const { service, restaurantImageRepository } = makeService({
+        s3: {
+          listObjects: jest.fn().mockRejectedValue(new Error("S3 down")),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+      });
 
-      (service as never as { fetchBatch: jest.Mock }).fetchBatch = jest
-        .fn()
-        .mockResolvedValueOnce([
-          { id: 1, key: "restaurant-images/u1/a.jpg" },
-          { id: 2, key: "restaurant-images/u1/b.jpg" },
-          { id: 3, key: "restaurant-images/u1/c.jpg" },
-          { id: 4, key: "restaurant-images/u1/d.jpg" },
-        ])
-        .mockResolvedValueOnce([]);
+      await expect(
+        (service as never as { cleanupOrphanRecords: () => Promise<void> }).cleanupOrphanRecords(),
+      ).resolves.not.toThrow();
 
-      (s3Service.objectExists as jest.Mock).mockRejectedValue(new Error("S3 down"));
-
-      const stats = await service.cleanupOrphanRecords();
-
-      expect(stats.failedCount).toBeGreaterThanOrEqual(3);
       expect(restaurantImageRepository.delete).not.toHaveBeenCalled();
     });
 
-    test("DB 삭제 실패 시 해당 배치를 건너뜀", async () => {
-      const { service, s3Service, restaurantImageRepository } = makeService();
-
-      (service as never as { fetchBatch: jest.Mock }).fetchBatch = jest
-        .fn()
+    it("DB 삭제 실패 시 에러 없이 계속 진행해야 함", async () => {
+      const queryBuilderMock = createQueryBuilderMock();
+      queryBuilderMock.getMany
         .mockResolvedValueOnce([{ id: 1, key: "restaurant-images/u1/a.jpg" }])
         .mockResolvedValueOnce([]);
 
-      (s3Service.objectExists as jest.Mock).mockResolvedValueOnce(false);
+      const { service, restaurantImageRepository } = makeService({
+        s3: {
+          listObjects: jest.fn().mockResolvedValue([]),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+        queryBuilderMock,
+      });
+
       restaurantImageRepository.delete.mockRejectedValueOnce(new Error("DB error"));
 
-      const stats = await service.cleanupOrphanRecords();
+      await expect(
+        (service as never as { cleanupOrphanRecords: () => Promise<void> }).cleanupOrphanRecords(),
+      ).resolves.not.toThrow();
+    });
 
-      expect(stats.skippedCount).toBe(1);
-      expect(stats.deletedCount).toBe(0);
+    it("모든 DB 레코드가 S3에 존재하면 삭제하지 않아야 함", async () => {
+      const queryBuilderMock = createQueryBuilderMock();
+      queryBuilderMock.getMany
+        .mockResolvedValueOnce([
+          { id: 1, key: "restaurant-images/u1/a.jpg" },
+          { id: 2, key: "restaurant-images/u1/b.jpg" },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const { service, restaurantImageRepository } = makeService({
+        s3: {
+          listObjects: jest
+            .fn()
+            .mockResolvedValue([{ key: "restaurant-images/u1/a.jpg" }, { key: "restaurant-images/u1/b.jpg" }]),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+        queryBuilderMock,
+      });
+
+      await (service as never as { cleanupOrphanRecords: () => Promise<void> }).cleanupOrphanRecords();
+
+      expect(restaurantImageRepository.delete).not.toHaveBeenCalled();
     });
   });
 
   describe("cleanupOrphanS3Files (S3 orphan 정리)", () => {
-    test("DB에 레코드가 없는 S3 파일을 삭제함", async () => {
-      const { service, s3Service, restaurantImageRepository } = makeService();
+    it("DB에 레코드가 없는 S3 파일을 삭제해야 함", async () => {
+      const queryBuilderMock = createQueryBuilderMock();
+      queryBuilderMock.getMany.mockResolvedValueOnce([{ key: "restaurant-images/u1/b.webp" }]);
 
-      (s3Service.listObjects as jest.Mock).mockResolvedValueOnce([
-        { key: "restaurant-images/u1/a.webp" },
-        { key: "restaurant-images/u1/b.webp" },
-        { key: "restaurant-images/u1/c.webp" },
-      ]);
+      const { service, s3Service } = makeService({
+        s3: {
+          listObjects: jest
+            .fn()
+            .mockResolvedValue([
+              { key: "restaurant-images/u1/a.webp" },
+              { key: "restaurant-images/u1/b.webp" },
+              { key: "restaurant-images/u1/c.webp" },
+            ]),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+        queryBuilderMock,
+      });
 
-      // b.webp만 DB에 존재
-      restaurantImageRepository
-        .createQueryBuilder()
-        .getMany.mockResolvedValueOnce([{ key: "restaurant-images/u1/b.webp" }]);
+      await (service as never as { cleanupOrphanS3Files: () => Promise<void> }).cleanupOrphanS3Files();
 
-      const stats = await service.cleanupOrphanS3Files();
-
-      expect(stats.deletedCount).toBe(2);
       expect(s3Service.deleteObjects).toHaveBeenCalledWith([
         "restaurant-images/u1/a.webp",
         "restaurant-images/u1/c.webp",
       ]);
     });
 
-    test("모든 S3 파일이 DB에 존재하면 삭제하지 않음", async () => {
-      const { service, s3Service, restaurantImageRepository } = makeService();
+    it("모든 S3 파일이 DB에 존재하면 삭제하지 않아야 함", async () => {
+      const queryBuilderMock = createQueryBuilderMock();
+      queryBuilderMock.getMany.mockResolvedValueOnce([{ key: "restaurant-images/u1/a.webp" }]);
 
-      (s3Service.listObjects as jest.Mock).mockResolvedValueOnce([{ key: "restaurant-images/u1/a.webp" }]);
+      const { service, s3Service } = makeService({
+        s3: {
+          listObjects: jest.fn().mockResolvedValue([{ key: "restaurant-images/u1/a.webp" }]),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+        queryBuilderMock,
+      });
 
-      restaurantImageRepository
-        .createQueryBuilder()
-        .getMany.mockResolvedValueOnce([{ key: "restaurant-images/u1/a.webp" }]);
+      await (service as never as { cleanupOrphanS3Files: () => Promise<void> }).cleanupOrphanS3Files();
 
-      const stats = await service.cleanupOrphanS3Files();
-
-      expect(stats.deletedCount).toBe(0);
       expect(s3Service.deleteObjects).not.toHaveBeenCalled();
     });
 
-    test("S3 버킷이 비어있으면 아무 작업도 하지 않음", async () => {
-      const { service, s3Service } = makeService();
-
-      (s3Service.listObjects as jest.Mock).mockResolvedValueOnce([]);
-
-      const stats = await service.cleanupOrphanS3Files();
-
-      expect(stats.deletedCount).toBe(0);
-      expect(stats.failedCount).toBe(0);
-    });
-
-    test("S3 목록 조회 실패 시 graceful하게 처리함", async () => {
-      const { service } = makeService({
+    it("S3 버킷이 비어있으면 아무 작업도 하지 않아야 함", async () => {
+      const { service, s3Service, restaurantImageRepository } = makeService({
         s3: {
-          listObjects: jest.fn().mockRejectedValue(new Error("S3 error")),
+          listObjects: jest.fn().mockResolvedValue([]),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
         },
       });
 
-      const stats = await service.cleanupOrphanS3Files();
+      await (service as never as { cleanupOrphanS3Files: () => Promise<void> }).cleanupOrphanS3Files();
 
-      expect(stats.failedCount).toBe(1);
-      expect(stats.deletedCount).toBe(0);
+      expect(s3Service.deleteObjects).not.toHaveBeenCalled();
+      expect(restaurantImageRepository.createQueryBuilder).not.toHaveBeenCalled();
     });
 
-    test("S3 삭제 실패 시 graceful하게 처리함", async () => {
-      const { service, restaurantImageRepository } = makeService({
+    it("S3 목록 조회 실패 시 에러 없이 처리해야 함", async () => {
+      const { service, s3Service } = makeService({
+        s3: {
+          listObjects: jest.fn().mockRejectedValue(new Error("S3 error")),
+          deleteObjects: jest.fn().mockResolvedValue(undefined),
+        },
+      });
+
+      await expect(
+        (service as never as { cleanupOrphanS3Files: () => Promise<void> }).cleanupOrphanS3Files(),
+      ).resolves.not.toThrow();
+
+      expect(s3Service.deleteObjects).not.toHaveBeenCalled();
+    });
+
+    it("S3 삭제 실패 시 에러 없이 처리해야 함", async () => {
+      const queryBuilderMock = createQueryBuilderMock();
+      queryBuilderMock.getMany.mockResolvedValueOnce([]);
+
+      const { service } = makeService({
         s3: {
           listObjects: jest.fn().mockResolvedValue([{ key: "restaurant-images/u1/a.webp" }]),
           deleteObjects: jest.fn().mockRejectedValue(new Error("delete failed")),
         },
+        queryBuilderMock,
       });
 
-      restaurantImageRepository.createQueryBuilder().getMany.mockResolvedValueOnce([]);
-
-      const stats = await service.cleanupOrphanS3Files();
-
-      expect(stats.failedCount).toBe(1);
-      expect(stats.deletedCount).toBe(0);
+      await expect(
+        (service as never as { cleanupOrphanS3Files: () => Promise<void> }).cleanupOrphanS3Files(),
+      ).resolves.not.toThrow();
     });
   });
 });
