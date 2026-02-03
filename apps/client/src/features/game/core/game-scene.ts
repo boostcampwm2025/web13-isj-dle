@@ -325,7 +325,9 @@ export class GameScene extends Phaser.Scene {
   updateAvatar(user: User): void {
     if (!this.avatar) return;
     this.nicknameManager.updateNickname(user.nickname, user.avatar.x, user.avatar.y);
-    this.avatar.sprite.setTexture(user.avatar.assetKey);
+    if (this.avatar.sprite.texture.key !== user.avatar.assetKey) {
+      this.avatar.sprite.setTexture(user.avatar.assetKey, IDLE_FRAME[this.avatar.direction]);
+    }
   }
 
   syncZoomFromStore(): void {

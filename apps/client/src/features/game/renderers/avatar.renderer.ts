@@ -57,7 +57,7 @@ export class AvatarRenderer {
     if (avatar) {
       avatar.setPosition(avatarModel.x, avatarModel.y);
       if (avatar.texture.key !== avatarModel.assetKey) {
-        avatar.setTexture(avatarModel.assetKey);
+        avatar.setTexture(avatarModel.assetKey, IDLE_FRAME[avatarModel.direction]);
       }
     } else {
       avatar = this.scene.add.sprite(
