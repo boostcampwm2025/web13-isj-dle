@@ -6,12 +6,11 @@ import { AVATAR_ASSETS, type AuthUser, type AvatarAssetKey, type User } from "@s
 
 interface UserModifyPanelProps {
   user: User;
-  userId: number;
   onClose: () => void;
   setAuthUser: (user: AuthUser | null) => void;
 }
 
-const UserModifyPanel = ({ user, userId, onClose, setAuthUser }: UserModifyPanelProps) => {
+const UserModifyPanel = ({ user, onClose, setAuthUser }: UserModifyPanelProps) => {
   const [nickname, setNickname] = useState(user.nickname);
   const [assetKey, setAssetKey] = useState(user.avatar.assetKey);
   const [saving, setSaving] = useState(false);
@@ -22,7 +21,7 @@ const UserModifyPanel = ({ user, userId, onClose, setAuthUser }: UserModifyPanel
     if (saving) return;
     setSaving(true);
     try {
-      const response = await authApi.updateAuthUser({ userId, nickname, avatarAssetKey: assetKey });
+      const response = await authApi.updateAuthUser({ nickname, avatarAssetKey: assetKey });
       if (!response.ok) throw new Error("Failed to update user");
 
       const data = await response.json();

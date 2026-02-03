@@ -96,7 +96,7 @@ export class AuthController {
       return { user: authUser };
     }
 
-    const updatedUser = await this.authService.updateAuthUser(body);
+    const updatedUser = await this.authService.updateAuthUser(authUser.id, body);
 
     return { user: updatedUser };
   }

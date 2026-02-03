@@ -21,7 +21,6 @@ interface UserGroupProps {
 const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) => {
   const { isOpen, toggle } = useToggle(true);
   const { socket } = useWebSocket();
-  const authUser = useAuthStore((s) => s.authUser);
   const setAuthUser = useAuthStore((s) => s.setAuthUser);
 
   const [openModifyPanel, setOpenModifyPanel] = useState<boolean>(false);
@@ -89,12 +88,7 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
 
                 {isMe && updatable && openModifyPanel && (
                   <div className="border border-gray-200 bg-gray-50 p-2">
-                    <UserModifyPanel
-                      user={user}
-                      userId={authUser?.id || 0}
-                      onClose={() => setOpenModifyPanel(false)}
-                      setAuthUser={setAuthUser}
-                    />
+                    <UserModifyPanel user={user} onClose={() => setOpenModifyPanel(false)} setAuthUser={setAuthUser} />
                   </div>
                 )}
               </div>

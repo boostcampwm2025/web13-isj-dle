@@ -10,7 +10,6 @@ export interface AuthUser {
 }
 
 export interface UpdateAuthUserPayload {
-  userId: number;
   nickname?: string;
   avatarAssetKey?: AvatarAssetKey;
 }

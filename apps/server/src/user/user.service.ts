@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 
 import type {
   Avatar,
+  AvatarAssetKey,
   AvatarDirection,
   AvatarState,
   CreateGameUserDto,
@@ -9,7 +10,6 @@ import type {
   RoomType,
   User,
 } from "@shared/types";
-import { UpdateAuthUserDto } from "src/auth/update-auth-user.dto";
 
 import { AuthService } from "../auth/auth.service";
 import { MetricsService, mapRoomIdToMetricType } from "../metrics";
@@ -220,7 +220,7 @@ export class UserService {
     }
   }
 
-  updateUserInfo(payload: UpdateAuthUserDto) {
+  updateUserInfo(payload: { userId: number; nickname?: string; avatarAssetKey?: AvatarAssetKey }) {
     for (const user of this.sessions.values()) {
       if (user.userId === payload.userId) {
         if (payload.nickname !== undefined) {

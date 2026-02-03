@@ -126,10 +126,10 @@ export class AuthService {
     }
   }
 
-  async updateAuthUser(body: UpdateAuthUserDto): Promise<AuthUser | null> {
-    if (body.nickname && (await this.isDuplicateNickname(body.nickname, body.userId))) return null;
-    const updatedUser = await this.authUserRepository.save({ id: body.userId, ...body });
-    this.eventEmitter.emit(UserEventType.USER_INFO_UPDATE, body);
+  async updateAuthUser(userId: number, body: UpdateAuthUserDto): Promise<AuthUser | null> {
+    if (body.nickname && (await this.isDuplicateNickname(body.nickname, userId))) return null;
+    const updatedUser = await this.authUserRepository.save({ id: userId, ...body });
+    this.eventEmitter.emit(UserEventType.USER_INFO_UPDATE, { userId, ...body });
     return updatedUser;
   }
 

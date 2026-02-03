@@ -2,10 +2,9 @@ import { Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 
-import { AvatarDirection, AvatarState, UserEventType } from "@shared/types";
+import { AvatarAssetKey, AvatarDirection, AvatarState, UserEventType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
-import type { UpdateAuthUserDto } from "../auth/update-auth-user.dto";
 import { UserService } from "./user.service";
 
 @WebSocketGateway()
@@ -52,7 +51,7 @@ export class UserGateway {
   }
 
   @OnEvent(UserEventType.USER_INFO_UPDATE)
-  handleUserInfoUpdate(payload: UpdateAuthUserDto) {
+  handleUserInfoUpdate(payload: { userId: number; nickname?: string; avatarAssetKey?: AvatarAssetKey }) {
     this.logger.log(`📢 Broadcasting USER_INFO_UPDATE to all clients:`, payload);
     this.userService.updateUserInfo(payload);
     this.server.emit(UserEventType.USER_INFO_UPDATE, payload);
