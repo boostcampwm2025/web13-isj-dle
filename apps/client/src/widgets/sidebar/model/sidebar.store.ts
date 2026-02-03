@@ -19,7 +19,7 @@ interface SidebarState {
 
 export const useSidebarStore = create<SidebarState>((set, get) => ({
   sidebarKeys: ["users", "spaceMove", "guide"],
-  isOpen: true,
+  isOpen: false,
   currentKey: "users",
   lastOpenedKey: "users",
 
