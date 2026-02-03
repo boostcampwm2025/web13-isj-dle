@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import * as React from "react";
 
 const SCROLL_THRESHOLD = 50;
 
@@ -6,7 +7,14 @@ interface UseChatScrollOptions {
   chatLength: number;
 }
 
-export const useChatScroll = ({ chatLength }: UseChatScrollOptions) => {
+interface UseChatScrollReturn {
+  ulRef: React.RefObject<HTMLUListElement | null>;
+  newChatCount: number;
+  scrollToBottom: () => void;
+  showNewMessageButton: boolean;
+}
+
+export const useChatScroll = ({ chatLength }: UseChatScrollOptions): UseChatScrollReturn => {
   const ulRef = useRef<HTMLUListElement>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [newChatCount, setNewChatCount] = useState(0);
