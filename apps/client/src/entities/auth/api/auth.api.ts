@@ -15,8 +15,7 @@ export const authApi = {
       }
 
       return await response.json();
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
+    } catch {
       return null;
     }
   },
@@ -61,6 +60,24 @@ export const authApi = {
       return await response.json();
     } catch (error) {
       console.error("Failed to logout:", error);
+      return null;
+    }
+  },
+
+  async tutorialCompleted() {
+    try {
+      const response = await fetch(`${SERVER_URL}/api/auth/tutorial/completed`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark tutorial as completed");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Failed to mark tutorial as completed:", error);
       return null;
     }
   },

@@ -1,6 +1,5 @@
-import { TUTORIAL_STORAGE_KEY } from "./tutorial.constants";
 import { create } from "zustand";
-import { persist, subscribeWithSelector } from "zustand/middleware";
+import { subscribeWithSelector } from "zustand/middleware";
 
 interface TutorialState {
   isCompleted: boolean;
@@ -13,21 +12,13 @@ interface TutorialState {
 }
 
 export const useTutorialStore = create<TutorialState>()(
-  subscribeWithSelector(
-    persist(
-      (set) => ({
-        isCompleted: false,
-        currentStep: 0,
-        isActive: false,
-        setCompleted: (completed) => set({ isCompleted: completed }),
-        setCurrentStep: (step) => set({ currentStep: step }),
-        setActive: (active) => set({ isActive: active }),
-        reset: () => set({ isCompleted: false, currentStep: 0, isActive: false }),
-      }),
-      {
-        name: TUTORIAL_STORAGE_KEY,
-        partialize: (state) => ({ isCompleted: state.isCompleted }),
-      },
-    ),
-  ),
+  subscribeWithSelector((set) => ({
+    isCompleted: false,
+    currentStep: 0,
+    isActive: false,
+    setCompleted: (completed) => set({ isCompleted: completed }),
+    setCurrentStep: (step) => set({ currentStep: step }),
+    setActive: (active) => set({ isActive: active }),
+    reset: () => set({ isCompleted: false, currentStep: 0, isActive: false }),
+  })),
 );

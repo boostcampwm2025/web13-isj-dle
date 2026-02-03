@@ -4,9 +4,16 @@ import Shepherd, { type Tour } from "shepherd.js";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { authApi } from "@entities/auth/api/auth.api";
+
 export const useTutorial = () => {
   const tourRef = useRef<Tour | null>(null);
   const { isCompleted, isActive, setCompleted, setActive, setCurrentStep } = useTutorialStore();
+
+  const markTutorialCompleted = useCallback(async () => {
+    setCompleted(true);
+    await authApi.tutorialCompleted();
+  }, [setCompleted]);
 
   const createTour = useCallback(() => {
     const tour = new Shepherd.Tour({
@@ -41,7 +48,7 @@ export const useTutorial = () => {
                 {
                   text: "건너뛰기",
                   action: () => {
-                    setCompleted(true);
+                    markTutorialCompleted();
                     tour.cancel();
                   },
                   classes: "shepherd-button-skip",
@@ -62,7 +69,7 @@ export const useTutorial = () => {
     });
 
     tour.on("complete", () => {
-      setCompleted(true);
+      markTutorialCompleted();
       setActive(false);
       document.documentElement.classList.remove("tutorial-active");
     });
@@ -73,7 +80,7 @@ export const useTutorial = () => {
     });
 
     return tour;
-  }, [setCompleted, setActive, setCurrentStep]);
+  }, [markTutorialCompleted, setActive, setCurrentStep]);
 
   const startTutorial = useCallback(() => {
     if (tourRef.current) {
