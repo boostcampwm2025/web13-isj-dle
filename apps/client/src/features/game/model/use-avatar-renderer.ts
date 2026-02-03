@@ -20,7 +20,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
   useEffect(() => {
     if (!game) return;
 
-    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | null;
 
     const renderAvatars = () => {
       const state = useUserStore.getState();
@@ -53,7 +53,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
       sameRoomUsersRef.current = sameRoomUsers;
       userRef.current = currentUser;
 
-      if (gameScene.isReady) {
+      if (gameScene?.isReady) {
         gameScene.renderAnotherAvatars(sameRoomUsers, currentUser);
       }
     };
@@ -93,7 +93,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
 
     const unsubscribeImageViewModal = useRestaurantImageViewStore.subscribe((state, prevState) => {
       if (state.isOpen !== prevState.isOpen) {
-        gameScene.setInputEnabled(!state.isOpen);
+        gameScene?.setInputEnabled(!state.isOpen);
       }
     });
 

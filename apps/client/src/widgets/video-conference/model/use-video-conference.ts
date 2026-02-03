@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { COLLABORATION_SIDEBAR_KEYS, TIMER_STOPWATCH_SIDEBAR_KEY } from "@entities/collaboration-tool";
 import { useBreakoutStore } from "@entities/lectern";
@@ -42,10 +42,10 @@ export const useVideoConference = (roomId: string | null) => {
   const resetTimer = useTimerStopwatchStore((state) => state.resetTimer);
   const resetStopwatch = useTimerStopwatchStore((state) => state.resetStopwatch);
   const prevRoomIdRef = useRef<string | null>(null);
-  const [prevRoomInfo, setPrevRoomInfo] = useState<{
-    currentRoomId: string | undefined;
-    contactId: string | null | undefined;
-  }>({ currentRoomId: undefined, contactId: undefined });
+  const prevRoomInfoRef = useRef<{ currentRoomId?: string; contactId?: string | null }>({
+    currentRoomId: undefined,
+    contactId: undefined,
+  });
 
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const userId = useUserStore((state) => state.user?.id);
@@ -65,24 +65,28 @@ export const useVideoConference = (roomId: string | null) => {
     ((currentRoomId === "lobby" || currentRoomId === "desk zone") && !contactId) ||
     (currentRoomId !== undefined && isMeetingRoomRange(currentRoomId));
 
-  if (
-    currentRoomId &&
-    userId &&
-    nickname &&
-    (prevRoomInfo.currentRoomId !== currentRoomId || prevRoomInfo.contactId !== contactId)
-  ) {
-    setPrevRoomInfo({ currentRoomId, contactId });
+  useEffect(() => {
+    if (!currentRoomId || !userId || !nickname) return;
+
+    const prev = prevRoomInfoRef.current;
+    const changed = prev.currentRoomId !== currentRoomId || prev.contactId !== contactId;
+    if (!changed) return;
+
+    prevRoomInfoRef.current = { currentRoomId, contactId };
+
     if (isLobbyOrDeskOrMeeting) {
       if (mode !== null) setMode(null);
-    } else if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
-      setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+    } else {
+      if (mode !== VIDEO_CONFERENCE_MODE.THUMBNAIL && mode !== VIDEO_CONFERENCE_MODE.FULL_GRID) {
+        setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
+      }
     }
-  }
+  }, [currentRoomId, contactId, userId, nickname, isLobbyOrDeskOrMeeting, mode, setMode]);
 
   useEffect(() => {
     if (!game) return;
-    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-    scene.setInputEnabled(mode !== VIDEO_CONFERENCE_MODE.FULL_GRID);
+    const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | null;
+    scene?.setInputEnabled(mode !== VIDEO_CONFERENCE_MODE.FULL_GRID);
   }, [game, mode]);
 
   useEffect(() => {
