@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
+import { TEMPLATE_COPY_TOAST_ID } from "@shared/config";
 import { MeetingEventType, type RandomRetrospectiveTemplateResponse, type RetrospectiveTemplate } from "@shared/types";
 
 export const useRetrospectiveTemplate = () => {
@@ -36,7 +37,7 @@ export const useRetrospectiveTemplate = () => {
   const handleCopy = () => {
     if (template) {
       navigator.clipboard.writeText(template.content.trim());
-      toast("템플릿 내용이 복사되었습니다!", { icon: "📋" });
+      toast("템플릿 내용이 복사되었습니다!", { id: TEMPLATE_COPY_TOAST_ID, icon: "📋" });
     }
   };
 

@@ -1,3 +1,4 @@
+import { ROOM_JOIN_TOAST_OPTIONS } from "../model/game.constants";
 import {
   LOCATION_AREAS,
   MINIMAP_HEADER,
@@ -9,10 +10,13 @@ import {
 import { calculateMinimapScale } from "../model/minimap.utils";
 import { useMinimap, useMinimapToggle } from "../model/use-minimap";
 import { Tag, X } from "lucide-react";
+import { DoorOpen } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import { useUserStore } from "@entities/user";
+import { ICON_SIZE, ROOM_JOIN_TOAST_ID, isMeetingRoomRange } from "@shared/config";
 
 interface MinimapOverlayProps {
   game: Phaser.Game | null;
@@ -22,6 +26,18 @@ interface MinimapOverlayProps {
 export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) => {
   const [hoveredArea, setHoveredArea] = useState<number | null>(null);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
+
+  useEffect(() => {
+    if (!currentRoomId || currentRoomId === "lobby" || isMeetingRoomRange(currentRoomId)) {
+      toast.dismiss(ROOM_JOIN_TOAST_ID);
+      return;
+    }
+
+    toast(`${currentRoomId}에 입장했습니다.`, {
+      ...ROOM_JOIN_TOAST_OPTIONS,
+      icon: <DoorOpen size={ICON_SIZE} className="text-blue-600" />,
+    });
+  }, [currentRoomId]);
 
   const { isExpanded, openMinimap, closeMinimap } = useMinimapToggle();
   const { canvasRef, expandedCanvasRef, mapSize, isMapReady, playerPosition, expandedDimensions } = useMinimap({
