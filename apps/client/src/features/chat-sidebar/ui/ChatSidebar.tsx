@@ -27,7 +27,7 @@ const ChatSidebar = () => {
       {showNewMessageButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-14 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-blue-500 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-600"
+          className="absolute bottom-19 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-blue-500 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-600"
         >
           <ChevronDown className="h-4 w-4" />새 메시지 {newChatCount > 1 && `${newChatCount}개`}
         </button>
