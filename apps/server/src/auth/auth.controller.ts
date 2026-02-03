@@ -1,24 +1,47 @@
 import { Body, Controller, Get, Post, Put, Query, Req, Res } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
-import type { Request, Response } from "express";
+import type { CookieOptions, Request, Response } from "express";
 
 import { AuthService } from "./auth.service";
 import { UpdateAuthUserDto } from "./update-auth-user.dto";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly isProduction: boolean;
+
+  private readonly OAUTH_STATE_COOKIE_NAME = "oauth_state";
+  private readonly OAUTH_STATE_COOKIE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
+  private readonly OAUTH_STATE_COOKIE_OPTIONS: CookieOptions;
+
+  private readonly SESSION_COOKIE_NAME = "session";
+  private readonly SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+  private readonly SESSION_COOKIE_OPTIONS: CookieOptions;
+
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {
+    this.isProduction = this.configService.get<string>("NODE_ENV") === "production";
+    this.OAUTH_STATE_COOKIE_OPTIONS = {
+      httpOnly: true,
+      sameSite: this.isProduction ? "none" : "lax",
+      secure: this.isProduction,
+      maxAge: this.OAUTH_STATE_COOKIE_MAX_AGE,
+    };
+    this.SESSION_COOKIE_OPTIONS = {
+      httpOnly: true,
+      sameSite: this.isProduction ? "none" : "lax",
+      secure: this.isProduction,
+      maxAge: this.SESSION_COOKIE_MAX_AGE,
+    };
+  }
 
   @Get("github")
   githubLogin(@Res() res: Response) {
     const { url, state } = this.authService.getGithubAuthorizeUrl();
 
-    res.cookie("oauth_state", state, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false, // https면 true
-      maxAge: 5 * 60 * 1000,
-    });
+    res.cookie(this.OAUTH_STATE_COOKIE_NAME, state, this.OAUTH_STATE_COOKIE_OPTIONS);
 
     return res.redirect(url);
   }
@@ -39,13 +62,8 @@ export class AuthController {
 
     const { jwt } = await this.authService.handleGithubCallback(code);
 
-    res.clearCookie("oauth_state");
-    res.cookie("session", jwt, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.clearCookie(this.OAUTH_STATE_COOKIE_NAME);
+    res.cookie(this.SESSION_COOKIE_NAME, jwt, this.SESSION_COOKIE_OPTIONS);
 
     return res.redirect(process.env.CLIENT_ORIGIN!);
   }
@@ -88,7 +106,7 @@ export class AuthController {
 
   @Post("logout")
   logout(@Res() res: Response) {
-    res.clearCookie("session");
+    res.clearCookie(this.SESSION_COOKIE_NAME);
     return res.json({ ok: true });
   }
 }
