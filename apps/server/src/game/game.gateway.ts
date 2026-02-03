@@ -49,8 +49,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async handleConnection(client: Socket) {
     try {
       client.setMaxListeners(20);
+      const { userId } = client.handshake.auth as { userId: string };
 
-      const user = this.userService.createSession({ id: client.id });
+      const user = await this.userService.createSession({ id: client.id, userId: Number(userId) });
 
       if (!user) {
         this.logger.error(`Failed to create session for client: ${client.id}`);
