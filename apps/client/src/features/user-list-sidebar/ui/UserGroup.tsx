@@ -27,11 +27,6 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
 
   if (!users || users.length === 0) return null;
 
-  const handleRowClick = () => {
-    if (!updatable) return;
-    setOpenModifyPanel((prev) => !prev);
-  };
-
   const handleLogout = async () => {
     try {
       const response = await authApi.logout();
@@ -70,7 +65,12 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
 
                   <div className="ml-2 flex gap-2">
                     {isMe && updatable && (
-                      <HoverIconButton title="수정" Icon={Edit} color="blue" onClick={handleRowClick} />
+                      <HoverIconButton
+                        title="수정"
+                        Icon={Edit}
+                        color="blue"
+                        onClick={() => setOpenModifyPanel((prev) => !prev)}
+                      />
                     )}
                     {isMe && updatable && (
                       <HoverIconButton title="로그아웃" Icon={LogOut} color="blue" onClick={handleLogout} />
