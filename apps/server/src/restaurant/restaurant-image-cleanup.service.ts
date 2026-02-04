@@ -155,7 +155,6 @@ export class RestaurantImageCleanupService {
   }
 
   private emitThumbnailUpdated(userId: number): void {
-    // 삭제 후이므로 thumbnailUrl은 null (클라이언트가 다시 조회해야 함)
     this.eventEmitter.emit(RestaurantImageEventType.THUMBNAIL_UPDATED, { userId, thumbnailUrl: null });
   }
 }

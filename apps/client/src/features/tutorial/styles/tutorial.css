@@ -26,7 +26,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* spacing */
 .shepherd-element[data-popper-placement^="top"] {
   margin-bottom: 14px;
 }
@@ -42,7 +41,6 @@ body {
   transform: translateX(16px) !important;
 }
 
-/* header styling (show title in modal) */
 .shepherd-header {
   display: block;
   padding: 8px 28px 0 !important;
