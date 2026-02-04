@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type { User } from "@shared/types";
 
 interface MinimalUser {
-  id: string;
+  socketId: string;
   contactId?: string | null;
   avatar: { currentRoomId: string };
 }

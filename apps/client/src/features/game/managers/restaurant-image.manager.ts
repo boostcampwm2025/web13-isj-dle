@@ -12,7 +12,7 @@ export class RestaurantImageManager {
     this.scene = scene;
   }
 
-  update(params: { currentRoomId: string; userId: string | null; x: number; y: number }): void {
+  update(params: { currentRoomId: string; userId: number | null; x: number; y: number }): void {
     const { currentRoomId, userId, x, y } = params;
 
     if (currentRoomId !== "restaurant" || !userId) {
@@ -41,7 +41,7 @@ export class RestaurantImageManager {
     this.cachedThumbnailUrl = null;
   }
 
-  private createThumbnailButton(x: number, y: number, userId: string): Phaser.GameObjects.DOMElement {
+  private createThumbnailButton(x: number, y: number, userId: number): Phaser.GameObjects.DOMElement {
     const button = document.createElement("button");
     button.type = "button";
     button.className =
@@ -76,7 +76,7 @@ export class RestaurantImageManager {
     return dom;
   }
 
-  private updateThumbnailButtonNode(button: HTMLButtonElement, userId: string): void {
+  private updateThumbnailButtonNode(button: HTMLButtonElement, userId: number): void {
     const entity = useRestaurantImageStore.getState();
     const url = entity.getThumbnailUrlByUserId(userId);
     const hasThumbnail = Boolean(url);

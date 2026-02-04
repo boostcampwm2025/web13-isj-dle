@@ -7,8 +7,8 @@ export class KnockService {
   private pendingKnocks = new Map<string, Knock>();
   private talkingPairs = new Map<string, string>();
 
-  private getKnockKey(fromUserId: string, toUserId: string): string {
-    return `${fromUserId}-${toUserId}`;
+  private getKnockKey(fromSocketId: string, toSocketId: string): string {
+    return `${fromSocketId}-${toSocketId}`;
   }
 
   canKnock(fromStatus: DeskStatus | null, toStatus: DeskStatus | null): { canKnock: boolean; reason?: string } {
@@ -35,31 +35,31 @@ export class KnockService {
     return { canKnock: true };
   }
 
-  hasPendingKnock(fromUserId: string, toUserId: string): boolean {
-    const key = this.getKnockKey(fromUserId, toUserId);
+  hasPendingKnock(fromSocketId: string, toSocketId: string): boolean {
+    const key = this.getKnockKey(fromSocketId, toSocketId);
     return this.pendingKnocks.has(key);
   }
 
-  addPendingKnock(knock: Knock, toUserId: string): void {
-    const key = this.getKnockKey(knock.fromUserId, toUserId);
+  addPendingKnock(knock: Knock, toSocketId: string): void {
+    const key = this.getKnockKey(knock.fromSocketId, toSocketId);
     this.pendingKnocks.set(key, knock);
   }
 
-  removePendingKnock(fromUserId: string, toUserId: string): void {
-    const key = this.getKnockKey(fromUserId, toUserId);
+  removePendingKnock(fromSocketId: string, toSocketId: string): void {
+    const key = this.getKnockKey(fromSocketId, toSocketId);
     this.pendingKnocks.delete(key);
   }
 
-  removeAllKnocksForUser(userId: string): { sentTo: string[]; receivedFrom: string[] } {
+  removeAllKnocksForUser(socketId: string): { sentTo: string[]; receivedFrom: string[] } {
     const sentTo: string[] = [];
     const receivedFrom: string[] = [];
 
     for (const [key] of this.pendingKnocks) {
       const [fromId, toId] = key.split("-");
-      if (fromId === userId) {
+      if (fromId === socketId) {
         sentTo.push(toId);
         this.pendingKnocks.delete(key);
-      } else if (toId === userId) {
+      } else if (toId === socketId) {
         receivedFrom.push(fromId);
         this.pendingKnocks.delete(key);
       }
@@ -68,26 +68,26 @@ export class KnockService {
     return { sentTo, receivedFrom };
   }
 
-  getPendingKnock(fromUserId: string, toUserId: string): Knock | undefined {
-    const key = this.getKnockKey(fromUserId, toUserId);
+  getPendingKnock(fromSocketId: string, toSocketId: string): Knock | undefined {
+    const key = this.getKnockKey(fromSocketId, toSocketId);
     return this.pendingKnocks.get(key);
   }
 
-  addTalkingPair(userId1: string, userId2: string): void {
-    this.talkingPairs.set(userId1, userId2);
-    this.talkingPairs.set(userId2, userId1);
+  addTalkingPair(socketId1: string, socketId2: string): void {
+    this.talkingPairs.set(socketId1, socketId2);
+    this.talkingPairs.set(socketId2, socketId1);
   }
 
-  removeTalkingPair(userId: string): string | undefined {
-    const partnerId = this.talkingPairs.get(userId);
+  removeTalkingPair(socketId: string): string | undefined {
+    const partnerId = this.talkingPairs.get(socketId);
     if (partnerId) {
-      this.talkingPairs.delete(userId);
+      this.talkingPairs.delete(socketId);
       this.talkingPairs.delete(partnerId);
     }
     return partnerId;
   }
 
-  getTalkingPartner(userId: string): string | undefined {
-    return this.talkingPairs.get(userId);
+  getTalkingPartner(socketId: string): string | undefined {
+    return this.talkingPairs.get(socketId);
   }
 }

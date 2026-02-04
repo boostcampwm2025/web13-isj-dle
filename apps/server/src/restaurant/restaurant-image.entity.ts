@@ -6,7 +6,7 @@ export class RestaurantImageEntity {
   id: number;
 
   @Column()
-  userId: string;
+  userId: number;
 
   @Column()
   nickname: string;
@@ -18,7 +18,7 @@ export class RestaurantImageEntity {
   likes: number;
 
   @Column({ type: "simple-json", nullable: true })
-  likedBy: string[] | null;
+  likedBy: number[] | null;
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;

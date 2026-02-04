@@ -18,16 +18,16 @@ interface UseLivekitState {
 export const useLivekit = (): UseLivekitState => {
   const [config, setConfig] = useState<LivekitRoomConfig | null>(null);
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
-  const userId = useUserStore((state) => state.user?.id);
+  const socketId = useUserStore((state) => state.user?.socketId);
   const nickname = useUserStore((state) => state.user?.nickname);
   const contactId = useUserStore((state) => state.user?.contactId);
 
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
   const myBreakoutRoomId = useMemo(() => {
-    if (!breakoutState?.isActive || !userId) return null;
-    return breakoutState.rooms.find((room) => room.userIds.includes(userId))?.roomId ?? null;
-  }, [breakoutState, userId]);
+    if (!breakoutState?.isActive || !socketId) return null;
+    return breakoutState.rooms.find((room) => room.socketIds.includes(socketId))?.roomId ?? null;
+  }, [breakoutState, socketId]);
 
   const [livekitState, setLivekitState] = useState<UseLivekitState>({
     token: null,
@@ -39,17 +39,17 @@ export const useLivekit = (): UseLivekitState => {
   });
 
   useEffect(() => {
-    if (!currentRoomId || !userId || !nickname) return;
+    if (!currentRoomId || !socketId || !nickname) return;
 
     const effectiveRoomId = myBreakoutRoomId ? myBreakoutRoomId : getEffectiveRoomId(currentRoomId, contactId);
 
     setConfig((prev) => {
-      if (prev?.roomId === effectiveRoomId && prev?.userId === userId && prev?.nickname === nickname) {
+      if (prev?.roomId === effectiveRoomId && prev?.socketId === socketId && prev?.nickname === nickname) {
         return prev;
       }
       return {
         roomId: effectiveRoomId,
-        userId,
+        socketId,
         nickname,
       };
     });
@@ -78,7 +78,7 @@ export const useLivekit = (): UseLivekitState => {
       if (prev.isOpen === nextIsOpen) return prev;
       return { ...prev, isOpen: nextIsOpen };
     });
-  }, [currentRoomId, userId, nickname, contactId, myBreakoutRoomId]);
+  }, [currentRoomId, socketId, nickname, contactId, myBreakoutRoomId]);
 
   useEffect(() => {
     if (!config) return;

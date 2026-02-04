@@ -98,13 +98,12 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       addUser(data.user);
     };
 
-    const handleUserLeft = (data: { userId: string }) => {
-      removeUser(data.userId);
+    const handleUserLeft = (data: { socketId: string }) => {
+      removeUser(data.socketId);
     };
 
-    const handleUserUpdate = (data: { userId: string; micOn?: boolean; cameraOn?: boolean }) => {
-      const { userId, ...rest } = data;
-      updateUser({ id: userId, ...rest });
+    const handleUserUpdate = (data: { socketId: string; micOn?: boolean; cameraOn?: boolean }) => {
+      updateUser(data);
     };
 
     const handleUserInfoUpdate = (data: UpdateAuthUserPayload & { userId: number }) => {
@@ -112,7 +111,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handlePlayerMoved = (data: {
-      userId: string;
+      socketId: string;
       x: number;
       y: number;
       direction: AvatarDirection;
@@ -120,9 +119,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       force?: boolean;
     }) => {
       const currentUser = useUserStore.getState().user;
-      const isMe = currentUser?.id === data.userId;
+      const isMe = currentUser?.socketId === data.socketId;
 
-      updateUserPosition(data.userId, data.x, data.y, data.direction, data.state);
+      updateUserPosition(data.socketId, data.x, data.y, data.direction, data.state);
       if (isMe && game && data.force) {
         const scene = game.scene.getScene("GameScene") as GameScene;
         scene.movePlayer(data.x, data.y, data.direction, data.state);
@@ -130,23 +129,23 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     };
 
     const handleBoundaryUpdate = (updates: Record<string, string | null>) => {
-      for (const [userId, contactId] of Object.entries(updates)) {
-        updateUser({ id: userId, contactId });
+      for (const [socketId, contactId] of Object.entries(updates)) {
+        updateUser({ socketId, contactId });
       }
     };
 
-    const handleLecternUpdate = (data: { roomId: RoomType; hostId: string | null; usersOnLectern: string[] }) => {
+    const handleLecternUpdate = (data: { roomId: RoomType; hostSocketId: string | null; usersOnLectern: string[] }) => {
       setLecternState({
         roomId: data.roomId,
-        hostId: data.hostId,
+        hostSocketId: data.hostSocketId,
         usersOnLectern: data.usersOnLectern,
       });
     };
 
-    const handleMuteAllExecuted = (data: { hostId: string }) => {
+    const handleMuteAllExecuted = (data: { hostSocketId: string }) => {
       const currentUser = useUserStore.getState().user;
-      if (currentUser && data.hostId !== currentUser.id) {
-        updateUser({ id: currentUser.id, micOn: false });
+      if (currentUser && data.hostSocketId !== currentUser.socketId) {
+        updateUser({ socketId: currentUser.socketId, micOn: false });
       }
     };
 

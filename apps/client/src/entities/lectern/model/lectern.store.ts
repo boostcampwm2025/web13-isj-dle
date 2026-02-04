@@ -8,10 +8,10 @@ interface LecternStore extends LecternState {
 }
 
 export const useLecternStore = create<LecternStore>((set) => ({
-  hostId: null,
+  hostSocketId: null,
   usersOnLectern: [],
   roomId: null,
 
   setLecternState: (state) => set(state),
-  reset: () => set({ hostId: null, usersOnLectern: [], roomId: null }),
+  reset: () => set({ hostSocketId: null, usersOnLectern: [], roomId: null }),
 }));

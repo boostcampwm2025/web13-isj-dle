@@ -21,13 +21,13 @@ export const useRoom = () => {
   useEffect(() => {
     if (!socket) return;
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
-      const { userId, avatar } = payload;
+      const { socketId, avatar } = payload;
       if (avatar.currentRoomId !== "desk zone") {
         resetUsersDeskStatus();
       }
 
       updateUser({
-        id: userId,
+        socketId: socketId,
         avatar: avatar,
       });
     };

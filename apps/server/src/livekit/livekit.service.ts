@@ -16,10 +16,10 @@ export class LivekitService {
     this.livekitUrl = this.configService.getOrThrow<string>("LIVEKIT_URL");
   }
 
-  async generateToken(roomId: string, userId: string, nickname: string) {
+  async generateToken(roomId: string, socketId: string, nickname: string) {
     try {
       const token = new AccessToken(this.apiKey, this.apiSecret, {
-        identity: userId,
+        identity: socketId,
         name: nickname,
       });
 

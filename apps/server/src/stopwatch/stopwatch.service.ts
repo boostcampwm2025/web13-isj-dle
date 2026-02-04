@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import type { RoomType, StopwatchStatePayload, UserStopwatchState, UserTimerState } from "@shared/types";
 
 interface UserTimeState {
-  userId: string;
+  socketId: string;
   nickname: string;
   stopwatch: {
     isRunning: boolean;
@@ -35,7 +35,7 @@ export class StopwatchService {
 
   updateUserState(
     roomId: RoomType,
-    userId: string,
+    socketId: string,
     nickname: string,
     stopwatch: { isRunning: boolean; startedAt: number | null; pausedTimeSec: number },
     timer: UserTimerState,
@@ -43,10 +43,10 @@ export class StopwatchService {
     const room = this.getOrCreateRoom(roomId);
 
     if (this.isEmptyState(stopwatch, timer)) {
-      room.delete(userId);
+      room.delete(socketId);
     } else {
-      room.set(userId, {
-        userId,
+      room.set(socketId, {
+        socketId,
         nickname,
         stopwatch,
         timer,
@@ -56,10 +56,10 @@ export class StopwatchService {
     return this.getRoomStates(roomId);
   }
 
-  removeUser(roomId: RoomType, userId: string): StopwatchStatePayload {
+  removeUser(roomId: RoomType, socketId: string): StopwatchStatePayload {
     const room = this.roomStates.get(roomId);
     if (room) {
-      room.delete(userId);
+      room.delete(socketId);
     }
     return this.getRoomStates(roomId);
   }
@@ -70,8 +70,8 @@ export class StopwatchService {
       return { users: [] };
     }
 
-    const users: UserStopwatchState[] = Array.from(room.entries()).map(([userId, state]) => ({
-      userId,
+    const users: UserStopwatchState[] = Array.from(room.entries()).map(([socketId, state]) => ({
+      socketId,
       nickname: state.nickname,
       stopwatch: state.stopwatch,
       timer: state.timer,
@@ -86,7 +86,7 @@ export class StopwatchService {
 
   updateSharedState(
     roomId: RoomType,
-    userId: string,
+    socketId: string,
     nickname: string,
     stopwatch: { isRunning: boolean; startedAt: number | null; pausedTimeSec: number },
     timer: UserTimerState,
@@ -97,7 +97,7 @@ export class StopwatchService {
 
     if (!this.isEmptyState(stopwatch, timer)) {
       room.set("shared", {
-        userId,
+        socketId,
         nickname,
         stopwatch,
         timer,

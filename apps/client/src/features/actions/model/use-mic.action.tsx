@@ -10,9 +10,7 @@ import { UserEventType } from "@shared/types";
 
 export const useMicAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
-  const userId = useUserStore((state) => state.user?.id);
   const isMicOn = useUserStore((state) => state.user?.micOn ?? false);
-  const updateUser = useUserStore((state) => state.updateUser);
   const { socket } = useWebSocket();
 
   useEffect(() => {
@@ -31,12 +29,8 @@ export const useMicAction: ActionHook = () => {
 
   const toggleMic = useCallback(async () => {
     const newState = !isMicOn;
-    await localParticipant?.setMicrophoneEnabled(newState);
-    if (userId) {
-      updateUser({ id: userId, micOn: newState });
-    }
     socket?.emit(UserEventType.USER_UPDATE, { micOn: newState });
-  }, [isMicOn, localParticipant, userId, updateUser, socket]);
+  }, [isMicOn, socket]);
 
   const title = useMemo(() => (isMicOn ? "마이크 끄기" : "마이크 켜기"), [isMicOn]);
   const icon = useMemo(() => {

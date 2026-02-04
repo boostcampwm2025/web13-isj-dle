@@ -1,11 +1,11 @@
-export const uploadRestaurantImage = async (userId: string, file: File): Promise<string> => {
+export const uploadRestaurantImage = async (userId: number, file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("image", file);
 
   const res = await fetch("/api/restaurant/images", {
     method: "POST",
     headers: {
-      "x-user-id": userId,
+      "x-user-id": userId.toString(),
     },
     body: formData,
   });
@@ -19,7 +19,7 @@ export const uploadRestaurantImage = async (userId: string, file: File): Promise
 };
 
 export const replaceRestaurantImage = async (
-  userId: string,
+  userId: number,
   imageUrl: string,
   newImageUrl: string,
 ): Promise<string> => {
@@ -27,7 +27,7 @@ export const replaceRestaurantImage = async (
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "x-user-id": userId,
+      "x-user-id": userId.toString(),
     },
     body: JSON.stringify({ imageUrl, newImageUrl }),
   });
@@ -40,12 +40,12 @@ export const replaceRestaurantImage = async (
   return data.imageUrl;
 };
 
-export const deleteRestaurantImage = async (userId: string, imageUrl: string): Promise<void> => {
+export const deleteRestaurantImage = async (userId: number, imageUrl: string): Promise<void> => {
   const res = await fetch("/api/restaurant/images", {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "x-user-id": userId,
+      "x-user-id": userId.toString(),
     },
     body: JSON.stringify({ imageUrl }),
   });
@@ -61,13 +61,13 @@ export type ToggleRestaurantImageLikeResponse = {
 };
 
 export const likeRestaurantImage = async (
-  userId: string,
+  userId: number,
   imageId: string,
 ): Promise<ToggleRestaurantImageLikeResponse> => {
   const res = await fetch(`/api/restaurant/images/${imageId}/like`, {
     method: "POST",
     headers: {
-      "x-user-id": userId,
+      "x-user-id": userId.toString(),
     },
   });
 

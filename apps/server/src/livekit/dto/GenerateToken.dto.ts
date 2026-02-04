@@ -7,7 +7,7 @@ export class GenerateTokenDto {
 
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  socketId: string;
 
   @IsString()
   @IsNotEmpty()

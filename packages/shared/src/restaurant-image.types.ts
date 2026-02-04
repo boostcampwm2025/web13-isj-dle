@@ -1,7 +1,7 @@
 export type RestaurantImage = {
   id: string;
   url: string;
-  userId: string;
+  userId: number;
   nickname: string;
   likes: number;
   likedByMe: boolean;

@@ -33,11 +33,11 @@ const ImageListSkeleton = () => (
 
 const ImageList = memo(({ images, isLoading }: ImageListProps) => {
   const openViewerModal = useRestaurantImageViewStore((state) => state.openViewer);
-  const userId = useUserStore((state) => state.user?.id ?? null);
+  const userId = useUserStore((state) => state.user?.userId ?? null);
   const toggleLikeMutation = useToggleRestaurantImageLikeMutation(userId);
 
   const handleImageClick = useCallback(
-    (params: { userId: string; url: string }) => {
+    (params: { userId: number; url: string }) => {
       openViewerModal({ userId: params.userId, imageUrl: params.url });
     },
     [openViewerModal],

@@ -15,15 +15,15 @@ const getTldrawWebSocketUri = (roomId: string) => {
 };
 
 export const useWhiteboard = () => {
-  const userId = useUserStore((state) => state.user?.id) || "guest";
+  const socketId = useUserStore((state) => state.user?.socketId) || "guest";
   const nickname = useUserStore((state) => state.user?.nickname) || "Guest";
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId) || "default";
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
   const objectUrlsRef = useRef<Set<string>>(new Set());
 
   const myBreakoutRoomId =
-    breakoutState?.isActive && userId !== "guest"
-      ? (breakoutState.rooms.find((room) => room.userIds.includes(userId))?.roomId ?? null)
+    breakoutState?.isActive && socketId !== "guest"
+      ? (breakoutState.rooms.find((room) => room.socketIds.includes(socketId))?.roomId ?? null)
       : null;
   const roomId = myBreakoutRoomId || currentRoomId;
 
@@ -31,11 +31,11 @@ export const useWhiteboard = () => {
 
   const userInfo = useMemo(
     () => ({
-      id: userId,
+      id: socketId,
       name: nickname,
-      color: CURSOR_COLORS[Array.from(userId).reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % CURSOR_COLORS.length],
+      color: CURSOR_COLORS[Array.from(socketId).reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % CURSOR_COLORS.length],
     }),
-    [userId, nickname],
+    [socketId, nickname],
   );
 
   const handleUpload = useCallback(async (_asset: TLAsset, file: File) => {

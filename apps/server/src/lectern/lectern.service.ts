@@ -9,49 +9,48 @@ export class LecternService {
 
   private getOrCreateState(roomId: RoomType): LecternState {
     if (!this.states.has(roomId)) {
-      this.states.set(roomId, { hostId: null, usersOnLectern: [], roomId: null });
+      this.states.set(roomId, { hostSocketId: null, usersOnLectern: [], roomId: null });
     }
     return this.states.get(roomId)!;
   }
 
-  enterLectern(roomId: RoomType, userId: string): LecternState {
+  enterLectern(roomId: RoomType, socketId: string): LecternState {
     const state = this.getOrCreateState(roomId);
 
-    if (state.usersOnLectern.includes(userId)) {
+    if (state.usersOnLectern.includes(socketId)) {
       return state;
     }
 
-    state.usersOnLectern.push(userId);
-
-    if (state.hostId === null) {
-      state.hostId = userId;
+    state.usersOnLectern.push(socketId);
+    if (state.hostSocketId === null) {
+      state.hostSocketId = socketId;
     }
 
     return { ...state };
   }
 
-  leaveLectern(roomId: RoomType, userId: string): LecternState {
+  leaveLectern(roomId: RoomType, socketId: string): LecternState {
     const state = this.getOrCreateState(roomId);
 
-    state.usersOnLectern = state.usersOnLectern.filter((id) => id !== userId);
+    state.usersOnLectern = state.usersOnLectern.filter((id) => id !== socketId);
 
-    if (state.hostId === userId) {
-      state.hostId = state.usersOnLectern[0] ?? null;
+    if (state.hostSocketId === socketId) {
+      state.hostSocketId = state.usersOnLectern[0] ?? null;
     }
 
     return { ...state };
   }
 
-  isHost(roomId: RoomType, userId: string): boolean {
+  isHost(roomId: RoomType, socketId: string): boolean {
     const state = this.states.get(roomId);
-    return state?.hostId === userId;
+    return state?.hostSocketId === socketId;
   }
 
-  removeUserFromAllLecterns(userId: string): Map<RoomType, LecternState> {
+  removeUserFromAllLecterns(socketId: string): Map<RoomType, LecternState> {
     const affectedRooms = new Map<RoomType, LecternState>();
     for (const [roomId, state] of this.states) {
-      if (state.usersOnLectern.includes(userId)) {
-        const newState = this.leaveLectern(roomId, userId);
+      if (state.usersOnLectern.includes(socketId)) {
+        const newState = this.leaveLectern(roomId, socketId);
         affectedRooms.set(roomId, newState);
       }
     }
@@ -73,9 +72,9 @@ export class LecternService {
 
   createBreakout(
     hostRoomId: RoomType,
-    hostId: string,
+    hostSocketId: string,
     config: BreakoutConfig,
-    userIds: string[],
+    socketIds: string[],
   ): BreakoutState | null {
     if (this.breakoutStates.has(hostRoomId)) {
       this.breakoutStates.delete(hostRoomId);
@@ -83,31 +82,31 @@ export class LecternService {
 
     const { roomCount, isRandom } = config;
 
-    if (isRandom && roomCount > userIds.length) {
+    if (isRandom && roomCount > socketIds.length) {
       return null;
     }
 
     const rooms: BreakoutRoom[] = [];
 
     if (isRandom) {
-      const shuffledUsers = this.shuffleArray([...userIds]);
+      const shuffledUsers = this.shuffleArray([...socketIds]);
       const usersPerRoom = Math.ceil(shuffledUsers.length / roomCount);
 
       for (let i = 0; i < roomCount; i++) {
         const start = i * usersPerRoom;
         const end = Math.min(start + usersPerRoom, shuffledUsers.length);
-        const roomUserIds = shuffledUsers.slice(start, end);
+        const roomSocketIds = shuffledUsers.slice(start, end);
 
         rooms.push({
           roomId: this.generateBreakoutRoomId(hostRoomId, i),
-          userIds: roomUserIds,
+          socketIds: roomSocketIds,
         });
       }
     } else {
       for (let i = 0; i < roomCount; i++) {
         rooms.push({
           roomId: this.generateBreakoutRoomId(hostRoomId, i),
-          userIds: [],
+          socketIds: [],
         });
       }
     }
@@ -116,7 +115,7 @@ export class LecternService {
       isActive: true,
       hostRoomId,
       rooms,
-      hostId,
+      hostSocketId,
       config,
     };
 
@@ -132,28 +131,28 @@ export class LecternService {
     this.breakoutStates.delete(roomId);
   }
 
-  joinBreakoutRoom(hostRoomId: RoomType, userId: string, targetRoomId: string): BreakoutState | null {
+  joinBreakoutRoom(hostRoomId: RoomType, socketId: string, targetRoomId: string): BreakoutState | null {
     const state = this.breakoutStates.get(hostRoomId);
     if (!state?.isActive) return null;
 
     state.rooms.forEach((room) => {
-      room.userIds = room.userIds.filter((id) => id !== userId);
+      room.socketIds = room.socketIds.filter((id) => id !== socketId);
     });
 
     const targetRoom = state.rooms.find((room) => room.roomId === targetRoomId);
     if (targetRoom) {
-      targetRoom.userIds.push(userId);
+      targetRoom.socketIds.push(socketId);
     }
 
     return state;
   }
 
-  leaveBreakoutRoom(hostRoomId: RoomType, userId: string): BreakoutState | null {
+  leaveBreakoutRoom(hostRoomId: RoomType, socketId: string): BreakoutState | null {
     const state = this.breakoutStates.get(hostRoomId);
     if (!state?.isActive) return null;
 
     state.rooms.forEach((room) => {
-      room.userIds = room.userIds.filter((id) => id !== userId);
+      room.socketIds = room.socketIds.filter((id) => id !== socketId);
     });
 
     return state;

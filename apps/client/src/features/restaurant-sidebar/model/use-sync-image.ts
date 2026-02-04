@@ -16,24 +16,24 @@ const MAX_SYNC_USERS = 200;
 export const useSyncImage = () => {
   const { socket, isConnected } = useWebSocket();
   const users = useUserStore((s) => s.users);
-  const userId = useUserStore((s) => s.user?.id);
+  const userId = useUserStore((s) => s.user?.userId);
   const currentRoomId = useUserStore((s) => s.user?.avatar.currentRoomId);
   const queryClient = useQueryClient();
 
   const restaurantUserIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (currentRoomId === "restaurant" && userId) ids.add(userId);
+    const userIds = new Set<number>();
+    if (currentRoomId === "restaurant" && userId) userIds.add(userId);
     for (const u of users) {
-      if (u.avatar.currentRoomId === "restaurant") ids.add(u.id);
+      if (u.avatar.currentRoomId === "restaurant") userIds.add(u.userId);
     }
-    return Array.from(ids).slice(0, MAX_SYNC_USERS);
+    return Array.from(userIds).slice(0, MAX_SYNC_USERS);
   }, [currentRoomId, userId, users]);
 
   const restaurantUserIdsKey = useMemo(
     () =>
       restaurantUserIds
         .slice()
-        .sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => a - b)
         .join(","),
     [restaurantUserIds],
   );
@@ -43,7 +43,7 @@ export const useSyncImage = () => {
     if (!socket) return;
 
     const handleThumbnailUpdated = (payload: RestaurantThumbnailUpdatedPayload) => {
-      const payloadUserId = String(payload?.userId ?? "").trim();
+      const payloadUserId = payload?.userId;
       if (!payloadUserId) return;
 
       const thumbnailUrl = payload.thumbnailUrl ?? null;
@@ -102,9 +102,9 @@ export const useSyncImage = () => {
 
           for (const [userId, url] of Object.entries(map)) {
             const nextUrl = url ?? null;
-            if (state.thumbnailUrlByUserId[userId] === nextUrl) continue;
+            if (state.thumbnailUrlByUserId[Number(userId)] === nextUrl) continue;
             changed = true;
-            next[userId] = nextUrl;
+            next[Number(userId)] = nextUrl;
           }
 
           if (!changed) return state;

@@ -8,10 +8,10 @@ import { useBreakoutJoin } from "@features/host-sidebar";
 import type { ActionHook } from "@shared/config";
 
 export const useLeaveAction: ActionHook = () => {
-  const user = useUserStore((state) => state.user?.id);
+  const user = useUserStore((state) => state.user?.socketId);
   const { leaveToMainRoom } = useBreakoutJoin();
   const isRandom = useBreakoutStore((state) => state.breakoutState?.config.isRandom);
-  const isHost = useBreakoutStore((state) => state.breakoutState?.hostId === user);
+  const isHost = useBreakoutStore((state) => state.breakoutState?.hostSocketId === user);
 
   const handleLeave = useCallback(() => {
     if (isRandom && !isHost) {

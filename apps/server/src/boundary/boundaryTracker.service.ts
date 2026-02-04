@@ -15,17 +15,17 @@ export class BoundaryTracker {
   private readonly states = new Map<string, UserState>();
   private readonly groupContactIds = new Map<string, { contactId: string; inactiveTicks: number }>();
 
-  private getOrCreate(userId: string): UserState {
-    let state = this.states.get(userId);
+  private getOrCreate(socketId: string): UserState {
+    let state = this.states.get(socketId);
     if (!state) {
       state = { contactId: null, groupSignature: null, outOfGroupTicks: 0 };
-      this.states.set(userId, state);
+      this.states.set(socketId, state);
     }
     return state;
   }
 
-  joinGroup(userId: string, groupSignature: string): string | undefined {
-    const state = this.getOrCreate(userId);
+  joinGroup(socketId: string, groupSignature: string): string | undefined {
+    const state = this.getOrCreate(socketId);
     const contactId = this.getOrCreateGroupContactId(groupSignature);
 
     if (state.groupSignature === groupSignature && state.contactId === contactId) {
@@ -38,8 +38,8 @@ export class BoundaryTracker {
     return contactId;
   }
 
-  leaveGroup(userId: string): null | undefined {
-    const state = this.getOrCreate(userId);
+  leaveGroup(socketId: string): null | undefined {
+    const state = this.getOrCreate(socketId);
 
     if (state.contactId === null) {
       return undefined;
@@ -56,12 +56,12 @@ export class BoundaryTracker {
     return null;
   }
 
-  getContactId(userId: string): string | null {
-    return this.states.get(userId)?.contactId ?? null;
+  getContactId(socketId: string): string | null {
+    return this.states.get(socketId)?.contactId ?? null;
   }
 
-  clear(userId: string): void {
-    this.states.delete(userId);
+  clear(socketId: string): void {
+    this.states.delete(socketId);
   }
 
   pruneInactiveGroups(activeGroupSignatures: Set<string>): void {

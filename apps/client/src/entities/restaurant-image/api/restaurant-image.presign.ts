@@ -6,14 +6,14 @@ export type PresignRestaurantImageResponse = {
 };
 
 export const uploadPresignRestaurantImage = async (
-  userId: string,
+  userId: number,
   params: { contentType: string; originalName?: string },
 ): Promise<PresignRestaurantImageResponse> => {
   const res = await fetch("/api/restaurant/images/presign", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-user-id": userId,
+      "x-user-id": userId.toString(),
     },
     body: JSON.stringify(params),
   });

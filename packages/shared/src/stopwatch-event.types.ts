@@ -14,7 +14,7 @@ export interface UserTimerState {
 }
 
 export interface UserStopwatchState {
-  userId: string;
+  socketId: string;
   nickname: string;
   stopwatch: {
     isRunning: boolean;

@@ -22,15 +22,15 @@ type ImageViewerModalProps = {
 
 const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
   const { targetUserId, imageUrl, isOpen, closeViewer } = useRestaurantImageViewStore();
-  const userId = useUserStore((state) => state.user?.id);
+  const userId = useUserStore((state) => state.user?.userId ?? null);
   const isSidebarOpen = useSidebarStore((s) => s.isOpen);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const deleteMutation = useDeleteRestaurantImageMutation(userId ?? null);
-  const replaceMutation = useReplaceRestaurantImageMutation(userId ?? null);
+  const deleteMutation = useDeleteRestaurantImageMutation(userId);
+  const replaceMutation = useReplaceRestaurantImageMutation(userId);
 
   const isOwner = useMemo(() => targetUserId !== null && targetUserId === userId, [targetUserId, userId]);
 

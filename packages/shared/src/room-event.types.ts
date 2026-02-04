@@ -11,6 +11,6 @@ export interface RoomJoinPayload {
 }
 
 export interface RoomJoinedPayload {
-  userId: string;
+  socketId: string;
   avatar: Avatar;
 }

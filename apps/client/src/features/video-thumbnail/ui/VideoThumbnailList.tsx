@@ -9,9 +9,9 @@ import { useResponsiveVisibility, useScrollableContainer, useVisibleUsers } from
 const VideoThumbnailList = () => {
   const screenShareTracks = useTracks([Track.Source.ScreenShare]);
   const participants = useParticipants();
-  const visibleUserIds = useVisibleUsers();
-  const visibleParticipants = visibleUserIds
-    ? participants.filter((p) => visibleUserIds.has(p.identity))
+  const visibleSocketIds = useVisibleUsers();
+  const visibleParticipants = visibleSocketIds
+    ? participants.filter((p) => visibleSocketIds.has(p.identity))
     : participants;
 
   const totalItemCount = screenShareTracks.length + visibleParticipants.length;

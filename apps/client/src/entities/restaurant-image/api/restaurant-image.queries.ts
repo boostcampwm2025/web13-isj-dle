@@ -13,11 +13,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const restaurantImageKeys = {
   feed: () => ["restaurantImages", "feed"] as const,
-  my: (userId: string) => ["restaurantImages", "me", userId] as const,
+  my: (userId: number) => ["restaurantImages", "me", userId] as const,
   user: (targetUserId: string) => ["restaurantImages", "user", targetUserId] as const,
 };
 
-export const useRestaurantImagesFeedQuery = (requestUserId: string | null) => {
+export const useRestaurantImagesFeedQuery = (requestUserId: number | null) => {
   return useQuery<RestaurantImageFeedResponse>({
     queryKey: requestUserId ? restaurantImageKeys.feed() : ["restaurantImages", "feed", "anonymous"],
     queryFn: () => {
@@ -29,7 +29,7 @@ export const useRestaurantImagesFeedQuery = (requestUserId: string | null) => {
   });
 };
 
-export const useMyRestaurantImagesQuery = (userId: string | null) => {
+export const useMyRestaurantImagesQuery = (userId: number | null) => {
   return useQuery<RestaurantImageResponse>({
     queryKey: userId ? restaurantImageKeys.my(userId) : ["restaurantImages", "me", "anonymous"],
     queryFn: () => {
@@ -53,7 +53,7 @@ export const useUserRestaurantImagesQuery = (requestUserId: string | null, targe
   });
 };
 
-export const useUploadRestaurantImageMutation = (userId: string | null) => {
+export const useUploadRestaurantImageMutation = (userId: number | null) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (file: File) => {
@@ -66,7 +66,7 @@ export const useUploadRestaurantImageMutation = (userId: string | null) => {
   });
 };
 
-export const useDeleteRestaurantImageMutation = (userId: string | null) => {
+export const useDeleteRestaurantImageMutation = (userId: number | null) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (imageUrl: string) => {
@@ -79,7 +79,7 @@ export const useDeleteRestaurantImageMutation = (userId: string | null) => {
   });
 };
 
-export const useReplaceRestaurantImageMutation = (userId: string | null) => {
+export const useReplaceRestaurantImageMutation = (userId: number | null) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (params: { imageUrl: string; file: File }) => {
@@ -100,7 +100,7 @@ export const useReplaceRestaurantImageMutation = (userId: string | null) => {
   });
 };
 
-export const useToggleRestaurantImageLikeMutation = (userId: string | null) => {
+export const useToggleRestaurantImageLikeMutation = (userId: number | null) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (imageId: string) => {

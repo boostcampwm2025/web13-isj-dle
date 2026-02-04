@@ -25,7 +25,7 @@ export class LecternGateway {
 
     this.server.to(payload.roomId).emit(LecternEventType.LECTERN_UPDATE, {
       roomId: payload.roomId,
-      hostId: state.hostId,
+      hostSocketId: state.hostSocketId,
       usersOnLectern: state.usersOnLectern,
     });
   }
@@ -36,7 +36,7 @@ export class LecternGateway {
 
     this.server.to(payload.roomId).emit(LecternEventType.LECTERN_UPDATE, {
       roomId: payload.roomId,
-      hostId: state.hostId,
+      hostSocketId: state.hostSocketId,
       usersOnLectern: state.usersOnLectern,
     });
   }
@@ -48,21 +48,21 @@ export class LecternGateway {
       return;
     }
 
-    const targetUsers = this.userService.getRoomSessions(payload.roomId).filter((user) => user.id !== client.id);
+    const targetUsers = this.userService.getRoomSessions(payload.roomId).filter((user) => user.socketId !== client.id);
     for (const user of targetUsers) {
-      if (user.id !== client.id) {
-        this.userService.updateSessionMedia(user.id, { micOn: false });
+      if (user.socketId !== client.id) {
+        this.userService.updateSessionMedia(user.socketId, { micOn: false });
       }
     }
 
     this.server.to(payload.roomId).emit(LecternEventType.MUTE_ALL_EXECUTED, {
-      hostId: client.id,
+      hostSocketId: client.id,
     });
 
     for (const user of targetUsers) {
-      if (user.id !== client.id) {
+      if (user.socketId !== client.id) {
         this.server.emit(UserEventType.USER_UPDATE, {
-          userId: user.id,
+          socketId: user.socketId,
           micOn: false,
         });
       }
@@ -77,7 +77,7 @@ export class LecternGateway {
     payload: {
       hostRoomId: RoomType;
       config: BreakoutConfig;
-      userIds: string[];
+      socketIds: string[];
     },
   ) {
     const isHost = this.lecternService.isHost(payload.hostRoomId, client.id);
@@ -88,7 +88,7 @@ export class LecternGateway {
       return;
     }
 
-    const state = this.lecternService.createBreakout(payload.hostRoomId, client.id, payload.config, payload.userIds);
+    const state = this.lecternService.createBreakout(payload.hostRoomId, client.id, payload.config, payload.socketIds);
 
     if (!state) {
       this.logger.warn(`[Breakout] createBreakout failed`);
@@ -118,7 +118,7 @@ export class LecternGateway {
   }
 
   @SubscribeMessage(LecternEventType.BREAKOUT_JOIN)
-  handleBreakoutJoin(client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
+  handleBreakoutJoin(client: Socket, payload: { hostRoomId: RoomType; socketId: string; targetRoomId: string }) {
     const breakoutState = this.lecternService.getBreakoutState(payload.hostRoomId);
 
     if (!breakoutState) {
@@ -134,7 +134,7 @@ export class LecternGateway {
       return;
     }
 
-    const state = this.lecternService.joinBreakoutRoom(payload.hostRoomId, payload.userId, payload.targetRoomId);
+    const state = this.lecternService.joinBreakoutRoom(payload.hostRoomId, payload.socketId, payload.targetRoomId);
 
     if (state) {
       this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
@@ -145,8 +145,8 @@ export class LecternGateway {
   }
 
   @SubscribeMessage(LecternEventType.BREAKOUT_LEAVE)
-  handleBreakoutLeave(_client: Socket, payload: { hostRoomId: RoomType; userId: string; targetRoomId: string }) {
-    const state = this.lecternService.leaveBreakoutRoom(payload.hostRoomId, payload.userId);
+  handleBreakoutLeave(_client: Socket, payload: { hostRoomId: RoomType; socketId: string; targetRoomId: string }) {
+    const state = this.lecternService.leaveBreakoutRoom(payload.hostRoomId, payload.socketId);
 
     if (state) {
       this.server.to(payload.hostRoomId).emit(LecternEventType.BREAKOUT_UPDATE, {
@@ -162,7 +162,7 @@ export class LecternGateway {
     for (const [roomId, state] of affectedRooms) {
       this.server.to(roomId).emit(LecternEventType.LECTERN_UPDATE, {
         roomId,
-        hostId: state.hostId,
+        hostSocketId: state.hostSocketId,
         usersOnLectern: state.usersOnLectern,
       });
     }

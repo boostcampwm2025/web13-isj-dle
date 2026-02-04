@@ -37,7 +37,7 @@ export class BoundaryRenderer {
         contactGroups.set(user.contactId, group);
       }
 
-      const pos = positionStore.get(user.id);
+      const pos = positionStore.get(user.socketId);
       group.push({ x: pos?.x ?? user.avatar.x, y: pos?.y ?? user.avatar.y });
     }
 
@@ -50,7 +50,7 @@ export class BoundaryRenderer {
 
       group.push({ x: currentAvatarPosition.x, y: currentAvatarPosition.y });
     } else if (currentUser?.contactId) {
-      const pos = positionStore.get(currentUser.id);
+      const pos = positionStore.get(currentUser.socketId);
       if (pos) {
         let group = contactGroups.get(currentUser.contactId);
         if (!group) {

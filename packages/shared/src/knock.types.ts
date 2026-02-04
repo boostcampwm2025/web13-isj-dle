@@ -17,21 +17,21 @@ export enum KnockEventType {
 }
 
 export interface KnockSendPayload {
-  targetUserId: string;
+  targetSocketId: string;
 }
 
 export interface KnockReceivedPayload {
-  fromUserId: string;
+  fromSocketId: string;
   fromUserNickname: string;
   timestamp: number;
 }
 
 export interface KnockResponsePayload {
-  fromUserId: string;
+  fromSocketId: string;
 }
 
 export interface KnockResultPayload {
-  targetUserId: string;
+  targetSocketId: string;
   targetUserNickname: string;
   status: "accepted" | "rejected";
 }
@@ -41,26 +41,26 @@ export interface DeskStatusUpdatePayload {
 }
 
 export interface DeskStatusUpdatedPayload {
-  userId: string;
+  socketId: string;
   status: DeskStatus;
 }
 
 export interface Knock {
-  fromUserId: string;
+  fromSocketId: string;
   fromUserNickname: string;
   timestamp: number;
 }
 
 export interface KnockCancelledPayload {
-  fromUserId?: string;
-  targetUserId?: string;
+  fromSocketId?: string;
+  targetSocketId?: string;
 }
 
 export interface KnockAcceptSuccessPayload {
-  fromUserId: string;
+  fromSocketId: string;
 }
 
 export interface KnockAcceptFailedPayload {
-  fromUserId: string;
+  fromSocketId: string;
   reason: string;
 }

@@ -26,7 +26,7 @@ export class UserService {
   ) {}
 
   async createSession(dto: CreateGameUserDto): Promise<User> {
-    const { id, userId } = dto;
+    const { socketId, userId } = dto;
 
     const authUser = await this.authService.getAuthUserById(userId);
     if (!authUser) {
@@ -42,7 +42,7 @@ export class UserService {
     };
 
     const user: User = {
-      id,
+      socketId,
       userId: authUser.id,
       contactId: null,
       nickname: authUser.nickname,
@@ -52,8 +52,8 @@ export class UserService {
       deskStatus: null,
     };
 
-    this.sessions.set(id, user);
-    this.sessionStartTimes.set(id, Date.now());
+    this.sessions.set(socketId, user);
+    this.sessionStartTimes.set(socketId, Date.now());
 
     const roomType = mapRoomIdToMetricType(avatar.currentRoomId);
 
@@ -63,8 +63,12 @@ export class UserService {
     return user;
   }
 
-  getSession(id: string): User | undefined {
-    return this.sessions.get(id);
+  getSession(socketId: string): User | undefined {
+    return this.sessions.get(socketId);
+  }
+
+  getSessionsByUserId(userId: number): User[] {
+    return Array.from(this.sessions.values()).filter((user) => user.userId === userId);
   }
 
   getRoomSessions(roomId: RoomType): User[] {
@@ -76,16 +80,15 @@ export class UserService {
   }
 
   updateSessionPosition(
-    id: string,
+    socketId: string,
     position: { x: number; y: number; direction: AvatarDirection; state: AvatarState },
   ): boolean {
-    const user = this.sessions.get(id);
-
+    const user = this.sessions.get(socketId);
     if (!user) return false;
 
     if (position.state === "sit") {
       const usersAtPosition = this.getUsersByPosition(position.x, position.y);
-      const isAnotherUserSitting = usersAtPosition.some((u) => u.id !== id && u.avatar.state === "sit");
+      const isAnotherUserSitting = usersAtPosition.some((u) => u.socketId !== socketId && u.avatar.state === "sit");
       if (isAnotherUserSitting) return false;
     }
 
@@ -94,8 +97,8 @@ export class UserService {
     return true;
   }
 
-  updateSessionRoom(id: string, roomId: RoomType): boolean {
-    const user = this.sessions.get(id);
+  updateSessionRoom(socketId: string, roomId: RoomType): boolean {
+    const user = this.sessions.get(socketId);
     if (!user) return false;
 
     const oldRoomId = user.avatar.currentRoomId;
@@ -117,8 +120,8 @@ export class UserService {
     return true;
   }
 
-  updateSessionMedia(id: string, payload: { cameraOn?: boolean; micOn?: boolean }): boolean {
-    const user = this.sessions.get(id);
+  updateSessionMedia(socketId: string, payload: { cameraOn?: boolean; micOn?: boolean }): boolean {
+    const user = this.sessions.get(socketId);
 
     if (!user) return false;
 
@@ -132,8 +135,8 @@ export class UserService {
     return true;
   }
 
-  updateSessionContactId(id: string, contactId: string | null): boolean {
-    const user = this.sessions.get(id);
+  updateSessionContactId(socketId: string, contactId: string | null): boolean {
+    const user = this.sessions.get(socketId);
 
     if (!user) return false;
 
@@ -142,8 +145,8 @@ export class UserService {
     return true;
   }
 
-  updateSessionDeskStatus(id: string, status: DeskStatus | null): boolean {
-    const user = this.sessions.get(id);
+  updateSessionDeskStatus(socketId: string, status: DeskStatus | null): boolean {
+    const user = this.sessions.get(socketId);
 
     if (!user) return false;
 
@@ -152,24 +155,24 @@ export class UserService {
     return true;
   }
 
-  deleteSession(id: string): boolean {
-    const user = this.sessions.get(id);
+  deleteSession(socketId: string): boolean {
+    const user = this.sessions.get(socketId);
     if (!user) return false;
 
     const roomId = user.avatar.currentRoomId;
     const roomType = mapRoomIdToMetricType(roomId);
 
-    const startTime = this.sessionStartTimes.get(id);
+    const startTime = this.sessionStartTimes.get(socketId);
     if (startTime) {
       const durationSec = (Date.now() - startTime) / 1000;
       this.metricsService.recordSessionDuration(durationSec);
-      this.sessionStartTimes.delete(id);
+      this.sessionStartTimes.delete(socketId);
     }
 
     this.metricsService.userLeft(roomType);
     this.updateRoomOccupancy(roomId, -1);
 
-    return this.sessions.delete(id);
+    return this.sessions.delete(socketId);
   }
 
   getSessionCount(): number {

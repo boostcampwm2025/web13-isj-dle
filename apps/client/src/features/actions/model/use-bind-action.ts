@@ -37,5 +37,5 @@ export const useBindAction = () => {
     setActions(actions);
   }, [actions, setActions]);
 
-  return null;
+  return { actions };
 };

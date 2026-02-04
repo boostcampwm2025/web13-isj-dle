@@ -10,9 +10,7 @@ import { UserEventType } from "@shared/types";
 
 export const useCameraAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);
-  const userId = useUserStore((state) => state.user?.id);
   const isCameraOn = useUserStore((state) => state.user?.cameraOn ?? false);
-  const updateUser = useUserStore((state) => state.updateUser);
   const { socket } = useWebSocket();
 
   useEffect(() => {
@@ -31,12 +29,8 @@ export const useCameraAction: ActionHook = () => {
 
   const toggleCamera = useCallback(async () => {
     const newState = !isCameraOn;
-    await localParticipant?.setCameraEnabled(newState);
-    if (userId) {
-      updateUser({ id: userId, cameraOn: newState });
-    }
     socket?.emit(UserEventType.USER_UPDATE, { cameraOn: newState });
-  }, [isCameraOn, localParticipant, userId, updateUser, socket]);
+  }, [isCameraOn, socket]);
 
   const title = useMemo(() => (isCameraOn ? "카메라 끄기" : "카메라 켜기"), [isCameraOn]);
 

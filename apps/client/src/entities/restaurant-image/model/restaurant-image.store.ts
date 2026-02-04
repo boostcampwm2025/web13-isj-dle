@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
 type RestaurantImageState = {
-  thumbnailUrlByUserId: Record<string, string | null>;
+  thumbnailUrlByUserId: Record<number, string | null>;
 
-  setThumbnail: (userId: string, url: string) => void;
-  clearThumbnail: (userId: string) => void;
-  hasThumbnail: (userId: string) => boolean;
-  getThumbnailUrlByUserId: (userId: string) => string | null;
+  setThumbnail: (userId: number, url: string) => void;
+  clearThumbnail: (userId: number) => void;
+  hasThumbnail: (userId: number) => boolean;
+  getThumbnailUrlByUserId: (userId: number) => string | null;
 };
 
 export const useRestaurantImageStore = create<RestaurantImageState>((set, get) => ({

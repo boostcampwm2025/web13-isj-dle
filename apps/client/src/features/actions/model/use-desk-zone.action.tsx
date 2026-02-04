@@ -10,14 +10,14 @@ import type { ActionHook } from "@shared/config";
 import { type AvatarState, RoomEventType, type RoomType, UserEventType } from "@shared/types";
 
 export const useDeskZoneAction: ActionHook = () => {
-  const userId = useUserStore((state) => state.user?.id || "");
+  const socketId = useUserStore((state) => state.user?.socketId || "");
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const [state, setState] = useState<AvatarState | null>("idle");
   const { socket } = useWebSocket();
   const [game, setGame] = useState<Phaser.Game | null>(null);
 
   positionStore.subscribe(() => {
-    const pos = positionStore.get(userId);
+    const pos = positionStore.get(socketId);
     if (pos && pos.state !== state) {
       setState(pos.state);
     }

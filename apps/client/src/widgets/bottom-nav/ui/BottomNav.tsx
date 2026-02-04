@@ -4,24 +4,23 @@ import { useBottomNav } from "../model/use-bottom-nav";
 import { Fragment } from "react/jsx-runtime";
 
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
-import { useActionStore, useBindAction } from "@features/actions";
+import { useBindAction } from "@features/actions";
 import { ACTION_KEY_ORDER, type ActionKey, DIVIDER_INDEX } from "@shared/config";
 
 const BottomNav = () => {
-  useBindAction();
+  const { actions } = useBindAction();
   const { mode, setMode } = useVideoConferenceModeStore();
   useBottomNav(mode, setMode);
-  const getHookByKey = useActionStore((state) => state.getHookByKey);
   const bottomNavigation = useBottomNavStore((state) => state.bottomNavigation);
 
-  const orderedKeys: ActionKey[] = bottomNavigation.sort(
+  const orderedKeys: ActionKey[] = [...bottomNavigation].sort(
     (a: ActionKey, b: ActionKey) => ACTION_KEY_ORDER[a] - ACTION_KEY_ORDER[b],
   );
 
   return (
     <div className="pointer-events-auto absolute bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
       {orderedKeys.map((key, index) => {
-        const hook = getHookByKey(key);
+        const hook = actions[key];
         if (!hook) return null;
         const { title, icon, handleClick } = hook;
 

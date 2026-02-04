@@ -1,14 +1,14 @@
 import { create } from "zustand";
 
 export type RestaurantImageViewState = {
-  targetUserId: string | null;
+  targetUserId: number | null;
   imageUrl: string | null;
   isOpen: boolean;
   isUploadRequested: boolean;
 
-  openViewer: (params: { userId?: string | null; imageUrl: string }) => void;
+  openViewer: (params: { userId?: number | null; imageUrl: string }) => void;
   closeViewer: () => void;
-  requestUpload: (userId: string) => void;
+  requestUpload: (userId: number) => void;
   clearUploadRequest: () => void;
 };
 

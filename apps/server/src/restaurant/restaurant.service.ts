@@ -108,7 +108,7 @@ export class RestaurantService {
     this.validateImageMagicBytes(prefix, EXT_TO_MIME[ext]);
   }
 
-  private validateKeyOwnership(userId: string, key: string): void {
+  private validateKeyOwnership(userId: number, key: string): void {
     const expectedPrefix = `restaurant-images/${userId}/`;
     const keyWithoutTemp = this.s3Service.isTempKey(key) ? key.slice(this.s3Service.getTempPrefix().length) : key;
 
@@ -117,7 +117,7 @@ export class RestaurantService {
     }
   }
 
-  private mapEntityToImage(entity: RestaurantImageEntity, requestUserId: string): RestaurantImage {
+  private mapEntityToImage(entity: RestaurantImageEntity, requestUserId: number): RestaurantImage {
     const likedBy = Array.isArray(entity.likedBy) ? entity.likedBy : [];
     return {
       id: String(entity.id),
@@ -130,7 +130,7 @@ export class RestaurantService {
     };
   }
 
-  async getImagesByUserId(requestUserId: string, targetUserId: string): Promise<RestaurantImageResponse> {
+  async getImagesByUserId(requestUserId: number, targetUserId: number): Promise<RestaurantImageResponse> {
     const userImages = await this.restaurantImageRepository.find({
       where: { userId: targetUserId },
       order: { createdAt: "DESC" },
@@ -144,7 +144,7 @@ export class RestaurantService {
     };
   }
 
-  async getRecentImages(requestUserId: string, limit = 50): Promise<RestaurantImageFeedResponse> {
+  async getRecentImages(requestUserId: number, limit = 50): Promise<RestaurantImageFeedResponse> {
     const rows = await this.restaurantImageRepository.find({
       order: { createdAt: "DESC" },
       take: limit,
@@ -155,7 +155,7 @@ export class RestaurantService {
     return { images };
   }
 
-  async toggleImageLike(userId: string, imageId: number): Promise<{ likes: number; liked: boolean }> {
+  async toggleImageLike(userId: number, imageId: number): Promise<{ likes: number; liked: boolean }> {
     const result = await this.dataSource.transaction(async (manager) => {
       const imageRepository = manager.getRepository(RestaurantImageEntity);
 
@@ -186,7 +186,7 @@ export class RestaurantService {
     return result;
   }
 
-  async getLatestThumbnailUrlByUserId(userId: string): Promise<string | null> {
+  async getLatestThumbnailUrlByUserId(userId: number): Promise<string | null> {
     const row = await this.restaurantImageRepository.findOne({
       where: { userId },
       order: { createdAt: "DESC" },
@@ -196,15 +196,15 @@ export class RestaurantService {
     return this.resolveKeyForView(row.key);
   }
 
-  private async emitThumbnailUpdated(userId: string): Promise<void> {
+  private async emitThumbnailUpdated(userId: number): Promise<void> {
     const thumbnailUrl = await this.getLatestThumbnailUrlByUserId(userId);
     const payload: RestaurantThumbnailUpdatedPayload = { userId, thumbnailUrl };
     this.eventEmitter.emit(RestaurantImageEventType.THUMBNAIL_UPDATED, payload);
   }
 
-  async saveImage(userId: string, key: string): Promise<void> {
-    const user = this.userService.getSession(userId);
-    const nickname = user?.nickname ?? "";
+  async saveImage(userId: number, key: string): Promise<void> {
+    const users = this.userService.getSessionsByUserId(userId);
+    const nickname = users.length > 0 ? users[0].nickname : "Unknown";
 
     await this.restaurantImageRepository.save({
       userId,
@@ -215,7 +215,7 @@ export class RestaurantService {
     });
   }
 
-  async createTempImagePresign(userId: string, contentType: string, _originalName?: string) {
+  async createTempImagePresign(userId: number, contentType: string, _originalName?: string) {
     this.validateContentType(contentType);
 
     await this.checkImageLimit(userId);
@@ -230,14 +230,14 @@ export class RestaurantService {
     return { key, uploadUrl, imageUrl: viewUrl, viewUrl };
   }
 
-  private async checkImageLimit(userId: string): Promise<void> {
+  private async checkImageLimit(userId: number): Promise<void> {
     const count = await this.restaurantImageRepository.count({ where: { userId } });
     if (count >= MAX_IMAGES_PER_USER) {
       throw new BadRequestException(`Maximum image limit (${MAX_IMAGES_PER_USER}) reached`);
     }
   }
 
-  async confirmTempImage(userId: string, key: string): Promise<string> {
+  async confirmTempImage(userId: number, key: string): Promise<string> {
     const tempPrefix = this.s3Service.getTempPrefix();
     const hasTempPrefix = tempPrefix.length > 0 && key.startsWith(tempPrefix);
 
@@ -280,7 +280,7 @@ export class RestaurantService {
     return this.resolveKeyForView(finalKey);
   }
 
-  async uploadTempImageFromFile(userId: string, file: Express.Multer.File): Promise<string> {
+  async uploadTempImageFromFile(userId: number, file: Express.Multer.File): Promise<string> {
     const contentType = this.normalizeContentType(file.mimetype);
     this.validateContentType(contentType);
     this.validateImageMagicBytes(file.buffer, contentType);
@@ -311,7 +311,7 @@ export class RestaurantService {
     return this.resolveKeyForView(key);
   }
 
-  async deleteImageByUrl(userId: string, imageUrl: string): Promise<void> {
+  async deleteImageByUrl(userId: number, imageUrl: string): Promise<void> {
     const key = this.extractKeyFromUrl(imageUrl);
     if (!key) {
       throw new BadRequestException("Invalid imageUrl");
@@ -356,7 +356,7 @@ export class RestaurantService {
     );
   }
 
-  async replaceImageByUrl(userId: string, imageUrl: string, newImageUrl: string): Promise<string> {
+  async replaceImageByUrl(userId: number, imageUrl: string, newImageUrl: string): Promise<string> {
     const oldKey = this.extractKeyFromUrl(imageUrl);
     const newKey = this.extractKeyFromUrl(newImageUrl);
 
@@ -410,13 +410,13 @@ export class RestaurantService {
     return this.resolveKeyForView(finalKey);
   }
 
-  private buildTempKey(userId: string, contentType: string): string {
+  private buildTempKey(userId: number, contentType: string): string {
     const prefix = this.s3Service.getTempPrefix();
     const finalKey = this.buildFinalKey(userId, contentType);
     return `${prefix}${finalKey}`;
   }
 
-  private buildFinalKey(userId: string, contentType: string): string {
+  private buildFinalKey(userId: number, contentType: string): string {
     const ext = this.pickExtension(contentType);
     const id = randomUUID();
     return `restaurant-images/${userId}/${id}.${ext}`;
