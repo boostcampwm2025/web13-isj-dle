@@ -15,7 +15,7 @@ export const RoomSelectorModal = ({ isOpen, roomRange, onSelect, onClose }: Room
 
   return (
     <div
-      className="pointer-events-auto fixed inset-0 z-10000 flex items-center justify-center bg-black/50"
+      className="pointer-events-auto fixed inset-0 z-60 flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       <div

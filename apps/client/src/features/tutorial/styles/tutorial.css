@@ -21,7 +21,7 @@ body {
   border-radius: 12px;
   background: var(--bg);
   box-shadow: var(--card-shadow);
-  z-index: 100000;
+  z-index: 200;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
@@ -162,12 +162,9 @@ body {
 
 .shepherd-modal-overlay-container {
   background: var(--overlay);
-}
-.shepherd-modal-overlay-container {
-  background: var(--overlay);
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 199;
   overflow: hidden;
 }
 

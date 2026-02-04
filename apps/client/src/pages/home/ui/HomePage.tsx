@@ -26,10 +26,9 @@ const HomePage = () => {
         >
           <PhaserLayout />
 
-          <div className="pointer-events-none absolute inset-0 z-10">
-            <VideoConference />
-            {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
-          </div>
+          <VideoConference />
+
+          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
         </div>
 
         <Sidebar />

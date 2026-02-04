@@ -135,7 +135,7 @@ const PhaserLayout = () => {
 
   return (
     <>
-      <div ref={containerRef} className="absolute inset-0 z-0" />
+      <div ref={containerRef} className="absolute inset-0" />
       <ZoomControl isHidden={isOverlayHidden} onZoomChange={handleZoomChange} />
       <MinimapOverlay game={game} isHidden={isOverlayHidden} />
       <RoomSelectorModal

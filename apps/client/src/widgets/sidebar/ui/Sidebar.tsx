@@ -62,7 +62,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="fixed top-0 right-0 flex h-full text-black">
+    <div className="fixed top-0 right-0 z-50 flex h-full text-black">
       <div
         className="pointer-events-auto absolute top-0 right-0 h-full rounded-l-3xl bg-gray-300 transition-transform ease-in-out"
         style={{
@@ -97,7 +97,7 @@ const Sidebar = () => {
       >
         <div className="absolute inset-0 bg-gray-300" />
 
-        <div className="group relative z-10 mb-2">
+        <div className="group relative mb-2">
           <button
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
             onClick={toggleSidebar}
@@ -113,9 +113,9 @@ const Sidebar = () => {
           </div>
         </div>
 
-        <div className="relative z-10 mb-2 h-0.5 w-full bg-gray-400" />
+        <div className="relative mb-2 h-0.5 w-full bg-gray-400" />
 
-        <div className="relative z-10 flex-1">
+        <div className="relative flex-1">
           <div className="scrollbar-hide flex h-full flex-col gap-4 overflow-y-auto">
             {sidebarKeys.map((key) => (
               <SidebarTabButton

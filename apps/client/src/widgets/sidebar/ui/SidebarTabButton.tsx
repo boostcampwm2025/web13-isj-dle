@@ -38,7 +38,7 @@ const Tooltip = ({ title, isVisible, buttonRef }: TooltipProps) => {
 
   return (
     <div
-      className="pointer-events-none fixed z-[99999] -translate-y-1/2 rounded-md bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white after:absolute after:top-1/2 after:left-full after:-translate-y-1/2 after:border-4 after:border-transparent after:border-l-gray-800"
+      className="pointer-events-none fixed -translate-y-1/2 rounded-md bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white after:absolute after:top-1/2 after:left-full after:-translate-y-1/2 after:border-4 after:border-transparent after:border-l-gray-800"
       style={{ top: pos.top, right: pos.right }}
     >
       {title}

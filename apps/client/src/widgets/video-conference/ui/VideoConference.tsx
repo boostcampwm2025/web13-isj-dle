@@ -20,27 +20,29 @@ const VideoConference = () => {
   useVideoConference(roomId);
 
   return (
-    <LiveKitRoom
-      data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
-      key={roomId || "empty"}
-      serverUrl={serverUrl || ""}
-      token={token || ""}
-      connect={!!token && !!serverUrl}
-      video={isCameraOn}
-      audio={isMicOn}
-      options={{
-        audioCaptureDefaults: {
-          echoCancellation: true,
-          autoGainControl: true,
-          noiseSuppression: false,
-        },
-      }}
-    >
-      <NoiseFilter />
-      <ChatDataBinder />
-      {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} />}
-      {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
-    </LiveKitRoom>
+    <div className="pointer-events-none absolute inset-0 z-30">
+      <LiveKitRoom
+        data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
+        key={roomId || "empty"}
+        serverUrl={serverUrl || ""}
+        token={token || ""}
+        connect={!!token && !!serverUrl}
+        video={isCameraOn}
+        audio={isMicOn}
+        options={{
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            autoGainControl: true,
+            noiseSuppression: false,
+          },
+        }}
+      >
+        <NoiseFilter />
+        <ChatDataBinder />
+        {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} />}
+        {mode === VIDEO_CONFERENCE_MODE.THUMBNAIL && <VideoThumbnail />}
+      </LiveKitRoom>
+    </div>
   );
 };
 

@@ -31,11 +31,10 @@ export const ZoomControl = ({ isHidden = false, onZoomChange }: ZoomControl) => 
 
   return (
     <div
-      className="pointer-events-auto fixed flex flex-col overflow-hidden rounded-lg border border-slate-600/50 bg-slate-900/90 shadow-xl backdrop-blur-sm transition-all duration-300"
+      className="pointer-events-auto fixed z-10 flex flex-col overflow-hidden rounded-lg border border-slate-600/50 bg-slate-900/90 shadow-xl backdrop-blur-sm transition-all duration-300"
       style={{
         top: MARGIN,
         left: MARGIN,
-        zIndex: 99999,
         display: isHidden ? "none" : "flex",
       }}
     >

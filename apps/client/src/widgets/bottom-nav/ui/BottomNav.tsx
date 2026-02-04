@@ -19,7 +19,7 @@ const BottomNav = () => {
   );
 
   return (
-    <div className="pointer-events-auto absolute bottom-12 left-1/2 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
+    <div className="pointer-events-auto absolute bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-row gap-2 rounded-3xl bg-gray-900 p-2 opacity-90">
       {orderedKeys.map((key, index) => {
         const hook = getHookByKey(key);
         if (!hook) return null;
