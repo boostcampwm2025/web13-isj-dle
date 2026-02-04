@@ -24,11 +24,7 @@ export const useDeskZoneAction: ActionHook = () => {
   });
 
   const handleClick = useCallback(async () => {
-    if (!game || !socket || (currentRoomId === "desk zone" && state === "sit")) {
-      console.log("데스크 존으로 이동할 수 없습니다.");
-      console.log({ game, socket, currentRoomId, state });
-      return;
-    }
+    if (!game || !socket || (currentRoomId === "desk zone" && state === "sit")) return;
     const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
     if (!scene || !scene.mapInfo.map || !scene.deskSeatPoints.length) {
       return;

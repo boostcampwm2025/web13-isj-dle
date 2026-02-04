@@ -107,39 +107,33 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
     if (!game) return;
 
     let active = true;
-    let checkHandle: number;
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+    if (!gameScene) return;
 
     const checkAndCacheMap = () => {
-      if (!active) return;
+      if (!active || !gameScene || !gameScene.mapInfo.map) return;
+      const map = gameScene.mapInfo.map;
+      const newMapSize = { width: map.widthInPixels, height: map.heightInPixels };
 
-      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+      setMapSize(newMapSize);
 
-      if (scene?.isReady && scene?.mapInfo.map) {
-        const map = scene.mapInfo.map;
-        const newMapSize = { width: map.widthInPixels, height: map.heightInPixels };
+      const cacheCanvas = document.createElement("canvas");
+      cacheCanvas.width = MINIMAP_WIDTH;
+      cacheCanvas.height = MINIMAP_HEIGHT;
+      const ctx = cacheCanvas.getContext("2d");
 
-        setMapSize(newMapSize);
-
-        const cacheCanvas = document.createElement("canvas");
-        cacheCanvas.width = MINIMAP_WIDTH;
-        cacheCanvas.height = MINIMAP_HEIGHT;
-        const ctx = cacheCanvas.getContext("2d");
-
-        if (ctx) {
-          renderTilemapToCanvas(ctx, map, MINIMAP_WIDTH, MINIMAP_HEIGHT, MINIMAP_PADDING_Y);
-          mapCacheRef.current = cacheCanvas;
-          setIsMapReady(true);
-        }
-      } else {
-        checkHandle = requestAnimationFrame(checkAndCacheMap);
+      if (ctx) {
+        renderTilemapToCanvas(ctx, map, MINIMAP_WIDTH, MINIMAP_HEIGHT, MINIMAP_PADDING_Y);
+        mapCacheRef.current = cacheCanvas;
+        setIsMapReady(true);
       }
     };
 
-    checkAndCacheMap();
+    if (!gameScene.isReady) gameScene.events.once("scene:ready", checkAndCacheMap);
+    else checkAndCacheMap();
 
     return () => {
       active = false;
-      if (checkHandle) cancelAnimationFrame(checkHandle);
     };
   }, [game]);
 
@@ -181,12 +175,12 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
     const render = () => {
       if (!active) return;
 
-      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+      const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
 
-      if (scene?.isReady && scene?.isLoadPlayer) {
+      if (gameScene?.isReady && gameScene?.isLoadPlayer) {
         ctx.drawImage(mapCacheRef.current!, 0, 0);
 
-        const cam = scene.cameras.main;
+        const cam = gameScene.cameras.main;
         const playerX = cam.scrollX + cam.width / 2;
         const playerY = cam.scrollY + cam.height / 2;
 
@@ -241,12 +235,12 @@ export const useMinimap = ({ game, isExpanded }: UseMinimapProps) => {
     const render = () => {
       if (!active) return;
 
-      const scene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
+      const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | undefined;
 
-      if (scene?.isReady && scene?.isLoadPlayer) {
+      if (gameScene?.isReady && gameScene?.isLoadPlayer) {
         ctx.drawImage(expandedMapCacheRef.current!, 0, 0);
 
-        const cam = scene.cameras.main;
+        const cam = gameScene.cameras.main;
         const playerX = cam.scrollX + cam.width / 2;
         const playerY = cam.scrollY + cam.height / 2;
 

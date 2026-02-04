@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { useAuthStore } from "@entities/auth";
 import { useBreakoutStore } from "@entities/lectern";
@@ -182,6 +183,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     const onReconnect = (attemptNumber: number) => handleReconnect(socketInstance, attemptNumber);
     const onError = (error: { message: string }) => {
       console.error("[Socket] Error received:", error);
+      toast.error(`Socket error: ${error.message}`, { position: "top-center" });
     };
 
     socketInstance.on("connect", onConnect);

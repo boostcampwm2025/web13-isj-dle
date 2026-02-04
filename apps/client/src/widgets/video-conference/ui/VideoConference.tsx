@@ -2,7 +2,7 @@ import { useLivekit } from "../model/use-livekit";
 import { useVideoConference } from "../model/use-video-conference";
 import NoiseFilter from "./NoiseFilter";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 
 import { ChatDataBinder } from "@entities/chat";
 import { useUserStore } from "@entities/user";
@@ -19,6 +19,20 @@ const VideoConference = () => {
   const { token, serverUrl, roomId } = useLivekit();
   useVideoConference(roomId);
 
+  const [userGestured, setUserGestured] = useState(false);
+
+  useEffect(() => {
+    const onGesture = () => setUserGestured(true);
+    window.addEventListener("pointerdown", onGesture, { once: true });
+    window.addEventListener("keydown", onGesture, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", onGesture);
+      window.removeEventListener("keydown", onGesture);
+    };
+  }, []);
+
+  const canConnect = userGestured && !!token && !!serverUrl;
+
   return (
     <div className="pointer-events-none absolute inset-0 z-30">
       <LiveKitRoom
@@ -26,7 +40,7 @@ const VideoConference = () => {
         key={roomId || "empty"}
         serverUrl={serverUrl || ""}
         token={token || ""}
-        connect={!!token && !!serverUrl}
+        connect={canConnect}
         video={isCameraOn}
         audio={isMicOn}
         options={{

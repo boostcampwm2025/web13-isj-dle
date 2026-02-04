@@ -21,7 +21,7 @@ const RequireGuestGuard = () => {
         if (!alive) return;
         setAuthUser(authUserResponse.user);
       } catch (error) {
-        console.error(error);
+        console.warn(error);
         setAuthUser(null);
       } finally {
         if (alive) setLoading(false);
