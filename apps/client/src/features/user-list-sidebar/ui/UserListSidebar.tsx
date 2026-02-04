@@ -1,3 +1,4 @@
+import UserGroup from "./UserGroup";
 import { Users } from "lucide-react";
 
 import { useMemo } from "react";
@@ -5,7 +6,6 @@ import { useMemo } from "react";
 import { useUserStore } from "@entities/user";
 import { useGroupedUsers } from "@entities/user";
 import { useInviteLink } from "@shared/lib/invite";
-import { UserGroup } from "@shared/ui";
 
 const UserListSidebar = () => {
   const userId = useUserStore((state) => state.user?.id);
@@ -38,6 +38,7 @@ const UserListSidebar = () => {
             users={usersByRoom[user.avatar.currentRoomId]}
             title={`${user.avatar.currentRoomId}`}
             userId={user.id}
+            updatable={true}
           />
         )}
         {Object.entries(usersByRoom)

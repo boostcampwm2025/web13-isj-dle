@@ -20,7 +20,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
   useEffect(() => {
     if (!game) return;
 
-    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | null;
 
     const renderAvatars = () => {
       const state = useUserStore.getState();
@@ -29,11 +29,10 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
 
       const roomId = currentUser.avatar.currentRoomId;
       const myId = currentUser.id;
-      const myNickname = currentUser.nickname;
       const positionMap = positionStore.getAll();
 
       const sameRoomUsers = state.users
-        .filter((u) => u.id !== myId && u.nickname !== myNickname && u.avatar.currentRoomId === roomId)
+        .filter((u) => u.id !== myId && u.avatar.currentRoomId === roomId)
         .map((u) => {
           const pos = positionMap.get(u.id);
           if (pos) {
@@ -54,7 +53,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
       sameRoomUsersRef.current = sameRoomUsers;
       userRef.current = currentUser;
 
-      if (gameScene.isReady) {
+      if (gameScene?.isReady) {
         gameScene.renderAnotherAvatars(sameRoomUsers, currentUser);
       }
     };
@@ -76,7 +75,12 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
         return prevUser && user.deskStatus !== prevUser.deskStatus;
       });
 
-      if (usersStructureChanged || currentRoomChanged || otherUserRoomChanged || deskStatusChanged) {
+      const userInfoChanged = state.users.some((user, index) => {
+        const prevUser = prevState.users[index];
+        return prevUser && (user.nickname !== prevUser.nickname || user.avatar.assetKey !== prevUser.avatar.assetKey);
+      });
+
+      if (usersStructureChanged || currentRoomChanged || otherUserRoomChanged || deskStatusChanged || userInfoChanged) {
         renderAvatars();
       }
     });
@@ -89,7 +93,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
 
     const unsubscribeImageViewModal = useRestaurantImageViewStore.subscribe((state, prevState) => {
       if (state.isOpen !== prevState.isOpen) {
-        gameScene.setInputEnabled(!state.isOpen);
+        gameScene?.setInputEnabled(!state.isOpen);
       }
     });
 

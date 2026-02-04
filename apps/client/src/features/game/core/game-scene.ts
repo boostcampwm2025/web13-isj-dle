@@ -322,6 +322,14 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
   }
 
+  updateAvatar(user: User): void {
+    if (!this.avatar) return;
+    this.nicknameManager.updateNickname(user.nickname, user.avatar.x, user.avatar.y);
+    if (this.avatar.sprite.texture.key !== user.avatar.assetKey) {
+      this.avatar.sprite.setTexture(user.avatar.assetKey, IDLE_FRAME[this.avatar.direction]);
+    }
+  }
+
   syncZoomFromStore(): void {
     const zoomStore = useZoomStore.getState();
     this.mapObj.zoom.index = zoomStore.zoomIndex;

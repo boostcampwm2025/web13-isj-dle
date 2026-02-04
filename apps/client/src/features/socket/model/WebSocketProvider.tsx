@@ -4,6 +4,7 @@ import { Socket, io } from "socket.io-client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { useAuthStore } from "@entities/auth";
 import { useBreakoutStore } from "@entities/lectern";
 import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
@@ -15,6 +16,7 @@ import {
   type BreakoutState,
   LecternEventType,
   type RoomType,
+  type UpdateAuthUserPayload,
   type User,
   UserEventType,
 } from "@shared/types";
@@ -31,12 +33,20 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const addUser = useUserStore((s) => s.addUser);
   const removeUser = useUserStore((s) => s.removeUser);
   const updateUser = useUserStore((s) => s.updateUser);
+  const updateUserInfo = useUserStore((s) => s.updateUserInfo);
   const updateUserPosition = useUserStore((s) => s.updateUserPosition);
   const setLecternState = useLecternStore.getState().setLecternState;
+  const authUser = useAuthStore((s) => s.authUser);
+  const authUserId = authUser?.id;
   const [game, setGame] = useState<Phaser.Game | null>(null);
 
   useEffect(() => {
+    if (!authUserId) return;
+
     const socketInstance = io(SERVER_URL, {
+      auth: {
+        userId: authUserId.toString(),
+      },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 300,
@@ -97,6 +107,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       updateUser({ id: userId, ...rest });
     };
 
+    const handleUserInfoUpdate = (data: UpdateAuthUserPayload & { userId: number }) => {
+      updateUserInfo(data);
+    };
+
     const handlePlayerMoved = (data: {
       userId: string;
       x: number;
@@ -155,6 +169,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     socketInstance.on(UserEventType.USER_JOIN, handleUserJoin);
     socketInstance.on(UserEventType.USER_LEFT, handleUserLeft);
     socketInstance.on(UserEventType.USER_UPDATE, handleUserUpdate);
+    socketInstance.on(UserEventType.USER_INFO_UPDATE, handleUserInfoUpdate);
     socketInstance.on(UserEventType.PLAYER_MOVED, handlePlayerMoved);
     socketInstance.on(UserEventType.BOUNDARY_UPDATE, handleBoundaryUpdate);
 
@@ -172,7 +187,17 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       setSocket(null);
       setIsConnected(false);
     };
-  }, [addUser, removeUser, setSyncUsers, updateUser, updateUserPosition, setLecternState, game]);
+  }, [
+    addUser,
+    removeUser,
+    setSyncUsers,
+    updateUser,
+    updateUserInfo,
+    updateUserPosition,
+    setLecternState,
+    game,
+    authUserId,
+  ]);
 
   return <WebSocketContext.Provider value={{ socket, isConnected, setGame }}>{children}</WebSocketContext.Provider>;
 };

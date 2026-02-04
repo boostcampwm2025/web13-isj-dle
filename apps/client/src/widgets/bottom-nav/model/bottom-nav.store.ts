@@ -11,7 +11,7 @@ interface BottomNavState {
 }
 
 export const useBottomNavStore = create<BottomNavState>((set) => ({
-  bottomNavigation: ["mic", "camera", "screen_share", "desk_zone"],
+  bottomNavigation: ["mic", "camera", "screen_share", "desk_zone", "logout"],
 
   addKey: (key) =>
     set((state) => ({
