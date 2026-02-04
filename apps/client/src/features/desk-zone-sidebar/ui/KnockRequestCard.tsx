@@ -5,8 +5,8 @@ import type { Knock } from "@shared/types";
 
 interface KnockRequestCardProps {
   knock: Knock;
-  onAccept: (fromUserId: string) => void;
-  onReject: (fromUserId: string) => void;
+  onAccept: (fromSocketId: string) => void;
+  onReject: (fromSocketId: string) => void;
 }
 
 export const KnockRequestCard = ({ knock, onAccept, onReject }: KnockRequestCardProps) => {
@@ -20,14 +20,14 @@ export const KnockRequestCard = ({ knock, onAccept, onReject }: KnockRequestCard
       </p>
       <div className="flex gap-2">
         <button
-          onClick={() => onAccept(knock.fromUserId)}
+          onClick={() => onAccept(knock.fromSocketId)}
           className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600"
         >
           <Check size={ICON_SIZE} />
           수락
         </button>
         <button
-          onClick={() => onReject(knock.fromUserId)}
+          onClick={() => onReject(knock.fromSocketId)}
           className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-rose-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600"
         >
           <X size={ICON_SIZE} />

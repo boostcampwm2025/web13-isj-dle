@@ -1,5 +1,8 @@
 import type { TilePoint } from "./game.types";
 
+import type { ToastPosition } from "react-hot-toast";
+
+import { ROOM_JOIN_TOAST_ID, TOAST_DURATION } from "@shared/config";
 import { type AvatarDirection, TILE_SIZE } from "@shared/types";
 
 export const TMJ_URL = "/assets/maps/world.tmj";
@@ -59,3 +62,14 @@ export const AUTO_MOVE_BLOCKED: TilePoint[] = [
   { x: 77, y: 75 },
   { x: 77, y: 76 },
 ];
+
+export const ROOM_JOIN_TOAST_OPTIONS = {
+  id: ROOM_JOIN_TOAST_ID,
+  position: "top-center" as ToastPosition,
+  duration: TOAST_DURATION,
+  style: {
+    marginTop: "110px",
+    background: "#EFF6FF",
+    color: "#1E3A8A",
+  },
+} as const;

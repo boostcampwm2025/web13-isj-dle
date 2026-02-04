@@ -8,7 +8,7 @@ export const KnockFailedModal = ({ isOpen, message, onClose }: KnockFailedModalP
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
       <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
         <h3 className="mb-2 text-lg font-semibold text-gray-900">알림</h3>
         <p className="mb-6 text-sm text-gray-500">{message}</p>

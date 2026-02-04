@@ -22,15 +22,15 @@ type ImageViewerModalProps = {
 
 const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
   const { targetUserId, imageUrl, isOpen, closeViewer } = useRestaurantImageViewStore();
-  const userId = useUserStore((state) => state.user?.id);
+  const userId = useUserStore((state) => state.user?.userId ?? null);
   const isSidebarOpen = useSidebarStore((s) => s.isOpen);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const deleteMutation = useDeleteRestaurantImageMutation(userId ?? null);
-  const replaceMutation = useReplaceRestaurantImageMutation(userId ?? null);
+  const deleteMutation = useDeleteRestaurantImageMutation(userId);
+  const replaceMutation = useReplaceRestaurantImageMutation(userId);
 
   const isOwner = useMemo(() => targetUserId !== null && targetUserId === userId, [targetUserId, userId]);
 
@@ -107,7 +107,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
 
   return createPortal(
     <div
-      className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300"
       style={{ right: isSidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH }}
       onClick={closeViewer}
     >
@@ -115,7 +115,7 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
         className="relative flex max-h-[60vh] max-w-[50vw] flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute top-2 right-2 z-10 flex gap-2">
+        <div className="absolute top-2 right-2 flex gap-2">
           {isOwner && (
             <>
               <button

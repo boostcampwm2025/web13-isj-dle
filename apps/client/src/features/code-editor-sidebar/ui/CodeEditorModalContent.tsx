@@ -17,14 +17,15 @@ import { CollaborationModal } from "@shared/ui";
 
 const CodeEditorModalContent = () => {
   const closeTool = useCollaborationToolStore((state) => state.closeTool);
-  const user = useUserStore((state) => state.user);
+  const socketId = useUserStore((state) => state.user?.socketId);
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
   const myBreakoutRoomId =
-    breakoutState?.isActive && user?.id
-      ? (breakoutState.rooms.find((room) => room.userIds.includes(user.id))?.roomId ?? null)
+    breakoutState?.isActive && socketId
+      ? (breakoutState.rooms.find((room) => room.socketIds.includes(socketId))?.roomId ?? null)
       : null;
-  const roomId = myBreakoutRoomId || user?.avatar.currentRoomId || "default";
+  const roomId = myBreakoutRoomId || currentRoomId || "default";
 
   const { monaco, theme, setTheme, availableLanguages, showExplorer, setShowExplorer } = useCodeEditor();
   const { ydocRef, providerRef, awarenessRef, isConnected, isInitialized } = useYjs(roomId);
@@ -92,7 +93,7 @@ const CodeEditorModalContent = () => {
           </div>
         )}
 
-        <div className="relative h-full min-w-0 flex-1">
+        <div className="relative h-full min-w-0 flex-1" onKeyDown={(e) => e.stopPropagation()}>
           {!selectedFileId && (
             <div
               className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 ${THEME_COLORS[theme].bg}`}

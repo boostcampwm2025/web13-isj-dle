@@ -18,15 +18,14 @@ import {
   usePinnedTracks,
   useTracks,
 } from "@livekit/components-react";
-import { SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH, type VideoConferenceMode } from "@shared/config";
+import { type VideoConferenceMode } from "@shared/config";
 import { useVisibleUsers } from "@shared/model";
 
 interface VideoFullGridProps {
   setMode: (mode: VideoConferenceMode | null) => void;
-  isSidebarOpen: boolean;
 }
 
-const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
+const VideoFullGrid = ({ setMode }: VideoFullGridProps) => {
   useBindLocalParticipant();
   const allTracks = useTracks(
     [
@@ -36,8 +35,8 @@ const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false },
   );
 
-  const visibleUserIds = useVisibleUsers();
-  const tracks = visibleUserIds ? allTracks.filter((t) => visibleUserIds.has(t.participant.identity)) : allTracks;
+  const visibleSocketIds = useVisibleUsers();
+  const tracks = visibleSocketIds ? allTracks.filter((t) => visibleSocketIds.has(t.participant.identity)) : allTracks;
 
   const layoutContext = useCreateLayoutContext();
 
@@ -56,12 +55,7 @@ const VideoFullGrid = ({ setMode, isSidebarOpen }: VideoFullGridProps) => {
   });
 
   return (
-    <div
-      className="lk-video-conference pointer-events-auto transition-all duration-500 ease-in-out"
-      style={{
-        width: isSidebarOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : `calc(100% - ${SIDEBAR_TAB_WIDTH}px)`,
-      }}
-    >
+    <div className="lk-video-conference pointer-events-auto">
       <LayoutContextProvider value={layoutContext}>
         <div className="lk-video-conference-inner">
           {!focusTrack ? (

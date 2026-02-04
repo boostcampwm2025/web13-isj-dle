@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 import { JOIN_SUFFIX, LEAVE_SUFFIX, useChatStore } from "@entities/chat";
 import { useUserStore } from "@entities/user";
@@ -9,8 +9,6 @@ type BoundaryChatMessage = ReceivedChatMessage & {
 };
 
 export const useChatMessage = () => {
-  const ulRef = useRef<HTMLUListElement>(null);
-
   const chatMessages = useChatStore((s) => s.chatMessages);
   const systemMessages = useChatStore((s) => s.systemMessages);
   const send = useChatStore((s) => s.send);
@@ -103,12 +101,6 @@ export const useChatMessage = () => {
     return deduped;
   }, [chatMessages, systemMessages, myContactId, currentRoomId]);
 
-  useEffect(() => {
-    if (ulRef.current && ulRef.current.scrollHeight - ulRef.current.scrollTop - ulRef.current.clientHeight < 100) {
-      ulRef.current.scrollTo({ top: ulRef.current.scrollHeight });
-    }
-  }, [messages]);
-
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
@@ -126,6 +118,5 @@ export const useChatMessage = () => {
     messages,
     isSending,
     send: sendMessage,
-    ulRef,
   };
 };

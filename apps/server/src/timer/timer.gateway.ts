@@ -7,6 +7,7 @@ import {
   TimerEventType,
   type TimerPausePayload,
   type TimerResetPayload,
+  type TimerSetTimePayload,
   type TimerStartPayload,
   type TimerSyncPayload,
 } from "@shared/types";
@@ -70,14 +71,27 @@ export class TimerGateway {
     this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
   }
 
+  @SubscribeMessage(TimerEventType.TIMER_SET_TIME)
+  handleTimerSetTime(client: Socket, payload: TimerSetTimePayload) {
+    const roomId = payload?.roomId;
+    if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
+
+    const timerState = this.timerService.setTime(roomId, payload.timeSec);
+    this.server.to(roomId).emit(TimerEventType.TIMER_STATE, timerState);
+  }
+
   @SubscribeMessage(TimerEventType.TIMER_SYNC)
   handleTimerSync(client: Socket, payload: TimerSyncPayload) {
     const roomId = payload?.roomId;
     if (!roomId || !isMeetingRoomId(roomId) || !this.validateTimerRequest(client, roomId)) return;
 
     const timerState = this.timerService.getTimerState(roomId);
-    const finishedAt = (timerState.startedAt ?? 0) + timerState.initialTimeSec * 1000;
-    if (Date.now() > finishedAt) return;
+
+    if (timerState.isRunning && timerState.startedAt !== null) {
+      const finishedAt = timerState.startedAt + timerState.initialTimeSec * 1000;
+      if (Date.now() > finishedAt) return;
+    }
+
     client.emit(TimerEventType.TIMER_STATE, timerState);
   }
 }

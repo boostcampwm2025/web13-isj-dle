@@ -1,4 +1,4 @@
-import type { GameScene } from "../core/game-scene";
+import type { GameScene } from "../core";
 import { GAME_SCENE_KEY } from "./game.constants";
 
 import { useEffect, useRef } from "react";
@@ -10,7 +10,7 @@ import type { User } from "@shared/types";
 const isSameUserStructure = (nextUsers: User[], prevUsers: User[]) => {
   if (nextUsers.length !== prevUsers.length) return false;
 
-  return nextUsers.every((user, index) => user.id === prevUsers[index]?.id);
+  return nextUsers.every((user, index) => user.socketId === prevUsers[index]?.socketId);
 };
 
 export const useAvatarRenderer = (game: Phaser.Game | null) => {
@@ -20,7 +20,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
   useEffect(() => {
     if (!game) return;
 
-    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | null;
 
     const renderAvatars = () => {
       const state = useUserStore.getState();
@@ -28,14 +28,13 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
       if (!currentUser) return;
 
       const roomId = currentUser.avatar.currentRoomId;
-      const myId = currentUser.id;
-      const myNickname = currentUser.nickname;
+      const mySocketId = currentUser.socketId;
       const positionMap = positionStore.getAll();
 
       const sameRoomUsers = state.users
-        .filter((u) => u.id !== myId && u.nickname !== myNickname && u.avatar.currentRoomId === roomId)
+        .filter((u) => u.socketId !== mySocketId && u.avatar.currentRoomId === roomId)
         .map((u) => {
-          const pos = positionMap.get(u.id);
+          const pos = positionMap.get(u.socketId);
           if (pos) {
             return {
               ...u,
@@ -54,7 +53,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
       sameRoomUsersRef.current = sameRoomUsers;
       userRef.current = currentUser;
 
-      if (gameScene.isReady) {
+      if (gameScene?.isReady) {
         gameScene.renderAnotherAvatars(sameRoomUsers, currentUser);
       }
     };
@@ -76,7 +75,12 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
         return prevUser && user.deskStatus !== prevUser.deskStatus;
       });
 
-      if (usersStructureChanged || currentRoomChanged || otherUserRoomChanged || deskStatusChanged) {
+      const userInfoChanged = state.users.some((user, index) => {
+        const prevUser = prevState.users[index];
+        return prevUser && (user.nickname !== prevUser.nickname || user.avatar.assetKey !== prevUser.avatar.assetKey);
+      });
+
+      if (usersStructureChanged || currentRoomChanged || otherUserRoomChanged || deskStatusChanged || userInfoChanged) {
         renderAvatars();
       }
     });
@@ -89,7 +93,7 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
 
     const unsubscribeImageViewModal = useRestaurantImageViewStore.subscribe((state, prevState) => {
       if (state.isOpen !== prevState.isOpen) {
-        gameScene.setInputEnabled(!state.isOpen);
+        gameScene?.setInputEnabled(!state.isOpen);
       }
     });
 

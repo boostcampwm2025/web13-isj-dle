@@ -1,7 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 
+import { RestaurantImageEventType } from "@shared/types";
 import { In, Repository } from "typeorm";
 
 import { S3Service } from "../storage/s3.service";
@@ -9,8 +11,15 @@ import { RestaurantImageEntity } from "./restaurant-image.entity";
 
 const CLEANUP_BATCH_SIZE = 100;
 const S3_LIST_BATCH_SIZE = 500;
-const MAX_CONSECUTIVE_FAILURES = 3;
 const RESTAURANT_IMAGES_PREFIX = "restaurant-images/";
+
+const getTodayMidnightKST = (): Date => {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstNow = new Date(now.getTime() + kstOffset);
+  kstNow.setUTCHours(0, 0, 0, 0);
+  return new Date(kstNow.getTime() - kstOffset);
+};
 
 @Injectable()
 export class RestaurantImageCleanupService {
@@ -20,116 +29,117 @@ export class RestaurantImageCleanupService {
     private readonly s3Service: S3Service,
     @InjectRepository(RestaurantImageEntity)
     private readonly restaurantImageRepository: Repository<RestaurantImageEntity>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Cron("0 0 0 * * *", { timeZone: "Asia/Seoul" })
   async cleanupMidnight(): Promise<void> {
-    this.logger.log("Starting midnight cleanup of orphan restaurant image records");
-
-    const dbStats = await this.cleanupOrphanRecords();
-    this.logger.log(
-      `DB orphan cleanup completed: ${dbStats.deletedCount} deleted, ${dbStats.failedCount} failed, ${dbStats.skippedCount} skipped`,
-    );
-
-    const s3Stats = await this.cleanupOrphanS3Files();
-    this.logger.log(`S3 orphan cleanup completed: ${s3Stats.deletedCount} deleted, ${s3Stats.failedCount} failed`);
+    await this.cleanupExpiredImages();
+    await this.cleanupOrphanRecords();
+    await this.cleanupOrphanS3Files();
   }
 
-  async cleanupOrphanRecords(): Promise<{ deletedCount: number; failedCount: number; skippedCount: number }> {
-    const stats = { lastId: 0, deletedCount: 0, failedCount: 0, skippedCount: 0, consecutiveFailures: 0 };
+  private async cleanupExpiredImages(cutoff?: Date): Promise<void> {
+    cutoff = cutoff ?? getTodayMidnightKST();
+    const affectedUserIds = new Set<number>();
+    let lastId = 0;
 
-    while (stats.consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
-      const rows = await this.fetchBatch(stats.lastId);
+    while (true) {
+      const rows = await this.restaurantImageRepository
+        .createQueryBuilder("img")
+        .select(["img.id", "img.key", "img.userId"])
+        .where("img.id > :lastId", { lastId })
+        .andWhere("img.createdAt < :cutoff", { cutoff })
+        .orderBy("img.id", "ASC")
+        .limit(CLEANUP_BATCH_SIZE)
+        .getMany();
+
       if (rows.length === 0) break;
 
-      stats.lastId = rows.at(-1)!.id;
+      lastId = rows.at(-1)!.id;
+      const keys = rows.map((r) => r.key);
+      const ids = rows.map((r) => r.id);
+      rows.forEach((r) => affectedUserIds.add(r.userId));
 
-      const orphanIds = await this.findOrphanIds(rows, stats);
-      if (stats.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) break;
-
-      await this.deleteOrphanRecords(orphanIds, stats);
-    }
-
-    if (stats.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-      this.logger.error(`Cleanup aborted after ${MAX_CONSECUTIVE_FAILURES} consecutive S3 failures`);
-    }
-
-    return { deletedCount: stats.deletedCount, failedCount: stats.failedCount, skippedCount: stats.skippedCount };
-  }
-
-  private async fetchBatch(lastId: number): Promise<RestaurantImageEntity[]> {
-    return this.restaurantImageRepository
-      .createQueryBuilder("img")
-      .select(["img.id", "img.key"])
-      .where("img.id > :lastId", { lastId })
-      .orderBy("img.id", "ASC")
-      .limit(CLEANUP_BATCH_SIZE)
-      .getMany();
-  }
-
-  private async findOrphanIds(
-    rows: RestaurantImageEntity[],
-    stats: { consecutiveFailures: number; failedCount: number },
-  ): Promise<number[]> {
-    const orphanIds: number[] = [];
-
-    for (const row of rows) {
       try {
-        const exists = await this.s3Service.objectExists(row.key);
-        if (!exists) orphanIds.push(row.id);
-        stats.consecutiveFailures = 0;
+        await this.s3Service.deleteObjects(keys);
       } catch (e) {
-        stats.consecutiveFailures++;
-        stats.failedCount++;
-        this.logger.error(
-          `Failed to check S3 object existence for key=${row.key} (consecutive failures: ${stats.consecutiveFailures})`,
-          e instanceof Error ? e.stack : undefined,
-        );
-        if (stats.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) break;
+        this.logger.error(`Failed to delete S3 objects`, e instanceof Error ? e.stack : undefined);
+        continue;
+      }
+
+      try {
+        await this.restaurantImageRepository.delete({ id: In(ids) });
+      } catch (e) {
+        this.logger.error(`Failed to delete DB records`, e instanceof Error ? e.stack : undefined);
       }
     }
 
-    return orphanIds;
-  }
-
-  private async deleteOrphanRecords(
-    orphanIds: number[],
-    stats: { deletedCount: number; skippedCount: number },
-  ): Promise<void> {
-    if (orphanIds.length === 0) return;
-
-    try {
-      await this.restaurantImageRepository.delete({ id: In(orphanIds) });
-      stats.deletedCount += orphanIds.length;
-    } catch (e) {
-      stats.skippedCount += orphanIds.length;
-      this.logger.error(
-        `Failed to delete orphan DB records (batch ${orphanIds.length})`,
-        e instanceof Error ? e.stack : undefined,
-      );
+    for (const userId of affectedUserIds) {
+      this.emitThumbnailUpdated(userId);
     }
   }
 
-  async cleanupOrphanS3Files(): Promise<{ deletedCount: number; failedCount: number }> {
-    const stats = { deletedCount: 0, failedCount: 0, consecutiveFailures: 0 };
-
+  private async cleanupOrphanRecords(): Promise<void> {
     try {
       const s3Objects = await this.s3Service.listObjects(RESTAURANT_IMAGES_PREFIX, S3_LIST_BATCH_SIZE);
-      if (s3Objects.length === 0) return stats;
+      const s3Keys = new Set(s3Objects.map((obj) => obj.key));
+
+      let lastId = 0;
+
+      while (true) {
+        const rows = await this.restaurantImageRepository
+          .createQueryBuilder("img")
+          .select(["img.id", "img.key"])
+          .where("img.id > :lastId", { lastId })
+          .orderBy("img.id", "ASC")
+          .limit(CLEANUP_BATCH_SIZE)
+          .getMany();
+
+        if (rows.length === 0) break;
+
+        lastId = rows.at(-1)!.id;
+
+        const orphanIds = rows.filter((row) => !s3Keys.has(row.key)).map((row) => row.id);
+
+        if (orphanIds.length > 0) {
+          try {
+            await this.restaurantImageRepository.delete({ id: In(orphanIds) });
+          } catch (e) {
+            this.logger.error(`Failed to delete orphan DB records`, e instanceof Error ? e.stack : undefined);
+          }
+        }
+      }
+    } catch (e) {
+      this.logger.error("Failed to cleanup orphan records", e instanceof Error ? e.stack : undefined);
+    }
+  }
+
+  private async cleanupOrphanS3Files(): Promise<void> {
+    try {
+      const s3Objects = await this.s3Service.listObjects(RESTAURANT_IMAGES_PREFIX, S3_LIST_BATCH_SIZE);
+      if (s3Objects.length === 0) return;
 
       const s3Keys = s3Objects.map((obj) => obj.key);
       const existingKeys = await this.getExistingKeysFromDb(s3Keys);
       const orphanKeys = s3Keys.filter((key) => !existingKeys.has(key));
 
-      if (orphanKeys.length === 0) return stats;
+      if (orphanKeys.length === 0) return;
 
-      await this.deleteOrphanS3Files(orphanKeys, stats);
+      for (let i = 0; i < orphanKeys.length; i += CLEANUP_BATCH_SIZE) {
+        const batch = orphanKeys.slice(i, i + CLEANUP_BATCH_SIZE);
+        try {
+          await this.s3Service.deleteObjects(batch);
+        } catch (e) {
+          this.logger.error(
+            `Failed to delete orphan S3 files (batch ${batch.length})`,
+            e instanceof Error ? e.stack : undefined,
+          );
+        }
+      }
     } catch (e) {
       this.logger.error("Failed to cleanup orphan S3 files", e instanceof Error ? e.stack : undefined);
-      stats.failedCount++;
     }
-
-    return stats;
   }
 
   private async getExistingKeysFromDb(keys: string[]): Promise<Set<string>> {
@@ -144,25 +154,7 @@ export class RestaurantImageCleanupService {
     return new Set(rows.map((row) => row.key));
   }
 
-  private async deleteOrphanS3Files(
-    orphanKeys: string[],
-    stats: { deletedCount: number; failedCount: number },
-  ): Promise<void> {
-    const batchSize = CLEANUP_BATCH_SIZE;
-
-    for (let i = 0; i < orphanKeys.length; i += batchSize) {
-      const batch = orphanKeys.slice(i, i + batchSize);
-
-      try {
-        await this.s3Service.deleteObjects(batch);
-        stats.deletedCount += batch.length;
-      } catch (e) {
-        stats.failedCount += batch.length;
-        this.logger.error(
-          `Failed to delete orphan S3 files (batch ${batch.length})`,
-          e instanceof Error ? e.stack : undefined,
-        );
-      }
-    }
+  private emitThumbnailUpdated(userId: number): void {
+    this.eventEmitter.emit(RestaurantImageEventType.THUMBNAIL_UPDATED, { userId, thumbnailUrl: null });
   }
 }

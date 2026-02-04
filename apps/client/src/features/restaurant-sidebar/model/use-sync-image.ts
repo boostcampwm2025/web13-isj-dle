@@ -16,23 +16,24 @@ const MAX_SYNC_USERS = 200;
 export const useSyncImage = () => {
   const { socket, isConnected } = useWebSocket();
   const users = useUserStore((s) => s.users);
-  const me = useUserStore((s) => s.user);
+  const userId = useUserStore((s) => s.user?.userId);
+  const currentRoomId = useUserStore((s) => s.user?.avatar.currentRoomId);
   const queryClient = useQueryClient();
 
   const restaurantUserIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (me?.avatar.currentRoomId === "restaurant") ids.add(me.id);
+    const userIds = new Set<number>();
+    if (currentRoomId === "restaurant" && userId) userIds.add(userId);
     for (const u of users) {
-      if (u.avatar.currentRoomId === "restaurant") ids.add(u.id);
+      if (u.avatar.currentRoomId === "restaurant") userIds.add(u.userId);
     }
-    return Array.from(ids).slice(0, MAX_SYNC_USERS);
-  }, [me, users]);
+    return Array.from(userIds).slice(0, MAX_SYNC_USERS);
+  }, [currentRoomId, userId, users]);
 
   const restaurantUserIdsKey = useMemo(
     () =>
       restaurantUserIds
         .slice()
-        .sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => a - b)
         .join(","),
     [restaurantUserIds],
   );
@@ -42,22 +43,22 @@ export const useSyncImage = () => {
     if (!socket) return;
 
     const handleThumbnailUpdated = (payload: RestaurantThumbnailUpdatedPayload) => {
-      const userId = String(payload?.userId ?? "").trim();
-      if (!userId) return;
+      const payloadUserId = payload?.userId;
+      if (!payloadUserId) return;
 
       const thumbnailUrl = payload.thumbnailUrl ?? null;
-      const current = useRestaurantImageStore.getState().getThumbnailUrlByUserId(userId);
+      const current = useRestaurantImageStore.getState().getThumbnailUrlByUserId(payloadUserId);
       if (current === thumbnailUrl) return;
 
       if (thumbnailUrl) {
-        useRestaurantImageStore.getState().setThumbnail(userId, thumbnailUrl);
+        useRestaurantImageStore.getState().setThumbnail(payloadUserId, thumbnailUrl);
       } else {
-        useRestaurantImageStore.getState().clearThumbnail(userId);
+        useRestaurantImageStore.getState().clearThumbnail(payloadUserId);
       }
 
       queryClient.invalidateQueries({ queryKey: restaurantImageKeys.feed() }).catch(() => undefined);
-      if (me?.id && userId === me.id) {
-        queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(me.id) }).catch(() => undefined);
+      if (userId && payloadUserId === userId) {
+        queryClient.invalidateQueries({ queryKey: restaurantImageKeys.my(userId) }).catch(() => undefined);
       }
     };
 
@@ -82,7 +83,7 @@ export const useSyncImage = () => {
       socket.off(RestaurantImageEventType.THUMBNAIL_UPDATED, handleThumbnailUpdated);
       socket.off(RestaurantImageEventType.IMAGE_LIKE_UPDATED, handleLikeUpdated);
     };
-  }, [socket, queryClient, me?.id]);
+  }, [socket, queryClient, userId]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -101,9 +102,9 @@ export const useSyncImage = () => {
 
           for (const [userId, url] of Object.entries(map)) {
             const nextUrl = url ?? null;
-            if (state.thumbnailUrlByUserId[userId] === nextUrl) continue;
+            if (state.thumbnailUrlByUserId[Number(userId)] === nextUrl) continue;
             changed = true;
-            next[userId] = nextUrl;
+            next[Number(userId)] = nextUrl;
           }
 
           if (!changed) return state;

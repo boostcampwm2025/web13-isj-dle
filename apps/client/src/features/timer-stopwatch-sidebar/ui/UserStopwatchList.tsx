@@ -1,6 +1,6 @@
 import { formatTime, truncateNickname } from "../lib/format.utils";
 import { calculateStopwatchElapsedSeconds, calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
-import { TIMER_ICON_SIZE } from "../model/timer.constants";
+import { ONE_SECOND, TIMER_ICON_SIZE } from "../model/timer.constants";
 import { Users } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -9,7 +9,7 @@ import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useUserStore } from "@entities/user";
 import type { UserStopwatchState } from "@shared/types";
 
-const TimerDisplay = ({ user, now }: { user: UserStopwatchState; now: number }) => {
+const TimerDisplay = ({ user }: { user: UserStopwatchState }) => {
   const { timer } = user;
 
   const hasStarted = timer.initialTimeSec > 0 || timer.pausedTimeSec > 0;
@@ -17,7 +17,7 @@ const TimerDisplay = ({ user, now }: { user: UserStopwatchState; now: number }) 
     return <span className="font-mono text-xs text-gray-400">--:--:--</span>;
   }
 
-  const remaining = calculateTimerRemainingSeconds(timer.startedAt, timer.initialTimeSec, timer.pausedTimeSec, now);
+  const remaining = calculateTimerRemainingSeconds(timer.startedAt, timer.initialTimeSec, timer.pausedTimeSec);
 
   const { hours, minutes, seconds } = secondsToHms(remaining);
 
@@ -28,7 +28,7 @@ const TimerDisplay = ({ user, now }: { user: UserStopwatchState; now: number }) 
   );
 };
 
-const StopwatchDisplay = ({ user, now }: { user: UserStopwatchState; now: number }) => {
+const StopwatchDisplay = ({ user }: { user: UserStopwatchState }) => {
   const { stopwatch } = user;
 
   const hasStarted = stopwatch.startedAt !== null || stopwatch.pausedTimeSec > 0;
@@ -36,7 +36,7 @@ const StopwatchDisplay = ({ user, now }: { user: UserStopwatchState; now: number
     return <span className="font-mono text-xs text-gray-400">--:--:--</span>;
   }
 
-  const elapsed = calculateStopwatchElapsedSeconds(stopwatch.startedAt, stopwatch.pausedTimeSec, now);
+  const elapsed = calculateStopwatchElapsedSeconds(stopwatch.startedAt, stopwatch.pausedTimeSec);
 
   const { hours, minutes, seconds } = secondsToHms(elapsed);
 
@@ -49,17 +49,18 @@ const StopwatchDisplay = ({ user, now }: { user: UserStopwatchState; now: number
 
 export const UserStopwatchList = () => {
   const userStopwatches = useStopwatchShareStore((state) => state.userStopwatches);
-  const currentUser = useUserStore((state) => state.user);
-
-  const [now, setNow] = useState(() => Date.now());
+  const socketId = useUserStore((state) => state.user?.socketId);
+  const [, rerender] = useState(false);
 
   useEffect(() => {
+    if (userStopwatches.length === 0) return;
+
     const id = setInterval(() => {
-      setNow(Date.now());
-    }, 1000);
+      rerender((prev) => !prev);
+    }, ONE_SECOND);
 
     return () => clearInterval(id);
-  }, []);
+  }, [userStopwatches.length]);
 
   if (userStopwatches.length === 0) {
     return (
@@ -74,8 +75,8 @@ export const UserStopwatchList = () => {
   }
 
   const sortedUsers = [...userStopwatches].sort((a, b) => {
-    if (a.userId === currentUser?.id) return -1;
-    if (b.userId === currentUser?.id) return 1;
+    if (a.socketId === socketId) return -1;
+    if (b.socketId === socketId) return 1;
     return a.nickname.localeCompare(b.nickname);
   });
 
@@ -97,12 +98,12 @@ export const UserStopwatchList = () => {
 
       <ul className="space-y-1">
         {sortedUsers.map((user) => {
-          const isMe = user.userId === currentUser?.id;
+          const isMe = user.socketId === socketId;
           const displayName = truncateNickname(user.nickname);
 
           return (
             <li
-              key={user.userId}
+              key={user.socketId}
               className={`flex items-center justify-between rounded-md px-1 py-2 ${isMe ? "bg-blue-50" : "bg-white"}`}
             >
               <span className={`text-xs ${isMe ? "font-medium text-blue-700" : "text-gray-700"}`} title={user.nickname}>
@@ -111,10 +112,10 @@ export const UserStopwatchList = () => {
 
               <div className="flex gap-2">
                 <div className="w-16 text-center">
-                  <TimerDisplay user={user} now={now} />
+                  <TimerDisplay user={user} />
                 </div>
                 <div className="w-16 text-center">
-                  <StopwatchDisplay user={user} now={now} />
+                  <StopwatchDisplay user={user} />
                 </div>
               </div>
             </li>

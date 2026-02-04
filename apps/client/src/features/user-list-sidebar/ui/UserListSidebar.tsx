@@ -1,3 +1,4 @@
+import UserGroup from "./UserGroup";
 import { Users } from "lucide-react";
 
 import { useMemo } from "react";
@@ -5,22 +6,21 @@ import { useMemo } from "react";
 import { useUserStore } from "@entities/user";
 import { useGroupedUsers } from "@entities/user";
 import { useInviteLink } from "@shared/lib/invite";
-import { UserGroup } from "@shared/ui";
 
 const UserListSidebar = () => {
-  const userId = useUserStore((state) => state.user?.id);
+  const socketId = useUserStore((state) => state.user?.socketId);
   const userContactId = useUserStore((state) => state.user?.contactId);
   const userCurrentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const users = useUserStore((state) => state.users);
 
   const user = useMemo(() => {
-    if (!userId || !userCurrentRoomId) return null;
+    if (!socketId || !userCurrentRoomId) return null;
     return {
-      id: userId,
+      socketId: socketId,
       contactId: userContactId,
       avatar: { currentRoomId: userCurrentRoomId },
     };
-  }, [userId, userContactId, userCurrentRoomId]);
+  }, [socketId, userContactId, userCurrentRoomId]);
 
   const { sameContactUsers, usersByRoom } = useGroupedUsers(user, users);
   const { handleInviteClick } = useInviteLink();
@@ -32,18 +32,21 @@ const UserListSidebar = () => {
   return (
     <div className="flex h-full w-full flex-col gap-2">
       <div className="flex grow flex-col gap-1 overflow-y-auto">
-        {sameContactUsers.length > 1 && <UserGroup users={sameContactUsers} title="근처 사용자" userId={user.id} />}
+        {sameContactUsers.length > 1 && (
+          <UserGroup users={sameContactUsers} title="근처 사용자" socketId={user.socketId} />
+        )}
         {user && (
           <UserGroup
             users={usersByRoom[user.avatar.currentRoomId]}
             title={`${user.avatar.currentRoomId}`}
-            userId={user.id}
+            socketId={user.socketId}
+            updatable={true}
           />
         )}
         {Object.entries(usersByRoom)
           .filter(([roomId]) => roomId !== user.avatar.currentRoomId)
           .map(([roomId, users]) => (
-            <UserGroup key={roomId} users={users} title={`${roomId}`} userId={user.id} />
+            <UserGroup key={roomId} users={users} title={`${roomId}`} socketId={user.socketId} />
           ))}
       </div>
       <div className="flex h-auto flex-row justify-between p-2">

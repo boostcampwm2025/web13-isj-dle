@@ -6,16 +6,16 @@ export enum RestaurantImageEventType {
 }
 
 export type RestaurantThumbnailUpdatedPayload = {
-  userId: string;
+  userId: number;
   thumbnailUrl: string | null;
 };
 
 export type RestaurantThumbnailsSyncPayload = {
-  userIds: string[];
+  userIds: number[];
 };
 
 export type RestaurantThumbnailsStatePayload = {
-  thumbnailsByUserId: Record<string, string | null>;
+  thumbnailsByUserId: Record<number, string | null>;
 };
 
 export type RestaurantImageLikeUpdatedPayload = {
@@ -25,7 +25,7 @@ export type RestaurantImageLikeUpdatedPayload = {
 
 export type RestaurantImageLikeTogglePayload = {
   imageId: string;
-  userId: string;
+  userId: number;
 };
 
 export type RestaurantImageLikeToggleAck =

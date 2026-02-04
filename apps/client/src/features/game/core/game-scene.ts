@@ -18,6 +18,8 @@ import {
   TMJ_URL,
 } from "../model/game.constants";
 import type { AvatarEntity, MapObj } from "../model/game.types";
+import { DEFAULT_ZOOM_INDEX, ZOOM_LEVELS } from "../model/zoom.constants";
+import { useZoomStore } from "../model/zoom.store";
 import { AvatarRenderer, BoundaryRenderer } from "../renderers";
 import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTilesets } from "../utils";
 import Phaser from "phaser";
@@ -38,7 +40,7 @@ export class GameScene extends Phaser.Scene {
 
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
-  private userId: string | null = null;
+  private user!: User;
   private nicknameManager!: NicknameManager;
 
   private inputManager!: InputManager;
@@ -50,6 +52,8 @@ export class GameScene extends Phaser.Scene {
   private lecternManager!: LecternManager;
   private restaurantImageManager!: RestaurantImageManager;
   private autoMoveManager!: AutoMoveManager;
+  private lastZoomTime = 0;
+  private readonly ZOOM_THROTTLE_MS = 50;
 
   constructor() {
     super({ key: GAME_SCENE_KEY });
@@ -59,8 +63,8 @@ export class GameScene extends Phaser.Scene {
       map: null,
       depthCount: 0,
       zoom: {
-        index: 4,
-        levels: [1, 2, 3, 4, 5, 7, 9, 10],
+        index: DEFAULT_ZOOM_INDEX,
+        levels: [...ZOOM_LEVELS],
       },
     };
   }
@@ -143,11 +147,18 @@ export class GameScene extends Phaser.Scene {
       this.input.on(
         "wheel",
         (_pointer: Phaser.Input.Pointer, _objs: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
-          if (dy == 0) return;
-          if (dy > 0) this.mapObj.zoom.index = Math.max(0, this.mapObj.zoom.index - 1);
-          else this.mapObj.zoom.index = Math.min(this.mapObj.zoom.levels.length - 1, this.mapObj.zoom.index + 1);
+          if (dy === 0) return;
 
-          this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+          const now = Date.now();
+          if (now - this.lastZoomTime < this.ZOOM_THROTTLE_MS) return;
+          this.lastZoomTime = now;
+
+          if (dy > 0) {
+            useZoomStore.getState().zoomOut();
+          } else {
+            useZoomStore.getState().zoomIn();
+          }
+          this.syncZoomFromStore();
         },
       );
 
@@ -204,7 +215,7 @@ export class GameScene extends Phaser.Scene {
     this.roomEntranceManager.checkRoomEntrance(this.avatar.sprite.x, this.avatar.sprite.y);
     this.restaurantImageManager.update({
       currentRoomId: this.roomEntranceManager.getCurrentRoomId(),
-      userId: this.userId,
+      userId: this.user.userId,
       x: this.avatar.sprite.x,
       y: this.avatar.sprite.y,
     });
@@ -288,7 +299,6 @@ export class GameScene extends Phaser.Scene {
 
   loadAvatar(user: User): void {
     if (this.avatar) return;
-    this.userId = user.id;
     const avatar = user.avatar;
     const spawn = getAvatarSpawnPoint(this.mapObj.map);
 
@@ -303,16 +313,31 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
+    this.user = user;
     this.nicknameManager.createNickname(spawn.x, spawn.y, user.nickname, user.deskStatus);
     this.nicknameManager.setDepth(Number.MAX_SAFE_INTEGER);
 
-    this.cameras.main.setZoom(this.mapObj.zoom.levels[this.mapObj.zoom.index]);
+    this.syncZoomFromStore();
     this.cameras.main.startFollow(sprite, false, 1, 1);
     this.cameras.main.setRoundPixels(true);
   }
 
+  updateAvatar(user: User): void {
+    if (!this.avatar) return;
+    this.nicknameManager.updateNickname(user.nickname, user.avatar.x, user.avatar.y);
+    if (this.avatar.sprite.texture.key !== user.avatar.assetKey) {
+      this.avatar.sprite.setTexture(user.avatar.assetKey, IDLE_FRAME[this.avatar.direction]);
+    }
+  }
+
+  syncZoomFromStore(): void {
+    const zoomStore = useZoomStore.getState();
+    this.mapObj.zoom.index = zoomStore.zoomIndex;
+    this.cameras.main.setZoom(zoomStore.getZoomLevel());
+  }
+
   renderAnotherAvatars(users: User[], currentUser?: User | null): void {
-    this.avatarRenderer.renderAnotherAvatars(users, this.mapObj.depthCount, currentUser?.id ?? null);
+    this.avatarRenderer.renderAnotherAvatars(users, this.mapObj.depthCount, currentUser?.socketId ?? null);
     this.avatar?.sprite.setDepth(this.mapObj.depthCount + users.length);
 
     this.boundaryRenderer.render(

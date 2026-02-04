@@ -38,7 +38,7 @@ export const BreakoutRoomCard = ({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <Users className="h-3.5 w-3.5" />
-            <span className="font-medium text-gray-700">{room.userIds.length}명</span>
+            <span className="font-medium text-gray-700">{room.socketIds.length}명</span>
           </div>
           {showJoinButton && !isCurrentRoom && canJoin && (
             <button

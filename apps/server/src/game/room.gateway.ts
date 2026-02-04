@@ -11,7 +11,7 @@ import { TimerService } from "../timer/timer.service";
 import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
 import { UserService } from "../user/user.service";
 
-const isTimerRoomId = (roomId: RoomType): boolean => roomId.startsWith("meeting");
+const isMeetingRoom = (roomId: RoomType): boolean => roomId.startsWith("meeting");
 const isMogakcoRoom = (roomId: RoomType): boolean => roomId === "mogakco";
 
 @WebSocketGateway()
@@ -50,14 +50,14 @@ export class RoomGateway {
         this.endTalkIfNeeded(client.id, user.nickname, "left_desk_zone");
 
         const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(client.id);
-        for (const targetUserId of sentTo) {
-          this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {
-            fromUserId: client.id,
+        for (const targetSocketId of sentTo) {
+          this.server.to(targetSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+            fromSocketId: client.id,
           });
         }
-        for (const fromUserId of receivedFrom) {
-          this.server.to(fromUserId).emit(KnockEventType.KNOCK_CANCELLED, {
-            targetUserId: client.id,
+        for (const fromSocketId of receivedFrom) {
+          this.server.to(fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+            targetSocketId: client.id,
           });
         }
 
@@ -74,7 +74,7 @@ export class RoomGateway {
       this.userService.updateSessionContactId(client.id, null);
 
       if (previousRoomId === "lobby") {
-        this.server.emit("internal:boundary-clear", { userId: client.id });
+        this.server.emit("internal:boundary-clear", { socketId: client.id });
         this.userService.updateSessionContactId(client.id, null);
       }
 
@@ -90,7 +90,7 @@ export class RoomGateway {
       if (!updatedUser) return;
 
       this.server.emit(RoomEventType.ROOM_JOINED, {
-        userId: client.id,
+        socketId: client.id,
         avatar: updatedUser.avatar,
       });
 
@@ -103,15 +103,15 @@ export class RoomGateway {
         this.userService.updateSessionDeskStatus(client.id, "available");
 
         this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-          userId: client.id,
+          socketId: client.id,
           status: "available",
         });
 
-        const deskzoneUsers = this.userService.getRoomSessions("desk zone");
-        for (const deskUser of deskzoneUsers) {
-          if (deskUser.id !== client.id && deskUser.deskStatus) {
+        const deskZoneUsers = this.userService.getRoomSessions("desk zone");
+        for (const deskUser of deskZoneUsers) {
+          if (deskUser.socketId !== client.id && deskUser.deskStatus) {
             client.emit(KnockEventType.DESK_STATUS_UPDATED, {
-              userId: deskUser.id,
+              socketId: deskUser.socketId,
               status: deskUser.deskStatus,
             });
           }
@@ -132,7 +132,7 @@ export class RoomGateway {
   }
 
   private cleanupTimerAfterLeave(roomId: RoomType) {
-    if (!isTimerRoomId(roomId)) return;
+    if (!isMeetingRoom(roomId)) return;
 
     const remaining = this.userService.getRoomSessions(roomId).length;
     if (remaining !== 0) return;
@@ -140,14 +140,22 @@ export class RoomGateway {
     this.timerService.deleteTimer(roomId);
   }
 
-  private cleanupStopwatchAfterLeave(roomId: RoomType, userId: string) {
-    if (!isMogakcoRoom(roomId)) return;
+  private cleanupStopwatchAfterLeave(roomId: RoomType, socketId: string) {
+    if (isMogakcoRoom(roomId)) {
+      this.stopwatchGateway.handleUserLeft(roomId, socketId);
+      return;
+    }
 
-    this.stopwatchGateway.handleUserLeft(roomId, userId);
+    if (isMeetingRoom(roomId)) {
+      const remaining = this.userService.getRoomSessions(roomId).length;
+      if (remaining === 0) {
+        this.stopwatchGateway.handleMeetingRoomEmpty(roomId);
+      }
+    }
   }
 
-  private endTalkIfNeeded(userId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {
-    const partnerId = this.knockService.removeTalkingPair(userId);
+  private endTalkIfNeeded(socketId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {
+    const partnerId = this.knockService.removeTalkingPair(socketId);
 
     if (!partnerId) return;
 
@@ -158,13 +166,13 @@ export class RoomGateway {
     this.userService.updateSessionContactId(partnerId, null);
 
     this.server.to(partnerId).emit(KnockEventType.TALK_ENDED, {
-      partnerUserId: userId,
+      partnerSocketId: socketId,
       partnerNickname: userNickname,
       reason,
     });
 
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: partnerId,
+      socketId: partnerId,
       status: "available",
     });
 

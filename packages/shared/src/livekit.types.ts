@@ -5,6 +5,6 @@ export interface LivekitTokenResponse {
 
 export interface LivekitRoomConfig {
   roomId: string;
-  userId: string;
+  socketId: string;
   nickname: string;
 }

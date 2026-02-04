@@ -5,36 +5,36 @@ import { LecternEventType } from "@shared/types";
 
 export const useBreakout = () => {
   const { socket } = useWebSocket();
-  const user = useUserStore((state) => state.user);
+  const socketId = useUserStore((state) => state.user?.socketId);
+  const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
   const users = useUserStore((state) => state.users);
   const breakoutState = useBreakoutStore((state) => state.breakoutState);
 
   const isBreakoutActive = breakoutState?.isActive ?? false;
 
   const currentRoomUsers = users
-    .filter((u) => u.avatar.currentRoomId === user?.avatar.currentRoomId)
-    .filter((u) => u.id !== user?.id);
+    .filter((u) => u.avatar.currentRoomId === currentRoomId)
+    .filter((u) => u.socketId !== socketId);
 
   const createBreakout = (roomCount: number, isRandom: boolean) => {
-    if (!socket || !user) {
+    if (!socket || !socketId) {
       return;
     }
 
-    const targetHostRoomId = breakoutState?.hostRoomId || user.avatar.currentRoomId;
-
+    const targetHostRoomId = breakoutState?.hostRoomId || currentRoomId;
     const payload = {
       hostRoomId: targetHostRoomId,
       config: {
         roomCount,
         isRandom,
       },
-      userIds: currentRoomUsers.map((u) => u.id),
+      socketIds: currentRoomUsers.map((u) => u.socketId),
     };
     socket.emit(LecternEventType.BREAKOUT_CREATE, payload);
   };
 
   const endBreakout = () => {
-    if (!socket || !user || !breakoutState) return;
+    if (!socket || !socketId || !breakoutState) return;
 
     socket.emit(LecternEventType.BREAKOUT_END, {
       hostRoomId: breakoutState.hostRoomId,

@@ -15,47 +15,50 @@ export class AvatarRenderer {
   private readonly avatars: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private readonly nicknameTexts: Map<string, Phaser.GameObjects.DOMElement> = new Map();
   private readonly thumbnailButtons: Map<string, Phaser.GameObjects.DOMElement> = new Map();
-  private readonly thumbnailUrlCache: Map<string, string | null> = new Map();
+  private readonly thumbnailUrlCache: Map<number, string | null> = new Map();
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
   }
 
-  renderAnotherAvatars(users: User[], baseDepth: number, currentUserId?: string | null): void {
-    const missingUsers = [...this.avatars.keys()].filter((userId) => !users.find((u) => u.id === userId));
-    missingUsers.forEach((userId) => {
-      const avatar = this.avatars.get(userId);
+  renderAnotherAvatars(users: User[], baseDepth: number, currentSocketId?: string | null): void {
+    const missingUsers = [...this.avatars.keys()].filter((socketId) => !users.find((u) => u.socketId === socketId));
+    missingUsers.forEach((socketId) => {
+      const avatar = this.avatars.get(socketId);
       if (avatar) {
         avatar.destroy();
-        this.avatars.delete(userId);
+        this.avatars.delete(socketId);
       }
 
-      const nicknameText = this.nicknameTexts.get(userId);
+      const nicknameText = this.nicknameTexts.get(socketId);
       if (nicknameText) {
         nicknameText.destroy();
-        this.nicknameTexts.delete(userId);
+        this.nicknameTexts.delete(socketId);
       }
 
-      const thumbnail = this.thumbnailButtons.get(userId);
+      const thumbnail = this.thumbnailButtons.get(socketId);
       if (thumbnail) {
         thumbnail.destroy();
-        this.thumbnailButtons.delete(userId);
+        this.thumbnailButtons.delete(socketId);
       }
     });
 
     users.sort((a, b) => a.avatar.y - b.avatar.y);
 
     users.forEach((user, index) => {
-      this.renderSingleAvatar(user, baseDepth + index, currentUserId);
+      this.renderSingleAvatar(user, baseDepth + index, currentSocketId);
     });
   }
 
-  private renderSingleAvatar(user: User, depth: number, currentUserId?: string | null): void {
+  private renderSingleAvatar(user: User, depth: number, currentSocketId?: string | null): void {
     const avatarModel = user.avatar;
 
-    let avatar = this.avatars.get(user.id);
+    let avatar = this.avatars.get(user.socketId);
     if (avatar) {
       avatar.setPosition(avatarModel.x, avatarModel.y);
+      if (avatar.texture.key !== avatarModel.assetKey) {
+        avatar.setTexture(avatarModel.assetKey, IDLE_FRAME[avatarModel.direction]);
+      }
     } else {
       avatar = this.scene.add.sprite(
         avatarModel.x,
@@ -64,7 +67,7 @@ export class AvatarRenderer {
         IDLE_FRAME[avatarModel.direction],
       );
       avatar.setOrigin(0.5, 0.75);
-      this.avatars.set(user.id, avatar);
+      this.avatars.set(user.socketId, avatar);
     }
 
     avatar.setDepth(depth);
@@ -79,8 +82,9 @@ export class AvatarRenderer {
       this.toIdle(avatar, avatarModel.direction);
     }
 
-    let nicknameText = this.nicknameTexts.get(user.id);
+    let nicknameText = this.nicknameTexts.get(user.socketId);
     if (nicknameText) {
+      nicknameText.node.querySelector("span:last-child")!.textContent = user.nickname;
       this.updateNicknamePosition(nicknameText, avatar);
       this.updateStatusIndicator(nicknameText, user.deskStatus);
     } else {
@@ -90,15 +94,15 @@ export class AvatarRenderer {
         user.nickname,
         user.deskStatus,
       );
-      this.nicknameTexts.set(user.id, nicknameText);
+      this.nicknameTexts.set(user.socketId, nicknameText);
     }
 
     nicknameText.setDepth(depth);
 
     if (avatarModel.currentRoomId === "restaurant") {
-      this.renderThumbnailButton(user.id, avatar, depth, currentUserId === user.id);
+      this.renderThumbnailButton(user.socketId, user.userId, avatar, depth, currentSocketId === user.socketId);
     } else {
-      this.removeThumbnailButton(user.id);
+      this.removeThumbnailButton(user.socketId, user.userId);
     }
   }
 
@@ -153,22 +157,34 @@ export class AvatarRenderer {
     domElement.setPosition(sprite.x, sprite.y - NICKNAME_OFFSET_Y);
   }
 
-  private renderThumbnailButton(userId: string, avatar: Phaser.GameObjects.Sprite, depth: number, isMe: boolean): void {
-    let button = this.thumbnailButtons.get(userId);
+  private renderThumbnailButton(
+    socketId: string,
+    userId: number,
+    avatar: Phaser.GameObjects.Sprite,
+    depth: number,
+    isMe: boolean,
+  ): void {
+    let button = this.thumbnailButtons.get(socketId);
 
     if (button) {
       this.updateThumbnailPosition(button, avatar);
       this.updateThumbnailButtonAppearance(button, userId, isMe);
     } else {
-      button = this.createThumbnailButton(avatar.x, avatar.y - NICKNAME_OFFSET_Y, userId, isMe);
-      this.thumbnailButtons.set(userId, button);
+      button = this.createThumbnailButton(avatar.x, avatar.y - NICKNAME_OFFSET_Y, socketId, userId, isMe);
+      this.thumbnailButtons.set(socketId, button);
       this.updateThumbnailPosition(button, avatar);
     }
 
     button.setDepth(depth + 0.1);
   }
 
-  private createThumbnailButton(x: number, y: number, userId: string, isMe: boolean): Phaser.GameObjects.DOMElement {
+  private createThumbnailButton(
+    x: number,
+    y: number,
+    socketId: string,
+    userId: number,
+    isMe: boolean,
+  ): Phaser.GameObjects.DOMElement {
     const button = document.createElement("button");
     button.type = "button";
 
@@ -185,7 +201,7 @@ export class AvatarRenderer {
     button.append(img, text);
 
     this.updateThumbnailButtonNode(button, userId, isMe);
-    button.dataset.userId = userId;
+    button.dataset.socketId = socketId;
     button.onclick = (e) => {
       e.stopPropagation();
 
@@ -211,7 +227,7 @@ export class AvatarRenderer {
 
   private updateThumbnailButtonAppearance(
     domElement: Phaser.GameObjects.DOMElement,
-    userId: string,
+    userId: number,
     isMe: boolean,
   ): void {
     const entity = useRestaurantImageStore.getState();
@@ -225,7 +241,7 @@ export class AvatarRenderer {
     this.updateThumbnailButtonNode(button, userId, isMe);
   }
 
-  private updateThumbnailButtonNode(button: HTMLButtonElement, userId: string, isMe: boolean): void {
+  private updateThumbnailButtonNode(button: HTMLButtonElement, userId: number, isMe: boolean): void {
     const entity = useRestaurantImageStore.getState();
     const url = entity.getThumbnailUrlByUserId(userId);
     const hasThumbnail = Boolean(url);
@@ -248,11 +264,11 @@ export class AvatarRenderer {
     button.classList.toggle("opacity-50", disabled);
   }
 
-  private removeThumbnailButton(userId: string): void {
-    const button = this.thumbnailButtons.get(userId);
+  private removeThumbnailButton(socketId: string, userId: number): void {
+    const button = this.thumbnailButtons.get(socketId);
     if (button) {
       button.destroy();
-      this.thumbnailButtons.delete(userId);
+      this.thumbnailButtons.delete(socketId);
       this.thumbnailUrlCache.delete(userId);
     }
   }

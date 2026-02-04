@@ -1,28 +1,35 @@
-import type { ActionHook } from "./action.types";
-import { LogOut } from "lucide-react";
+import { DoorOpen } from "lucide-react";
+
+import { useCallback, useMemo } from "react";
 
 import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { useBreakoutJoin } from "@features/host-sidebar";
+import type { ActionHook } from "@shared/config";
 
 export const useLeaveAction: ActionHook = () => {
-  const user = useUserStore((state) => state.user?.id);
-  const { currentBreakoutRoomId, leaveToMainRoom } = useBreakoutJoin();
-  const isInBreakoutRoom = !!currentBreakoutRoomId;
+  const user = useUserStore((state) => state.user?.socketId);
+  const { leaveToMainRoom } = useBreakoutJoin();
   const isRandom = useBreakoutStore((state) => state.breakoutState?.config.isRandom);
-  const isHost = useBreakoutStore((state) => state.breakoutState?.hostId === user);
+  const isHost = useBreakoutStore((state) => state.breakoutState?.hostSocketId === user);
 
-  const handleLeave = () => {
-    if (isInBreakoutRoom && isRandom && !isHost) {
+  const handleLeave = useCallback(() => {
+    if (isRandom && !isHost) {
       const confirmed = window.confirm("정말 나가시겠습니까?\n메인 룸으로 이동하면 재입장이 불가능합니다.");
       if (!confirmed) return;
     }
     leaveToMainRoom();
-  };
+  }, [isRandom, isHost, leaveToMainRoom]);
 
-  return {
-    title: isInBreakoutRoom ? "세미나실로 나가기" : "나가기",
-    icon: <LogOut color="red" />,
-    handleClick: handleLeave,
-  };
+  const title = useMemo(() => "세미나실로 나가기", []);
+  const icon = useMemo(() => <DoorOpen color="red" />, []);
+
+  return useMemo(
+    () => ({
+      title,
+      icon,
+      handleClick: handleLeave,
+    }),
+    [title, icon, handleLeave],
+  );
 };

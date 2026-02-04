@@ -27,29 +27,29 @@ export class BoundaryService {
 
     const adjacency = new Map<string, string[]>();
     for (const user of eligibleUsers) {
-      adjacency.set(user.id, []);
+      adjacency.set(user.socketId, []);
     }
 
     for (let i = 0; i < eligibleUsers.length; i++) {
       for (let j = i + 1; j < eligibleUsers.length; j++) {
         if (this.areUsersInBoundary(eligibleUsers[i], eligibleUsers[j])) {
-          adjacency.get(eligibleUsers[i].id)!.push(eligibleUsers[j].id);
-          adjacency.get(eligibleUsers[j].id)!.push(eligibleUsers[i].id);
+          adjacency.get(eligibleUsers[i].socketId)!.push(eligibleUsers[j].socketId);
+          adjacency.get(eligibleUsers[j].socketId)!.push(eligibleUsers[i].socketId);
         }
       }
     }
 
     for (const user of eligibleUsers) {
-      if (visited.has(user.id)) continue;
+      if (visited.has(user.socketId)) continue;
 
-      const neighbors = adjacency.get(user.id)!;
+      const neighbors = adjacency.get(user.socketId)!;
       if (neighbors.length === 0) {
-        visited.add(user.id);
+        visited.add(user.socketId);
         continue;
       }
 
       const component: string[] = [];
-      const queue: string[] = [user.id];
+      const queue: string[] = [user.socketId];
 
       while (queue.length > 0) {
         const current = queue.shift()!;
@@ -74,7 +74,7 @@ export class BoundaryService {
     return groups;
   }
 
-  createGroupId(userIds: string[]): string {
-    return [...userIds].sort((a, b) => a.localeCompare(b)).join("-");
+  createGroupId(socketIds: string[]): string {
+    return [...socketIds].sort((a, b) => a.localeCompare(b)).join("-");
   }
 }

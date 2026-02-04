@@ -1,27 +1,29 @@
 import ParticipantTile from "./ParticipantTile";
+import { Track } from "livekit-client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { useParticipants } from "@livekit/components-react";
+import { useParticipants, useTracks } from "@livekit/components-react";
 import { ICON_SIZE } from "@shared/config";
 import { useResponsiveVisibility, useScrollableContainer, useVisibleUsers } from "@shared/model";
 
 const VideoThumbnailList = () => {
+  const screenShareTracks = useTracks([Track.Source.ScreenShare]);
   const participants = useParticipants();
-  const visibleUserIds = useVisibleUsers();
-
-  const visibleParticipants = visibleUserIds
-    ? participants.filter((p) => visibleUserIds.has(p.identity))
+  const visibleSocketIds = useVisibleUsers();
+  const visibleParticipants = visibleSocketIds
+    ? participants.filter((p) => visibleSocketIds.has(p.identity))
     : participants;
 
-  const { scrollContainerRef, canScrollLeft, canScrollRight, checkScrollability, scroll } = useScrollableContainer(
-    visibleParticipants.length,
-  );
+  const totalItemCount = screenShareTracks.length + visibleParticipants.length;
+
+  const { scrollContainerRef, canScrollLeft, canScrollRight, checkScrollability, scroll } =
+    useScrollableContainer(totalItemCount);
 
   const { getResponsiveClass, MAXIMUM_NUMBER_OF_VISUAL_MEMBERS } = useResponsiveVisibility();
 
-  if (visibleParticipants.length === 0) return null;
+  if (totalItemCount === 0) return null;
 
-  const isScrollable = visibleParticipants.length > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
+  const isScrollable = totalItemCount > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
 
   return (
     <div className="flex items-center gap-1">
@@ -43,8 +45,13 @@ const VideoThumbnailList = () => {
         }`}
         style={isScrollable ? { scrollbarWidth: "none", msOverflowStyle: "none" } : undefined}
       >
+        {screenShareTracks.map((track, index) => (
+          <div key={`${track.participant.sid}-screen`} className={getResponsiveClass(index)}>
+            <ParticipantTile trackRef={track} />
+          </div>
+        ))}
         {visibleParticipants.map((participant, index) => (
-          <div key={participant.sid} className={getResponsiveClass(index)}>
+          <div key={participant.sid} className={getResponsiveClass(index + screenShareTracks.length)}>
             <ParticipantTile participant={participant} />
           </div>
         ))}

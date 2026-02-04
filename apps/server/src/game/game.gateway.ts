@@ -49,8 +49,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async handleConnection(client: Socket) {
     try {
       client.setMaxListeners(20);
+      const { userId } = client.handshake.auth as { userId: string };
 
-      const user = this.userService.createSession({ id: client.id });
+      const user = await this.userService.createSession({ socketId: client.id, userId: Number(userId) });
 
       if (!user) {
         this.logger.error(`Failed to create session for client: ${client.id}`);
@@ -78,7 +79,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       this.boundaryTracker.clear(client.id);
 
-      this.eventEmitter.emit(UserInternalEvent.DISCONNECTING, { clientId: client.id, nickname });
+      this.eventEmitter.emit(UserInternalEvent.DISCONNECTING, { socketId: client.id, nickname });
 
       const deleted = this.userService.deleteSession(client.id);
       if (!deleted) {
@@ -88,7 +89,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.metricsService.decrementWsConnections();
       this.logger.log(`❌ Client disconnected: ${client.id}`);
 
-      client.broadcast.emit(UserEventType.USER_LEFT, { userId: client.id });
+      client.broadcast.emit(UserEventType.USER_LEFT, { socketId: client.id });
 
       if (previousRoomId) {
         this.eventEmitter.emit(UserInternalEvent.LEAVING_ROOM, { roomId: previousRoomId });
@@ -99,8 +100,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage("internal:boundary-clear")
-  handleBoundaryClear(client: Socket, payload: { userId: string }) {
-    this.boundaryTracker.clear(payload.userId);
+  handleBoundaryClear(client: Socket, payload: { socketId: string }) {
+    this.boundaryTracker.clear(payload.socketId);
   }
 
   private runBoundaryTick() {
@@ -114,29 +115,29 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const usersInGroups = new Set<string>();
     for (const members of connectedGroups.values()) {
-      for (const memberId of members) {
-        usersInGroups.add(memberId);
+      for (const memberSocketId of members) {
+        usersInGroups.add(memberSocketId);
       }
     }
 
     for (const [groupId, members] of connectedGroups) {
-      for (const memberId of members) {
-        const update = this.boundaryTracker.joinGroup(memberId, groupId);
-        if (update !== undefined) updates.set(memberId, update);
+      for (const memberSocketId of members) {
+        const update = this.boundaryTracker.joinGroup(memberSocketId, groupId);
+        if (update !== undefined) updates.set(memberSocketId, update);
       }
     }
 
     for (const user of lobbyUsers) {
-      if (usersInGroups.has(user.id)) continue;
+      if (usersInGroups.has(user.socketId)) continue;
 
-      const update = this.boundaryTracker.leaveGroup(user.id);
-      if (update !== undefined) updates.set(user.id, update);
+      const update = this.boundaryTracker.leaveGroup(user.socketId);
+      if (update !== undefined) updates.set(user.socketId, update);
     }
 
     if (updates.size === 0) return;
 
-    for (const [userId, contactId] of updates) {
-      this.userService.updateSessionContactId(userId, contactId);
+    for (const [socketId, contactId] of updates) {
+      this.userService.updateSessionContactId(socketId, contactId);
     }
 
     this.server.to("lobby").emit(UserEventType.BOUNDARY_UPDATE, Object.fromEntries(updates));

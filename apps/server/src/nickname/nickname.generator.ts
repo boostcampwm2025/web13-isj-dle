@@ -1,6 +1,8 @@
 import { ADJECTIVES, NOUNS } from "./nickname.constants";
 
-export const generateUniqueNickname = (isDuplicate: (nickname: string) => boolean): string => {
+export const generateUniqueNickname = async (
+  isDuplicate: (nickname: string) => Promise<boolean> | boolean,
+): Promise<string> => {
   const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
   const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
 
@@ -8,7 +10,7 @@ export const generateUniqueNickname = (isDuplicate: (nickname: string) => boolea
 
   let nickname = `${adjective} ${noun} ${number}`;
 
-  while (isDuplicate(nickname)) {
+  while (await isDuplicate(nickname)) {
     number++;
     nickname = `${adjective} ${noun} ${number}`;
   }

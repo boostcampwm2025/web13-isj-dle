@@ -29,24 +29,24 @@ export const useKnockSocket = () => {
 
     const handleKnockReceived = (payload: KnockReceivedPayload) => {
       addReceivedKnock({
-        fromUserId: payload.fromUserId,
+        fromSocketId: payload.fromSocketId,
         fromUserNickname: payload.fromUserNickname,
         timestamp: payload.timestamp,
       });
     };
 
     const handleKnockAccepted = (payload: KnockResultPayload) => {
-      removeSentKnock(payload.targetUserId);
+      removeSentKnock(payload.targetSocketId);
       addSidebarKey("chat");
     };
 
     const handleKnockRejected = (payload: KnockResultPayload) => {
-      removeSentKnock(payload.targetUserId);
+      removeSentKnock(payload.targetSocketId);
       setKnockFailedMessage(`${payload.targetUserNickname}님이 노크를 거절했습니다.`);
     };
 
     const handleDeskStatusUpdated = (payload: DeskStatusUpdatedPayload) => {
-      updateUserDeskStatus(payload.userId, payload.status);
+      updateUserDeskStatus(payload.socketId, payload.status);
     };
 
     const handleTalkEnded = () => {
@@ -54,21 +54,21 @@ export const useKnockSocket = () => {
     };
 
     const handleKnockCancelled = (payload: KnockCancelledPayload) => {
-      if (payload.fromUserId) {
-        removeReceivedKnock(payload.fromUserId);
+      if (payload.fromSocketId) {
+        removeReceivedKnock(payload.fromSocketId);
       }
-      if (payload.targetUserId) {
-        removeSentKnock(payload.targetUserId);
+      if (payload.targetSocketId) {
+        removeSentKnock(payload.targetSocketId);
       }
     };
 
     const handleKnockAcceptSuccess = (payload: KnockAcceptSuccessPayload) => {
-      removeReceivedKnock(payload.fromUserId);
+      removeReceivedKnock(payload.fromSocketId);
       addSidebarKey("chat");
     };
 
     const handleKnockAcceptFailed = (payload: KnockAcceptFailedPayload) => {
-      removeReceivedKnock(payload.fromUserId);
+      removeReceivedKnock(payload.fromSocketId);
       setKnockFailedMessage(payload.reason);
     };
 

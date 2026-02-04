@@ -1,5 +1,5 @@
-import { RestaurantImageCleanupService } from "../../src/restaurant/restaurant-image-cleanup.service";
-import { type S3Service } from "../../src/storage/s3.service";
+import { RestaurantImageCleanupService } from "src/restaurant/restaurant-image-cleanup.service";
+import { type S3Service } from "src/storage/s3.service";
 
 describe("RestaurantImageCleanupService", () => {
   const makeService = (overrides?: { s3?: Partial<S3Service> }) => {

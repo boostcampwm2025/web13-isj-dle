@@ -4,6 +4,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { AppController } from "./app.controller";
+import { AuthModule } from "./auth/auth.module";
 import { GameModule } from "./game/game.module";
 import { LecternModule } from "./lectern/lectern.module";
 import { LivekitModule } from "./livekit/livekit.module";
@@ -35,6 +36,7 @@ import { YjsModule } from "./yjs/yjs.module";
         logging: false,
       }),
     }),
+    AuthModule,
     GameModule,
     UserModule,
     LivekitModule,

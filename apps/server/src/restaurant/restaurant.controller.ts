@@ -32,16 +32,16 @@ export class RestaurantController {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.getImagesByUserId(userId, userId);
+    return this.restaurantService.getImagesByUserId(Number(userId), Number(userId));
   }
 
   @Get("images/user/:targetUserId")
-  getUserImages(@Headers("x-user-id") userId: string, @Param("targetUserId") targetUserId: string) {
+  getUserImages(@Headers("x-user-id") userId: string, @Param("targetUserId") targetUserId: number) {
     if (!userId) {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.getImagesByUserId(userId, targetUserId);
+    return this.restaurantService.getImagesByUserId(Number(userId), targetUserId);
   }
 
   @Get("images/feed")
@@ -50,7 +50,7 @@ export class RestaurantController {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.getRecentImages(userId);
+    return this.restaurantService.getRecentImages(Number(userId));
   }
 
   @Post("images/presign")
@@ -59,7 +59,7 @@ export class RestaurantController {
       throw new BadRequestException("x-user-id header is required");
     }
 
-    return this.restaurantService.createTempImagePresign(userId, body.contentType, body.originalName);
+    return this.restaurantService.createTempImagePresign(Number(userId), body.contentType, body.originalName);
   }
 
   @Post("images/confirm")
@@ -69,7 +69,7 @@ export class RestaurantController {
     }
 
     try {
-      const imageUrl = await this.restaurantService.confirmTempImage(userId, body.key);
+      const imageUrl = await this.restaurantService.confirmTempImage(Number(userId), body.key);
       return { success: true, imageUrl };
     } catch (e) {
       throw new BadRequestException(e instanceof Error ? e.message : "Invalid key");
@@ -83,7 +83,7 @@ export class RestaurantController {
     }
 
     try {
-      await this.restaurantService.deleteImageByUrl(userId, body.imageUrl);
+      await this.restaurantService.deleteImageByUrl(Number(userId), body.imageUrl);
       return { success: true };
     } catch (e) {
       throw new BadRequestException(e instanceof Error ? e.message : "Delete failed");
@@ -97,7 +97,7 @@ export class RestaurantController {
     }
 
     try {
-      const imageUrl = await this.restaurantService.replaceImageByUrl(userId, body.imageUrl, body.newImageUrl);
+      const imageUrl = await this.restaurantService.replaceImageByUrl(Number(userId), body.imageUrl, body.newImageUrl);
       return { success: true, imageUrl };
     } catch (e) {
       throw new BadRequestException(e instanceof Error ? e.message : "Update failed");
@@ -133,7 +133,7 @@ export class RestaurantController {
       throw new BadRequestException("image file is required");
     }
 
-    const imageUrl = await this.restaurantService.uploadTempImageFromFile(userId, file);
+    const imageUrl = await this.restaurantService.uploadTempImageFromFile(Number(userId), file);
 
     return { success: true, imageUrl };
   }
@@ -149,7 +149,7 @@ export class RestaurantController {
       throw new BadRequestException("Invalid imageId");
     }
 
-    const result = await this.restaurantService.toggleImageLike(userId, id);
+    const result = await this.restaurantService.toggleImageLike(Number(userId), id);
     return { likes: result.likes, liked: result.liked };
   }
 }

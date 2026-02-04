@@ -86,3 +86,12 @@ export const SIDEBAR_MAP: Record<SidebarKey, SidebarItem> = {
     Panel: MeetingSidebar,
   },
 };
+
+export const TUTORIAL_VIRTUAL_TABS = [
+  { stepId: "sidebar-collaboration-tool", icon: PanelsTopLeft, label: "협업 도구" },
+  { stepId: "sidebar-timer-stopwatch", icon: Timer, label: "타이머/스톱워치" },
+  { stepId: "sidebar-chat", icon: MessageCircleMore, label: "채팅" },
+  { stepId: "sidebar-deskZone", icon: Briefcase, label: "데스크존 노크" },
+  { stepId: "sidebar-host", icon: Crown, label: "호스트 관리" },
+  { stepId: "sidebar-restaurant", icon: Images, label: "식당 이미지" },
+];

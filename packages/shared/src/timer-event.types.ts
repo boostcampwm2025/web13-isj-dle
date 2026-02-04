@@ -5,6 +5,7 @@ export enum TimerEventType {
   TIMER_PAUSE = "timer:pause",
   TIMER_RESET = "timer:reset",
   TIMER_ADD_TIME = "timer:add-time",
+  TIMER_SET_TIME = "timer:set-time",
   TIMER_SYNC = "timer:sync",
   TIMER_STATE = "timer:state",
 }
@@ -27,6 +28,11 @@ export interface TimerResetPayload {
 export interface TimerAddTimePayload {
   roomId: RoomType;
   additionalSec: number;
+}
+
+export interface TimerSetTimePayload {
+  roomId: RoomType;
+  timeSec: number;
 }
 
 export interface TimerSyncPayload {

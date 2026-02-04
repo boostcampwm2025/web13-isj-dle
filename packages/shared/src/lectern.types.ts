@@ -1,7 +1,7 @@
 import { RoomType } from "./room.types";
 
 export interface LecternState {
-  hostId: string | null;
+  hostSocketId: string | null;
   usersOnLectern: string[];
   roomId: RoomType | null;
 }
@@ -21,7 +21,7 @@ export enum LecternEventType {
 
 export interface BreakoutRoom {
   roomId: string;
-  userIds: string[];
+  socketIds: string[];
 }
 
 export interface BreakoutConfig {
@@ -33,6 +33,6 @@ export interface BreakoutState {
   isActive: boolean;
   hostRoomId: string;
   rooms: BreakoutRoom[];
-  hostId: string | null;
+  hostSocketId: string | null;
   config: BreakoutConfig;
 }

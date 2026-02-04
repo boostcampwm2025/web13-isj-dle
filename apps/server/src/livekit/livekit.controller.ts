@@ -11,9 +11,9 @@ export class LivekitController {
 
   @Post("token")
   async getToken(@Body() dto: GenerateTokenDto): Promise<LivekitTokenResponse> {
-    const { roomId, userId, nickname } = dto;
+    const { roomId, socketId, nickname } = dto;
 
-    const token = await this.livekitService.generateToken(roomId, userId, nickname);
+    const token = await this.livekitService.generateToken(roomId, socketId, nickname);
     const url = this.livekitService.getLivekitUrl();
 
     return { token, url };
