@@ -1,7 +1,9 @@
 import { formatTime, truncateNickname } from "../lib/format.utils";
 import { calculateStopwatchElapsedSeconds, calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
-import { TIMER_ICON_SIZE } from "../model/timer.constants";
+import { ONE_SECOND, TIMER_ICON_SIZE } from "../model/timer.constants";
 import { Users } from "lucide-react";
+
+import { useEffect, useState } from "react";
 
 import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useUserStore } from "@entities/user";
@@ -48,6 +50,17 @@ const StopwatchDisplay = ({ user }: { user: UserStopwatchState }) => {
 export const UserStopwatchList = () => {
   const userStopwatches = useStopwatchShareStore((state) => state.userStopwatches);
   const userId = useUserStore((state) => state.user?.id);
+  const [, rerender] = useState(false);
+
+  useEffect(() => {
+    if (userStopwatches.length === 0) return;
+
+    const id = setInterval(() => {
+      rerender((prev) => !prev);
+    }, ONE_SECOND);
+
+    return () => clearInterval(id);
+  }, [userStopwatches.length]);
 
   if (userStopwatches.length === 0) {
     return (
