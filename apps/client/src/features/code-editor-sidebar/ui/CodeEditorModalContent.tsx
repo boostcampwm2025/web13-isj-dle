@@ -93,7 +93,7 @@ const CodeEditorModalContent = () => {
           </div>
         )}
 
-        <div className="relative h-full min-w-0 flex-1">
+        <div className="relative h-full min-w-0 flex-1" onKeyDown={(e) => e.stopPropagation()}>
           {!selectedFileId && (
             <div
               className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 ${THEME_COLORS[theme].bg}`}
