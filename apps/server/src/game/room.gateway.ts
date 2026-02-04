@@ -11,7 +11,7 @@ import { TimerService } from "../timer/timer.service";
 import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
 import { UserService } from "../user/user.service";
 
-const isTimerRoomId = (roomId: RoomType): boolean => roomId.startsWith("meeting");
+const isMeetingRoom = (roomId: RoomType): boolean => roomId.startsWith("meeting");
 const isMogakcoRoom = (roomId: RoomType): boolean => roomId === "mogakco";
 
 @WebSocketGateway()
@@ -132,7 +132,7 @@ export class RoomGateway {
   }
 
   private cleanupTimerAfterLeave(roomId: RoomType) {
-    if (!isTimerRoomId(roomId)) return;
+    if (!isMeetingRoom(roomId)) return;
 
     const remaining = this.userService.getRoomSessions(roomId).length;
     if (remaining !== 0) return;
@@ -141,9 +141,17 @@ export class RoomGateway {
   }
 
   private cleanupStopwatchAfterLeave(roomId: RoomType, userId: string) {
-    if (!isMogakcoRoom(roomId)) return;
+    if (isMogakcoRoom(roomId)) {
+      this.stopwatchGateway.handleUserLeft(roomId, userId);
+      return;
+    }
 
-    this.stopwatchGateway.handleUserLeft(roomId, userId);
+    if (isMeetingRoom(roomId)) {
+      const remaining = this.userService.getRoomSessions(roomId).length;
+      if (remaining === 0) {
+        this.stopwatchGateway.handleMeetingRoomEmpty(roomId);
+      }
+    }
   }
 
   private endTalkIfNeeded(userId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {

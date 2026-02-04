@@ -83,4 +83,27 @@ export class StopwatchService {
   deleteRoom(roomId: RoomType): void {
     this.roomStates.delete(roomId);
   }
+
+  updateSharedState(
+    roomId: RoomType,
+    userId: string,
+    nickname: string,
+    stopwatch: { isRunning: boolean; startedAt: number | null; pausedTimeSec: number },
+    timer: UserTimerState,
+  ): StopwatchStatePayload {
+    const room = this.getOrCreateRoom(roomId);
+
+    room.clear();
+
+    if (!this.isEmptyState(stopwatch, timer)) {
+      room.set("shared", {
+        userId,
+        nickname,
+        stopwatch,
+        timer,
+      });
+    }
+
+    return this.getRoomStates(roomId);
+  }
 }
