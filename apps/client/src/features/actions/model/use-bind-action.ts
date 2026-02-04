@@ -2,6 +2,7 @@ import { useActionStore } from "./action.store";
 import { useCameraAction } from "./use-camera.action";
 import { useDeskZoneAction } from "./use-desk-zone.action";
 import { useLeaveAction } from "./use-leave.action";
+import { useLogoutAction } from "./use-logout";
 import { useMicAction } from "./use-mic.action";
 import { useScreenShareAction } from "./use-screen-share.action";
 import { useViewModeAction } from "./use-view-mode.action";
@@ -15,6 +16,7 @@ export const useBindAction = () => {
   const deskZone = useDeskZoneAction();
   const leave = useLeaveAction();
   const viewMode = useViewModeAction();
+  const logout = useLogoutAction();
 
   const actions = useMemo(
     () => ({
@@ -24,8 +26,9 @@ export const useBindAction = () => {
       desk_zone: deskZone,
       leave,
       view_mode: viewMode,
+      logout,
     }),
-    [camera, mic, screenShare, deskZone, leave, viewMode],
+    [camera, mic, screenShare, deskZone, leave, viewMode, logout],
   );
 
   const setActions = useActionStore((s) => s.setActions);

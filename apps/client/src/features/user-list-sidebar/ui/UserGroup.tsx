@@ -1,12 +1,9 @@
 import HoverIconButton from "./HoverIconButton";
 import UserModifyPanel from "./UserModifyPanel";
-import { Edit, LogOut, Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { Edit, Mic, MicOff, Video, VideoOff } from "lucide-react";
 
 import { useState } from "react";
-import toast from "react-hot-toast";
 
-import { authApi, useAuthStore } from "@entities/auth";
-import { useWebSocket } from "@features/socket";
 import { ICON_SIZE } from "@shared/config";
 import { useToggle } from "@shared/model";
 import type { User } from "@shared/types";
@@ -20,25 +17,10 @@ interface UserGroupProps {
 
 const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) => {
   const { isOpen, toggle } = useToggle(true);
-  const { socket } = useWebSocket();
-  const setAuthUser = useAuthStore((s) => s.setAuthUser);
 
   const [openModifyPanel, setOpenModifyPanel] = useState<boolean>(false);
 
   if (!users || users.length === 0) return null;
-
-  const handleLogout = async () => {
-    try {
-      const response = await authApi.logout();
-      if (!response.success) throw new Error(`Logout failed: ${response.error}`);
-
-      setAuthUser(null);
-      socket?.disconnect();
-    } catch (error) {
-      console.error("Failed to logout:", error);
-      toast(`로그아웃에 실패했어요. 다시 시도해 주세요.\n${error}`, { position: "top-right" });
-    }
-  };
 
   return (
     <div className="mb-4">
@@ -72,9 +54,6 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
                         onClick={() => setOpenModifyPanel((prev) => !prev)}
                       />
                     )}
-                    {isMe && updatable && (
-                      <HoverIconButton title="로그아웃" Icon={LogOut} color="blue" onClick={handleLogout} />
-                    )}
                     {user.micOn ? <Mic color="green" size={ICON_SIZE} /> : <MicOff color="red" size={ICON_SIZE} />}
                     {user.cameraOn ? (
                       <Video color="green" size={ICON_SIZE} />
@@ -86,7 +65,7 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
 
                 {isMe && updatable && openModifyPanel && (
                   <div className="border border-gray-200 bg-gray-50 p-2">
-                    <UserModifyPanel user={user} onClose={() => setOpenModifyPanel(false)} setAuthUser={setAuthUser} />
+                    <UserModifyPanel user={user} onClose={() => setOpenModifyPanel(false)} />
                   </div>
                 )}
               </div>

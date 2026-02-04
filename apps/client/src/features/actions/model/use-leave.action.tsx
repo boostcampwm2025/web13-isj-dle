@@ -1,5 +1,5 @@
 import type { ActionHook } from "./action.types";
-import { LogOut } from "lucide-react";
+import { DoorOpen } from "lucide-react";
 
 import { useCallback, useMemo } from "react";
 
@@ -23,7 +23,7 @@ export const useLeaveAction: ActionHook = () => {
   }, [isInBreakoutRoom, isRandom, isHost, leaveToMainRoom]);
 
   const title = useMemo(() => (isInBreakoutRoom ? "세미나실로 나가기" : "나가기"), [isInBreakoutRoom]);
-  const icon = useMemo(() => <LogOut color="red" />, []);
+  const icon = useMemo(() => <DoorOpen color="red" />, []);
 
   return useMemo(
     () => ({

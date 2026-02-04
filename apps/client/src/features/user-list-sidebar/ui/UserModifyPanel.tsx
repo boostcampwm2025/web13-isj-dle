@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-import { authApi } from "@entities/auth";
-import { AVATAR_ASSETS, type AuthUser, type AvatarAssetKey, type User } from "@shared/types";
+import { authApi, useAuthStore } from "@entities/auth";
+import { AVATAR_ASSETS, type AvatarAssetKey, type User } from "@shared/types";
 
 interface UserModifyPanelProps {
   user: User;
   onClose: () => void;
-  setAuthUser: (user: AuthUser | null) => void;
 }
 
-const UserModifyPanel = ({ user, onClose, setAuthUser }: UserModifyPanelProps) => {
+const UserModifyPanel = ({ user, onClose }: UserModifyPanelProps) => {
   const [nickname, setNickname] = useState(user.nickname);
   const [assetKey, setAssetKey] = useState(user.avatar.assetKey);
   const [saving, setSaving] = useState(false);
+  const setAuthUser = useAuthStore((s) => s.setAuthUser);
 
   const AVATAR_KEYS = useMemo(() => Object.keys(AVATAR_ASSETS) as AvatarAssetKey[], []);
 
