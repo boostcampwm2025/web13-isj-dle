@@ -64,6 +64,17 @@ export class TimerService {
     return this.getTimerState(roomId);
   }
 
+  setTime(roomId: RoomType, timeSec: number): TimerStatePayload {
+    const timer = this.getOrCreateTimer(roomId);
+    if (timer.isRunning) {
+      return this.getTimerState(roomId);
+    }
+
+    timer.pausedTimeSec = Math.max(0, timeSec);
+    timer.initialTimeSec = timer.pausedTimeSec;
+    return this.getTimerState(roomId);
+  }
+
   getTimerState(roomId: RoomType): TimerStatePayload {
     const timer = this.getOrCreateTimer(roomId);
     return {

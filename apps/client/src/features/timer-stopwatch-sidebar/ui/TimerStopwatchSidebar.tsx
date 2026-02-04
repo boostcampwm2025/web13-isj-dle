@@ -33,9 +33,12 @@ export const TimerStopwatchSidebar = () => {
 
   const timer = useTimer(WARNING_SECONDS);
   const stopwatch = useStopwatch();
-  const { syncStart, syncPause, syncReset, syncAddTime } = useTimerActions({ roomId: currentRoomId, isMeetingRoom });
-  const { syncTimeState } = useTimeActions({ roomId: currentRoomId, isMogakcoRoom });
-  useSyncStopwatch({ roomId: currentRoomId, isMogakcoRoom });
+  const { syncStart, syncPause, syncReset, syncAddTime, syncSetTime } = useTimerActions({
+    roomId: currentRoomId,
+    isMeetingRoom,
+  });
+  const { syncTimeState } = useTimeActions({ roomId: currentRoomId, isMogakcoRoom, isMeetingRoom });
+  useSyncStopwatch({ roomId: currentRoomId, isMogakcoRoom, isMeetingRoom });
 
   const isTimerMode = mode === "timer";
   const activeControl = isTimerMode ? timer : stopwatch;
@@ -45,7 +48,7 @@ export const TimerStopwatchSidebar = () => {
   };
 
   const syncCurrentState = () => {
-    if (!isMogakcoRoom) return;
+    if (!isMogakcoRoom && !isMeetingRoom) return;
 
     const { timer: timerState, stopwatch: stopwatchState } = useTimerStopwatchStore.getState();
 
@@ -66,23 +69,15 @@ export const TimerStopwatchSidebar = () => {
 
   const handleStart = () => {
     if (isTimerMode) {
-      const { startedAt, pausedTimeSec } = useTimerStopwatchStore.getState().timer;
       const { hours, minutes, seconds } = timer;
+      const total = hmsToSeconds(hours, minutes, seconds);
 
-      if (startedAt === null && pausedTimeSec === 0) {
-        const total = hmsToSeconds(hours, minutes, seconds);
-        if (total <= 0) return;
-        const now = Date.now();
-        timer.start();
-        if (isMeetingRoom) {
-          syncStart(total, now);
-        }
-      } else {
-        const now = Date.now();
-        timer.start();
-        if (isMeetingRoom) {
-          syncStart(pausedTimeSec, now);
-        }
+      if (total <= 0) return;
+
+      const now = Date.now();
+      timer.start();
+      if (isMeetingRoom) {
+        syncStart(total, now);
       }
     } else {
       stopwatch.start();
@@ -127,6 +122,18 @@ export const TimerStopwatchSidebar = () => {
     syncCurrentState();
   };
 
+  const handleTimeCommit = () => {
+    if (!isTimerMode || timer.isRunning) return;
+
+    const { hours, minutes, seconds } = timer;
+    const totalSec = hmsToSeconds(hours, minutes, seconds);
+
+    if (isMeetingRoom) {
+      syncSetTime(totalSec);
+    }
+    syncCurrentState();
+  };
+
   const isEditable = isTimerMode && !timer.isRunning;
 
   const displayValues = isTimerMode ? secondsToHms(timer.timeSec) : secondsToHms(stopwatch.timeSec);
@@ -139,10 +146,16 @@ export const TimerStopwatchSidebar = () => {
         <div className="rounded-2xl">
           <ModeToggle mode={mode} onModeChange={handleModeChange} />
 
+          {isMeetingRoom && <SharedIndicator message="해당 회의실 참여자와 타이머/스톱워치 상태가 동기화됩니다" />}
+          {isMogakcoRoom && (
+            <SharedIndicator message="나의 타이머/스톱워치 상태가 참여자들에게 공유되고, 다른 참여자들의 상태도 확인할 수 있어요" />
+          )}
+
           <div className="mb-5 flex items-center justify-center gap-1">
             <TimeInput
               value={displayValues.hours}
               onChange={timer.setHours}
+              onCommit={handleTimeCommit}
               max={MAX_HOURS}
               editable={isEditable}
               isWarning={isTimerMode && timer.isWarning}
@@ -155,6 +168,7 @@ export const TimerStopwatchSidebar = () => {
             <TimeInput
               value={displayValues.minutes}
               onChange={timer.setMinutes}
+              onCommit={handleTimeCommit}
               max={MAX_MINUTES}
               allowOverflow
               overflowBase={60}
@@ -169,6 +183,7 @@ export const TimerStopwatchSidebar = () => {
             <TimeInput
               value={displayValues.seconds}
               onChange={timer.setSeconds}
+              onCommit={handleTimeCommit}
               max={MAX_SECONDS}
               allowOverflow
               overflowBase={60}
@@ -237,6 +252,18 @@ const ModeToggle = ({ mode, onModeChange }: Readonly<ModeToggleProps>) => {
           </button>
         ))}
       </div>
+    </div>
+  );
+};
+
+interface SharedIndicatorProps {
+  readonly message: string;
+}
+
+const SharedIndicator = ({ message }: SharedIndicatorProps) => {
+  return (
+    <div className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
+      <span>{message}</span>
     </div>
   );
 };
