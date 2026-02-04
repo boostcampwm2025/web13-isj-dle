@@ -8,6 +8,8 @@ import { Suspense, memo, useEffect, useRef, useState } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useKnockStore } from "@entities/knock";
+import { useKnockSocket } from "@features/knock";
+import { useSyncImage } from "@features/restaurant-sidebar";
 import { TUTORIAL_STEPS, useTutorialStore } from "@features/tutorial";
 import {
   SIDEBAR_ANIMATION_DURATION,
@@ -18,6 +20,9 @@ import {
 import type { SidebarKey } from "@shared/config";
 
 const Sidebar = () => {
+  useKnockSocket();
+  useSyncImage();
+
   const { sidebarKeys, validCurrentKey, isOpen, handleTabClick, toggleSidebar } = useSidebarState();
   const knockCount = useKnockStore((s) => s.receivedKnocks.length);
   const chatUnreadCount = useChatStore((s) => s.unreadCount);
