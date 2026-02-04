@@ -1,4 +1,4 @@
-import type { ActionHook } from "./action.types";
+import type { ActionHook } from "../../../shared/config/action.config";
 import { Briefcase } from "lucide-react";
 import Phaser from "phaser";
 

@@ -1,4 +1,4 @@
-import type { ActionHook } from "./action.types";
+import type { ActionHook } from "../../../shared/config/action.config";
 import { LogOut } from "lucide-react";
 
 import { useCallback, useMemo } from "react";
@@ -12,6 +12,7 @@ export const useLogoutAction: ActionHook = () => {
   const setAuthUser = useAuthStore((s) => s.setAuthUser);
 
   const handleLogout = useCallback(async () => {
+    if (!confirm("정말 로그아웃 하시겠습니까?\n로그아웃하면 로그인 화면으로 이동합니다.")) return;
     try {
       const response = await authApi.logout();
       if (!response.success) throw new Error(`Logout failed: ${response.error}`);

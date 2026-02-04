@@ -1,4 +1,4 @@
-import type { ActionHook } from "./action.types";
+import type { ActionHook } from "../../../shared/config/action.config";
 import { Maximize } from "lucide-react";
 
 import { useCallback, useMemo, useRef } from "react";

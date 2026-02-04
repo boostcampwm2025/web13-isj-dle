@@ -1,4 +1,4 @@
-import type { ActionHook } from "./action.types";
+import type { ActionHook } from "../../../shared/config/action.config";
 import type { LocalParticipant } from "livekit-client";
 import { ParticipantEvent } from "livekit-client";
 import { ScreenShare, ScreenShareOff } from "lucide-react";

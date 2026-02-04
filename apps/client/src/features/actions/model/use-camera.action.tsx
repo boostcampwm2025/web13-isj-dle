@@ -1,4 +1,4 @@
-import type { ActionHook } from "./action.types";
+import type { ActionHook } from "../../../shared/config/action.config";
 import type { LocalParticipant } from "livekit-client";
 import { Video, VideoOff } from "lucide-react";
 
