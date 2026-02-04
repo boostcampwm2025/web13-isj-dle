@@ -1,4 +1,3 @@
-import type { ActionHook } from "../../../shared/config/action.config";
 import { Briefcase } from "lucide-react";
 import Phaser from "phaser";
 
@@ -7,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import { positionStore, useUserStore } from "@entities/user";
 import { GAME_SCENE_KEY, GameScene, isSameTileAtWorld } from "@features/game";
 import { emitAck, useWebSocket } from "@features/socket";
+import type { ActionHook } from "@shared/config";
 import { type AvatarState, RoomEventType, type RoomType, UserEventType } from "@shared/types";
 
 export const useDeskZoneAction: ActionHook = () => {

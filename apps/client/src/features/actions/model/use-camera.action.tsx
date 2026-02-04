@@ -1,4 +1,3 @@
-import type { ActionHook } from "../../../shared/config/action.config";
 import type { LocalParticipant } from "livekit-client";
 import { Video, VideoOff } from "lucide-react";
 
@@ -6,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
+import type { ActionHook } from "@shared/config";
 import { UserEventType } from "@shared/types";
 
 export const useCameraAction: ActionHook = () => {

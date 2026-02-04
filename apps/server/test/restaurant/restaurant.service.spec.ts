@@ -1,12 +1,11 @@
 import { BadRequestException, InternalServerErrorException } from "@nestjs/common";
 import { type EventEmitter2 } from "@nestjs/event-emitter";
 
+import { type RestaurantImageEntity } from "src/restaurant/restaurant-image.entity";
+import { RestaurantService } from "src/restaurant/restaurant.service";
+import { type S3Service } from "src/storage/s3.service";
+import { type UserService } from "src/user/user.service";
 import { type DataSource } from "typeorm";
-
-import { type RestaurantImageEntity } from "../../src/restaurant/restaurant-image.entity";
-import { RestaurantService } from "../../src/restaurant/restaurant.service";
-import { type S3Service } from "../../src/storage/s3.service";
-import { type UserService } from "../../src/user/user.service";
 
 describe("RestaurantService", () => {
   const makeService = (overrides?: {

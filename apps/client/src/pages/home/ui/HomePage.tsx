@@ -1,7 +1,7 @@
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
-import PhaserLayout from "@features/game/ui/PhaserLayout";
+import { PhaserLayout } from "@features/game";
 import { useKnockSocket } from "@features/knock";
-import { useSyncImage } from "@features/restaurant-sidebar/model";
+import { useSyncImage } from "@features/restaurant-sidebar";
 import { TimerStopwatchNotifier } from "@features/timer-stopwatch-sidebar";
 import { TutorialProvider } from "@features/tutorial";
 import "@livekit/components-styles";

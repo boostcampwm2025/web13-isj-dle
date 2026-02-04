@@ -1,4 +1,3 @@
-import type { ActionHook } from "../../../shared/config/action.config";
 import { LogOut } from "lucide-react";
 
 import { useCallback, useMemo } from "react";
@@ -6,6 +5,7 @@ import toast from "react-hot-toast";
 
 import { authApi, useAuthStore } from "@entities/auth";
 import { useWebSocket } from "@features/socket";
+import type { ActionHook } from "@shared/config";
 
 export const useLogoutAction: ActionHook = () => {
   const { socket } = useWebSocket();
