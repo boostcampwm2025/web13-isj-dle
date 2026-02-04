@@ -35,8 +35,8 @@ const VideoFullGrid = ({ setMode }: VideoFullGridProps) => {
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false },
   );
 
-  const visibleUserIds = useVisibleUsers();
-  const tracks = visibleUserIds ? allTracks.filter((t) => visibleUserIds.has(t.participant.identity)) : allTracks;
+  const visibleSocketIds = useVisibleUsers();
+  const tracks = visibleSocketIds ? allTracks.filter((t) => visibleSocketIds.has(t.participant.identity)) : allTracks;
 
   const layoutContext = useCreateLayoutContext();
 

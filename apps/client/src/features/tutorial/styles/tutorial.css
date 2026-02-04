@@ -21,12 +21,11 @@ body {
   border-radius: 12px;
   background: var(--bg);
   box-shadow: var(--card-shadow);
-  z-index: 100000;
+  z-index: 200;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 
-/* spacing */
 .shepherd-element[data-popper-placement^="top"] {
   margin-bottom: 14px;
 }
@@ -42,7 +41,6 @@ body {
   transform: translateX(16px) !important;
 }
 
-/* header styling (show title in modal) */
 .shepherd-header {
   display: block;
   padding: 8px 28px 0 !important;
@@ -162,12 +160,9 @@ body {
 
 .shepherd-modal-overlay-container {
   background: var(--overlay);
-}
-.shepherd-modal-overlay-container {
-  background: var(--overlay);
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 199;
   overflow: hidden;
 }
 

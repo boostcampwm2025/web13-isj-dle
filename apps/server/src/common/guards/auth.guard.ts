@@ -1,9 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 
 import type { Request } from "express";
-
-import { AuthService } from "../../auth/auth.service";
-import { AuthUserEntity } from "../../auth/auth_user.entity";
+import { AuthService } from "src/auth/auth.service";
+import { AuthUserEntity } from "src/auth/auth_user.entity";
 
 declare module "express" {
   interface Request {

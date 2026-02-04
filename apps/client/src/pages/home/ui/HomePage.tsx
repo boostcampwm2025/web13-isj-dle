@@ -1,7 +1,5 @@
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
-import PhaserLayout from "@features/game/ui/PhaserLayout";
-import { useKnockSocket } from "@features/knock";
-import { useSyncImage } from "@features/restaurant-sidebar/model";
+import { PhaserLayout } from "@features/game";
 import { TimerStopwatchNotifier } from "@features/timer-stopwatch-sidebar";
 import { TutorialProvider } from "@features/tutorial";
 import "@livekit/components-styles";
@@ -12,9 +10,6 @@ import { Sidebar, useSidebarStore } from "@widgets/sidebar";
 import { VideoConference } from "@widgets/video-conference";
 
 const HomePage = () => {
-  useKnockSocket();
-  useSyncImage();
-
   const mode = useVideoConferenceModeStore((state) => state.mode);
   const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
@@ -31,10 +26,9 @@ const HomePage = () => {
         >
           <PhaserLayout />
 
-          <div className="pointer-events-none absolute inset-0 z-10">
-            <VideoConference />
-            {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
-          </div>
+          <VideoConference />
+
+          {mode !== VIDEO_CONFERENCE_MODE.FULL_GRID && <BottomNav />}
         </div>
 
         <Sidebar />

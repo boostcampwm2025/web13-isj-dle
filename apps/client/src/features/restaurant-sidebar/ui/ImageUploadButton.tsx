@@ -20,7 +20,7 @@ type ImageUploadProps = {
 };
 
 const ImageUploadButton = ({ onOptimisticPreview, onUploadComplete, onUploadError }: ImageUploadProps) => {
-  const userId = useUserStore((state) => state.user?.id ?? null);
+  const userId = useUserStore((state) => state.user?.userId ?? null);
   const uploadMutation = useUploadRestaurantImageMutation(userId);
 
   const {

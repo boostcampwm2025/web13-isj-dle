@@ -22,7 +22,7 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(StopwatchGateway.name);
 
-  private readonly socketUserMap = new Map<string, { userId: string; roomId: RoomType }>();
+  private readonly socketUserMap = new Map<string, { socketId: string; roomId: RoomType }>();
 
   constructor(
     private readonly stopwatchService: StopwatchService,
@@ -40,10 +40,10 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
     const user = this.userService.getSession(client.id);
     if (user && user.avatar.currentRoomId && isSyncableRoom(user.avatar.currentRoomId)) {
       this.socketUserMap.set(client.id, {
-        userId: user.id,
+        socketId: user.socketId,
         roomId: user.avatar.currentRoomId,
       });
-      this.logger.log(`User ${user.id} (${user.nickname}) connected to ${user.avatar.currentRoomId}`);
+      this.logger.log(`User ${user.socketId} (${user.nickname}) connected to ${user.avatar.currentRoomId}`);
     }
   }
 
@@ -56,13 +56,13 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
     if (!user) return;
 
     this.socketUserMap.set(client.id, {
-      userId: user.id,
+      socketId: user.socketId,
       roomId: roomId,
     });
 
     const state = isMeetingRoom(roomId)
-      ? this.stopwatchService.updateSharedState(roomId, user.id, user.nickname, payload.stopwatch, payload.timer)
-      : this.stopwatchService.updateUserState(roomId, user.id, user.nickname, payload.stopwatch, payload.timer);
+      ? this.stopwatchService.updateSharedState(roomId, user.socketId, user.nickname, payload.stopwatch, payload.timer)
+      : this.stopwatchService.updateUserState(roomId, user.socketId, user.nickname, payload.stopwatch, payload.timer);
 
     this.server.to(roomId).emit(StopwatchEventType.STOPWATCH_STATE, state);
   }
@@ -83,27 +83,27 @@ export class StopwatchGateway implements OnGatewayConnection, OnGatewayDisconnec
       return;
     }
 
-    const { userId, roomId } = userInfo;
+    const { socketId, roomId } = userInfo;
 
     if (!isSyncableRoom(roomId)) {
       this.socketUserMap.delete(client.id);
       return;
     }
 
-    this.logger.log(`User ${userId} disconnected from ${roomId}`);
+    this.logger.log(`User ${socketId} disconnected from ${roomId}`);
 
     if (isMogakcoRoom(roomId)) {
-      const state = this.stopwatchService.removeUser(roomId, userId);
+      const state = this.stopwatchService.removeUser(roomId, socketId);
       this.server.to(roomId).emit(StopwatchEventType.STOPWATCH_STATE, state);
     }
 
     this.socketUserMap.delete(client.id);
   }
 
-  handleUserLeft(roomId: RoomType, userId: string) {
+  handleUserLeft(roomId: RoomType, socketId: string) {
     if (!isMogakcoRoom(roomId)) return;
 
-    const state = this.stopwatchService.removeUser(roomId, userId);
+    const state = this.stopwatchService.removeUser(roomId, socketId);
     this.server.to(roomId).emit(StopwatchEventType.STOPWATCH_STATE, state);
   }
 

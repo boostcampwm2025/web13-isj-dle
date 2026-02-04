@@ -10,7 +10,7 @@ import type { User } from "@shared/types";
 const isSameUserStructure = (nextUsers: User[], prevUsers: User[]) => {
   if (nextUsers.length !== prevUsers.length) return false;
 
-  return nextUsers.every((user, index) => user.id === prevUsers[index]?.id);
+  return nextUsers.every((user, index) => user.socketId === prevUsers[index]?.socketId);
 };
 
 export const useAvatarRenderer = (game: Phaser.Game | null) => {
@@ -28,13 +28,13 @@ export const useAvatarRenderer = (game: Phaser.Game | null) => {
       if (!currentUser) return;
 
       const roomId = currentUser.avatar.currentRoomId;
-      const myId = currentUser.id;
+      const mySocketId = currentUser.socketId;
       const positionMap = positionStore.getAll();
 
       const sameRoomUsers = state.users
-        .filter((u) => u.id !== myId && u.avatar.currentRoomId === roomId)
+        .filter((u) => u.socketId !== mySocketId && u.avatar.currentRoomId === roomId)
         .map((u) => {
-          const pos = positionMap.get(u.id);
+          const pos = positionMap.get(u.socketId);
           if (pos) {
             return {
               ...u,

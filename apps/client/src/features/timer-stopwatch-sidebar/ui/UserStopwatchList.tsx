@@ -49,7 +49,7 @@ const StopwatchDisplay = ({ user }: { user: UserStopwatchState }) => {
 
 export const UserStopwatchList = () => {
   const userStopwatches = useStopwatchShareStore((state) => state.userStopwatches);
-  const userId = useUserStore((state) => state.user?.id);
+  const socketId = useUserStore((state) => state.user?.socketId);
   const [, rerender] = useState(false);
 
   useEffect(() => {
@@ -75,8 +75,8 @@ export const UserStopwatchList = () => {
   }
 
   const sortedUsers = [...userStopwatches].sort((a, b) => {
-    if (a.userId === userId) return -1;
-    if (b.userId === userId) return 1;
+    if (a.socketId === socketId) return -1;
+    if (b.socketId === socketId) return 1;
     return a.nickname.localeCompare(b.nickname);
   });
 
@@ -98,12 +98,12 @@ export const UserStopwatchList = () => {
 
       <ul className="space-y-1">
         {sortedUsers.map((user) => {
-          const isMe = user.userId === userId;
+          const isMe = user.socketId === socketId;
           const displayName = truncateNickname(user.nickname);
 
           return (
             <li
-              key={user.userId}
+              key={user.socketId}
               className={`flex items-center justify-between rounded-md px-1 py-2 ${isMe ? "bg-blue-50" : "bg-white"}`}
             >
               <span className={`text-xs ${isMe ? "font-medium text-blue-700" : "text-gray-700"}`} title={user.nickname}>

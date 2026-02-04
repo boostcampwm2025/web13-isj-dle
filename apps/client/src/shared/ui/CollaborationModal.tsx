@@ -39,7 +39,7 @@ const CollaborationModal = ({ isOpen, onClose, title, children, headerControls }
 
   return createPortal(
     <div
-      className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-[right] ease-in-out"
+      className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-[right] ease-in-out"
       style={{
         right: isSidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_TAB_WIDTH,
         transitionDuration: `${SIDEBAR_ANIMATION_DURATION}ms`,

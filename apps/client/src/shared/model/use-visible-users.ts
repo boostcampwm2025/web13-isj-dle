@@ -19,7 +19,7 @@ export const useVisibleUsers = () => {
 
     const ids = state.users
       .filter((u) => u.contactId === currentContactId)
-      .map((u) => u.id)
+      .map((u) => u.socketId)
       .sort((a, b) => a.localeCompare(b));
     const key = `${currentContactId}|${ids.join(",")}`;
     if (cacheRef.current.key === key) return cacheRef.current.value;
@@ -35,7 +35,7 @@ export const useVisibleUsers = () => {
         currentRoomId: state.user?.avatar.currentRoomId ?? null,
         currentContactId: state.user?.contactId ?? null,
         users: state.users.map((u) => ({
-          id: u.id,
+          id: u.socketId,
           contactId: u.contactId,
         })),
       }),

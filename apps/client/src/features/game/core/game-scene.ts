@@ -40,7 +40,7 @@ export class GameScene extends Phaser.Scene {
 
   private mapObj: MapObj;
   private avatar?: AvatarEntity;
-  private userId: string | null = null;
+  private user!: User;
   private nicknameManager!: NicknameManager;
 
   private inputManager!: InputManager;
@@ -215,7 +215,7 @@ export class GameScene extends Phaser.Scene {
     this.roomEntranceManager.checkRoomEntrance(this.avatar.sprite.x, this.avatar.sprite.y);
     this.restaurantImageManager.update({
       currentRoomId: this.roomEntranceManager.getCurrentRoomId(),
-      userId: this.userId,
+      userId: this.user.userId,
       x: this.avatar.sprite.x,
       y: this.avatar.sprite.y,
     });
@@ -299,7 +299,6 @@ export class GameScene extends Phaser.Scene {
 
   loadAvatar(user: User): void {
     if (this.avatar) return;
-    this.userId = user.id;
     const avatar = user.avatar;
     const spawn = getAvatarSpawnPoint(this.mapObj.map);
 
@@ -314,6 +313,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.avatar = { sprite, direction: avatar.direction, state: avatar.state };
+    this.user = user;
     this.nicknameManager.createNickname(spawn.x, spawn.y, user.nickname, user.deskStatus);
     this.nicknameManager.setDepth(Number.MAX_SAFE_INTEGER);
 
@@ -337,7 +337,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   renderAnotherAvatars(users: User[], currentUser?: User | null): void {
-    this.avatarRenderer.renderAnotherAvatars(users, this.mapObj.depthCount, currentUser?.id ?? null);
+    this.avatarRenderer.renderAnotherAvatars(users, this.mapObj.depthCount, currentUser?.socketId ?? null);
     this.avatar?.sprite.setDepth(this.mapObj.depthCount + users.length);
 
     this.boundaryRenderer.render(

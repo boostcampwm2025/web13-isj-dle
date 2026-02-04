@@ -17,10 +17,10 @@ export class AuthController {
   private readonly isProduction: boolean;
   private readonly CLIENT_ORIGIN: string;
 
-  private readonly OAUTH_STATE_COOKIE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
+  private readonly OAUTH_STATE_COOKIE_MAX_AGE = 5 * 60 * 1000;
   private readonly OAUTH_STATE_COOKIE_OPTIONS: CookieOptions;
 
-  private readonly SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+  private readonly SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   private readonly SESSION_COOKIE_OPTIONS: CookieOptions;
 
   constructor(

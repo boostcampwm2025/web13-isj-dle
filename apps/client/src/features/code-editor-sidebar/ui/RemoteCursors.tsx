@@ -42,7 +42,7 @@ const RemoteCursors = ({ editor, awareness, ytext }: RemoteCursorsProps) => {
       injectCursorStyles(clientID);
 
       const domNode = document.createElement("div");
-      domNode.className = "pointer-events-none z-50";
+      domNode.className = "pointer-events-none";
 
       const label = document.createElement("div");
       label.className =

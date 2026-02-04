@@ -28,7 +28,7 @@ export class KnockGateway {
   @SubscribeMessage(KnockEventType.KNOCK_SEND)
   handleKnockSend(client: Socket, payload: KnockSendPayload) {
     const fromUser = this.userService.getSession(client.id);
-    const toUser = this.userService.getSession(payload.targetUserId);
+    const toUser = this.userService.getSession(payload.targetSocketId);
 
     if (!fromUser || !toUser) {
       client.emit("error", { message: "사용자를 찾을 수 없습니다." });
@@ -42,21 +42,21 @@ export class KnockGateway {
       return;
     }
 
-    if (this.knockService.hasPendingKnock(client.id, payload.targetUserId)) {
+    if (this.knockService.hasPendingKnock(client.id, payload.targetSocketId)) {
       client.emit("error", { message: "이미 노크 요청을 보냈습니다." });
       return;
     }
 
     const knock = {
-      fromUserId: client.id,
+      fromSocketId: client.id,
       fromUserNickname: fromUser.nickname,
       timestamp: Date.now(),
     };
 
-    this.knockService.addPendingKnock(knock, payload.targetUserId);
+    this.knockService.addPendingKnock(knock, payload.targetSocketId);
 
-    this.server.to(payload.targetUserId).emit(KnockEventType.KNOCK_RECEIVED, {
-      fromUserId: client.id,
+    this.server.to(payload.targetSocketId).emit(KnockEventType.KNOCK_RECEIVED, {
+      fromSocketId: client.id,
       fromUserNickname: fromUser.nickname,
       timestamp: knock.timestamp,
     });
@@ -65,20 +65,20 @@ export class KnockGateway {
   @SubscribeMessage(KnockEventType.KNOCK_ACCEPT)
   handleKnockAccept(client: Socket, payload: KnockResponsePayload) {
     const toUser = this.userService.getSession(client.id);
-    const fromUser = this.userService.getSession(payload.fromUserId);
+    const fromUser = this.userService.getSession(payload.fromSocketId);
 
     if (!toUser || !fromUser) {
       client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
-        fromUserId: payload.fromUserId,
+        fromSocketId: payload.fromSocketId,
         reason: "사용자를 찾을 수 없습니다.",
       });
       return;
     }
 
-    const knock = this.knockService.getPendingKnock(payload.fromUserId, client.id);
+    const knock = this.knockService.getPendingKnock(payload.fromSocketId, client.id);
     if (!knock) {
       client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
-        fromUserId: payload.fromUserId,
+        fromSocketId: payload.fromSocketId,
         reason: "노크 요청을 찾을 수 없습니다.",
       });
       return;
@@ -86,54 +86,54 @@ export class KnockGateway {
 
     if (fromUser.deskStatus === "talking") {
       client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
-        fromUserId: payload.fromUserId,
+        fromSocketId: payload.fromSocketId,
         reason: "상대방이 이미 다른 대화 중입니다.",
       });
-      this.knockService.removePendingKnock(payload.fromUserId, client.id);
+      this.knockService.removePendingKnock(payload.fromSocketId, client.id);
       return;
     }
 
-    this.knockService.removePendingKnock(payload.fromUserId, client.id);
+    this.knockService.removePendingKnock(payload.fromSocketId, client.id);
 
-    const hasPairKnock = this.knockService.hasPendingKnock(client.id, payload.fromUserId);
+    const hasPairKnock = this.knockService.hasPendingKnock(client.id, payload.fromSocketId);
     if (hasPairKnock) {
-      this.knockService.removePendingKnock(client.id, payload.fromUserId);
-      this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_CANCELLED, {
-        fromUserId: client.id,
+      this.knockService.removePendingKnock(client.id, payload.fromSocketId);
+      this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        fromSocketId: client.id,
       });
     }
 
     this.userService.updateSessionDeskStatus(client.id, "talking");
-    this.userService.updateSessionDeskStatus(payload.fromUserId, "talking");
+    this.userService.updateSessionDeskStatus(payload.fromSocketId, "talking");
 
-    this.knockService.addTalkingPair(client.id, payload.fromUserId);
+    this.knockService.addTalkingPair(client.id, payload.fromSocketId);
 
-    const contactId = [client.id, payload.fromUserId].sort().join("-");
+    const contactId = [client.id, payload.fromSocketId].sort().join("-");
     this.userService.updateSessionContactId(client.id, contactId);
-    this.userService.updateSessionContactId(payload.fromUserId, contactId);
+    this.userService.updateSessionContactId(payload.fromSocketId, contactId);
 
-    this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_ACCEPTED, {
-      targetUserId: client.id,
+    this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_ACCEPTED, {
+      targetSocketId: client.id,
       targetUserNickname: toUser.nickname,
       status: "accepted",
     });
 
     client.emit(KnockEventType.KNOCK_ACCEPT_SUCCESS, {
-      fromUserId: payload.fromUserId,
+      fromSocketId: payload.fromSocketId,
     });
 
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: client.id,
+      socketId: client.id,
       status: "talking",
     });
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: payload.fromUserId,
+      socketId: payload.fromSocketId,
       status: "talking",
     });
 
     const contactIdUpdates = {
       [client.id]: contactId,
-      [payload.fromUserId]: contactId,
+      [payload.fromSocketId]: contactId,
     };
     this.server.to("desk zone").emit(UserEventType.BOUNDARY_UPDATE, contactIdUpdates);
   }
@@ -141,17 +141,17 @@ export class KnockGateway {
   @SubscribeMessage(KnockEventType.KNOCK_REJECT)
   handleKnockReject(client: Socket, payload: KnockResponsePayload) {
     const toUser = this.userService.getSession(client.id);
-    const fromUser = this.userService.getSession(payload.fromUserId);
+    const fromUser = this.userService.getSession(payload.fromSocketId);
 
     if (!fromUser) {
-      this.knockService.removePendingKnock(payload.fromUserId, client.id);
+      this.knockService.removePendingKnock(payload.fromSocketId, client.id);
       return;
     }
 
-    this.knockService.removePendingKnock(payload.fromUserId, client.id);
+    this.knockService.removePendingKnock(payload.fromSocketId, client.id);
 
-    this.server.to(payload.fromUserId).emit(KnockEventType.KNOCK_REJECTED, {
-      targetUserId: client.id,
+    this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_REJECTED, {
+      targetSocketId: client.id,
       targetUserNickname: toUser?.nickname ?? "알 수 없음",
       status: "rejected",
     });
@@ -174,7 +174,7 @@ export class KnockGateway {
     this.userService.updateSessionDeskStatus(client.id, payload.status);
 
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: client.id,
+      socketId: client.id,
       status: payload.status,
     });
   }
@@ -193,46 +193,46 @@ export class KnockGateway {
       return;
     }
 
-    const partnerId = this.knockService.getTalkingPartner(client.id);
-    if (!partnerId) {
+    const partnerSocketId = this.knockService.getTalkingPartner(client.id);
+    if (!partnerSocketId) {
       client.emit("error", { message: "대화 상대를 찾을 수 없습니다." });
       return;
     }
 
-    const partner = this.userService.getSession(partnerId);
+    const partner = this.userService.getSession(partnerSocketId);
 
     this.knockService.removeTalkingPair(client.id);
 
     this.userService.updateSessionDeskStatus(client.id, "available");
-    this.userService.updateSessionDeskStatus(partnerId, "available");
+    this.userService.updateSessionDeskStatus(partnerSocketId, "available");
 
     this.userService.updateSessionContactId(client.id, null);
-    this.userService.updateSessionContactId(partnerId, null);
+    this.userService.updateSessionContactId(partnerSocketId, null);
 
-    this.server.to(partnerId).emit(KnockEventType.TALK_ENDED, {
-      partnerUserId: client.id,
+    this.server.to(partnerSocketId).emit(KnockEventType.TALK_ENDED, {
+      partnerSocketId: client.id,
       partnerNickname: user.nickname,
       reason: "ended_by_user",
     });
 
     client.emit(KnockEventType.TALK_ENDED, {
-      partnerUserId: partnerId,
+      partnerSocketId,
       partnerNickname: partner?.nickname ?? "알 수 없음",
       reason: "ended_by_user",
     });
 
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: client.id,
+      socketId: client.id,
       status: "available",
     });
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: partnerId,
+      socketId: partnerSocketId,
       status: "available",
     });
 
     this.server.to("desk zone").emit(UserEventType.BOUNDARY_UPDATE, {
       [client.id]: null,
-      [partnerId]: null,
+      [partnerSocketId]: null,
     });
 
     this.logger.log(`📞 대화 종료 (사용자 요청): ${user.nickname} ↔ ${partner?.nickname}`);
@@ -243,42 +243,42 @@ export class KnockGateway {
     this.endTalkIfNeeded(clientId, nickname, "disconnected");
 
     const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(clientId);
-    for (const targetUserId of sentTo) {
-      this.server.to(targetUserId).emit(KnockEventType.KNOCK_CANCELLED, {
-        fromUserId: clientId,
+    for (const targetSocketId of sentTo) {
+      this.server.to(targetSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        fromSocketId: clientId,
       });
     }
-    for (const fromUserId of receivedFrom) {
-      this.server.to(fromUserId).emit(KnockEventType.KNOCK_CANCELLED, {
-        targetUserId: clientId,
+    for (const fromSocketId of receivedFrom) {
+      this.server.to(fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        targetSocketId: clientId,
       });
     }
   }
 
-  private endTalkIfNeeded(userId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {
-    const partnerId = this.knockService.removeTalkingPair(userId);
+  private endTalkIfNeeded(socketId: string, userNickname: string, reason: "disconnected" | "left_desk_zone"): void {
+    const partnerSocketId = this.knockService.removeTalkingPair(socketId);
 
-    if (!partnerId) return;
+    if (!partnerSocketId) return;
 
-    const partner = this.userService.getSession(partnerId);
+    const partner = this.userService.getSession(partnerSocketId);
     if (!partner) return;
 
-    this.userService.updateSessionDeskStatus(partnerId, "available");
-    this.userService.updateSessionContactId(partnerId, null);
+    this.userService.updateSessionDeskStatus(partnerSocketId, "available");
+    this.userService.updateSessionContactId(partnerSocketId, null);
 
-    this.server.to(partnerId).emit(KnockEventType.TALK_ENDED, {
-      partnerUserId: userId,
+    this.server.to(partnerSocketId).emit(KnockEventType.TALK_ENDED, {
+      partnerSocketId: socketId,
       partnerNickname: userNickname,
       reason,
     });
 
     this.server.to("desk zone").emit(KnockEventType.DESK_STATUS_UPDATED, {
-      userId: partnerId,
+      socketId: partnerSocketId,
       status: "available",
     });
 
     this.server.to("desk zone").emit(UserEventType.BOUNDARY_UPDATE, {
-      [partnerId]: null,
+      [partnerSocketId]: null,
     });
 
     this.logger.log(`📞 대화 종료: ${userNickname} (${reason}) - 상대: ${partner.nickname}`);

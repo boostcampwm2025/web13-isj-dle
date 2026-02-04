@@ -246,7 +246,7 @@ const ModeToggle = ({ mode, onModeChange }: Readonly<ModeToggleProps>) => {
           <button
             key={modeItem}
             onClick={() => onModeChange(modeItem)}
-            className="relative z-10 flex-1 py-1.5 text-sm text-gray-700"
+            className="relative flex-1 py-1.5 text-sm text-gray-700"
           >
             {MODE_LABELS[modeItem]}
           </button>

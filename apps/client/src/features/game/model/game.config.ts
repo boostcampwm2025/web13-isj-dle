@@ -8,6 +8,10 @@ export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.Game
     dom: {
       createContainer: true,
     },
+    audio: {
+      noAudio: true,
+    },
+    banner: false,
     scene: GameScene,
     pixelArt: true,
     render: { roundPixels: true },

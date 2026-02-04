@@ -2,7 +2,7 @@ import { Avatar } from "./avatar.types";
 import { DeskStatus } from "./knock.types";
 
 export interface User {
-  id: string;
+  socketId: string;
   userId: number;
   contactId: string | null;
   nickname: string;

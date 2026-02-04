@@ -15,7 +15,7 @@ import type { RestaurantImage, RestaurantImageFeedResponse } from "@shared/types
 import { useQueryClient } from "@tanstack/react-query";
 
 const RestaurantSidebar = () => {
-  const userId = useUserStore((state) => state.user?.id ?? null);
+  const userId = useUserStore((state) => state.user?.userId ?? null);
   const nickname = useUserStore((state) => state.user?.nickname ?? "");
   const setUserThumbnail = useRestaurantImageStore((state) => state.setThumbnail);
   const clearUserThumbnail = useRestaurantImageStore((state) => state.clearThumbnail);

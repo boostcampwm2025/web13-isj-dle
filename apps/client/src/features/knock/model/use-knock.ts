@@ -8,7 +8,7 @@ import { KnockEventType } from "@shared/types";
 
 export const useKnock = () => {
   const { socket, isConnected } = useWebSocket();
-  const userId = useUserStore((s) => s.user?.id);
+  const socketId = useUserStore((s) => s.user?.socketId);
   const deskStatus = useUserStore((s) => s.user?.deskStatus);
   const users = useUserStore((s) => s.users);
   const sentKnockTargets = useKnockStore((s) => s.sentKnockTargets);
@@ -16,15 +16,15 @@ export const useKnock = () => {
   const removeReceivedKnock = useKnockStore((s) => s.removeReceivedKnock);
 
   const sendKnock = useCallback(
-    (targetUserId: string): boolean => {
-      if (!socket || !isConnected || !userId) return false;
-      if (targetUserId === userId) return false;
+    (targetSocketId: string): boolean => {
+      if (!socket || !isConnected || !socketId) return false;
+      if (targetSocketId === socketId) return false;
 
-      if (sentKnockTargets.includes(targetUserId)) {
+      if (sentKnockTargets.includes(targetSocketId)) {
         return false;
       }
 
-      const targetUser = users.find((u) => u.id === targetUserId);
+      const targetUser = users.find((u) => u.socketId === targetSocketId);
       if (!targetUser) return false;
 
       if (deskStatus !== "available") {
@@ -35,28 +35,28 @@ export const useKnock = () => {
         return false;
       }
 
-      socket.emit(KnockEventType.KNOCK_SEND, { targetUserId });
-      addSentKnock(targetUserId);
+      socket.emit(KnockEventType.KNOCK_SEND, { targetSocketId });
+      addSentKnock(targetSocketId);
       return true;
     },
-    [socket, isConnected, userId, deskStatus, users, sentKnockTargets, addSentKnock],
+    [socket, isConnected, socketId, deskStatus, users, sentKnockTargets, addSentKnock],
   );
 
   const acceptKnock = useCallback(
-    (fromUserId: string) => {
+    (fromSocketId: string) => {
       if (!socket || !isConnected) return;
 
-      socket.emit(KnockEventType.KNOCK_ACCEPT, { fromUserId });
+      socket.emit(KnockEventType.KNOCK_ACCEPT, { fromSocketId });
     },
     [socket, isConnected],
   );
 
   const rejectKnock = useCallback(
-    (fromUserId: string) => {
+    (fromSocketId: string) => {
       if (!socket || !isConnected) return;
 
-      socket.emit(KnockEventType.KNOCK_REJECT, { fromUserId });
-      removeReceivedKnock(fromUserId);
+      socket.emit(KnockEventType.KNOCK_REJECT, { fromSocketId });
+      removeReceivedKnock(fromSocketId);
     },
     [socket, isConnected, removeReceivedKnock],
   );
@@ -71,19 +71,19 @@ export const useKnock = () => {
   );
 
   const canKnockTo = useCallback(
-    (targetUserId: string): boolean => {
-      if (!userId) return false;
-      if (userId === targetUserId) return false;
+    (targetSocketId: string): boolean => {
+      if (!socketId) return false;
+      if (socketId === targetSocketId) return false;
       if (deskStatus !== "available") return false;
-      if (sentKnockTargets.includes(targetUserId)) return false;
+      if (sentKnockTargets.includes(targetSocketId)) return false;
 
-      const targetUser = users.find((u) => u.id === targetUserId);
+      const targetUser = users.find((u) => u.socketId === targetSocketId);
       if (!targetUser) return false;
       if (targetUser.deskStatus !== "available") return false;
 
       return true;
     },
-    [userId, deskStatus, users, sentKnockTargets],
+    [socketId, deskStatus, users, sentKnockTargets],
   );
 
   const endTalk = useCallback(() => {

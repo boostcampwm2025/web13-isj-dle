@@ -7,9 +7,9 @@ interface KnockState {
   sentKnockTargets: string[];
   knockFailedMessage: string | null;
   addReceivedKnock: (knock: Knock) => void;
-  removeReceivedKnock: (fromUserId: string) => void;
-  addSentKnock: (targetUserId: string) => void;
-  removeSentKnock: (targetUserId: string) => void;
+  removeReceivedKnock: (fromSocketId: string) => void;
+  addSentKnock: (targetSocketId: string) => void;
+  removeSentKnock: (targetSocketId: string) => void;
   setKnockFailedMessage: (message: string | null) => void;
   clearAllKnocks: () => void;
 }
@@ -21,7 +21,7 @@ export const useKnockStore = create<KnockState>((set) => ({
 
   addReceivedKnock: (knock) =>
     set((state) => {
-      const exists = state.receivedKnocks.some((k) => k.fromUserId === knock.fromUserId);
+      const exists = state.receivedKnocks.some((k) => k.fromSocketId === knock.fromSocketId);
       if (exists) return state;
 
       return {
@@ -29,19 +29,19 @@ export const useKnockStore = create<KnockState>((set) => ({
       };
     }),
 
-  removeReceivedKnock: (fromUserId) =>
+  removeReceivedKnock: (fromSocketId) =>
     set((state) => ({
-      receivedKnocks: state.receivedKnocks.filter((k) => k.fromUserId !== fromUserId),
+      receivedKnocks: state.receivedKnocks.filter((k) => k.fromSocketId !== fromSocketId),
     })),
 
-  addSentKnock: (targetUserId) =>
+  addSentKnock: (targetSocketId) =>
     set((state) => ({
-      sentKnockTargets: [...state.sentKnockTargets, targetUserId],
+      sentKnockTargets: [...state.sentKnockTargets, targetSocketId],
     })),
 
-  removeSentKnock: (targetUserId) =>
+  removeSentKnock: (targetSocketId) =>
     set((state) => ({
-      sentKnockTargets: state.sentKnockTargets.filter((id) => id !== targetUserId),
+      sentKnockTargets: state.sentKnockTargets.filter((id) => id !== targetSocketId),
     })),
 
   setKnockFailedMessage: (message) => set({ knockFailedMessage: message }),

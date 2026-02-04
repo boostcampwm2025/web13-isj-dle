@@ -48,12 +48,12 @@ export const useVideoConference = (roomId: string | null) => {
   });
 
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);
-  const userId = useUserStore((state) => state.user?.id);
+  const socketId = useUserStore((state) => state.user?.socketId);
   const nickname = useUserStore((state) => state.user?.nickname);
   const contactId = useUserStore((state) => state.user?.contactId);
 
-  const hostId = useLecternStore((state) => state.hostId);
-  const isHost = userId === hostId;
+  const hostSocketId = useLecternStore((state) => state.hostSocketId);
+  const isHost = socketId === hostSocketId;
 
   const isSeminarRoom = currentRoomId?.startsWith(COLLABORATION_ROOM_PREFIX.SEMINAR) ?? false;
 
@@ -66,7 +66,7 @@ export const useVideoConference = (roomId: string | null) => {
     (currentRoomId !== undefined && isMeetingRoomRange(currentRoomId));
 
   useEffect(() => {
-    if (!currentRoomId || !userId || !nickname) return;
+    if (!currentRoomId || !socketId || !nickname) return;
 
     const prev = prevRoomInfoRef.current;
     const changed = prev.currentRoomId !== currentRoomId || prev.contactId !== contactId;
@@ -81,7 +81,7 @@ export const useVideoConference = (roomId: string | null) => {
         setMode(VIDEO_CONFERENCE_MODE.THUMBNAIL);
       }
     }
-  }, [currentRoomId, contactId, userId, nickname, isLobbyOrDeskOrMeeting, mode, setMode]);
+  }, [currentRoomId, contactId, socketId, nickname, isLobbyOrDeskOrMeeting, mode, setMode]);
 
   useEffect(() => {
     if (!game) return;
@@ -90,7 +90,7 @@ export const useVideoConference = (roomId: string | null) => {
   }, [game, mode]);
 
   useEffect(() => {
-    if (!currentRoomId || !userId || !nickname) return;
+    if (!currentRoomId || !socketId || !nickname) return;
 
     const isCollaborationRoom = isCollaborationRoomType(roomId);
     const isTimerStopwatchRoom = isTimerStopwatchRoomType(roomId);
@@ -132,7 +132,6 @@ export const useVideoConference = (roomId: string | null) => {
       removeSidebarKey("participant");
     }
 
-    // restaurant 사이드바
     if (currentRoomId === "restaurant") {
       addSidebarKey("restaurant");
     } else {
@@ -153,7 +152,7 @@ export const useVideoConference = (roomId: string | null) => {
     }
   }, [
     currentRoomId,
-    userId,
+    socketId,
     nickname,
     isLobbyOrDeskOrMeeting,
     removeSidebarKey,

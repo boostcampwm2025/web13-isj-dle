@@ -4,7 +4,7 @@ import Shepherd, { type Tour } from "shepherd.js";
 
 import { useCallback, useEffect, useRef } from "react";
 
-import { authApi } from "@entities/auth/api/auth.api";
+import { authApi } from "@entities/auth";
 
 export const useTutorial = () => {
   const tourRef = useRef<Tour | null>(null);

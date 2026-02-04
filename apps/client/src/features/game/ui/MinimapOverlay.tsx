@@ -49,13 +49,12 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
     <>
       <div
         data-tutorial="minimap"
-        className="pointer-events-auto fixed cursor-pointer overflow-hidden rounded-lg border border-slate-600/50 bg-slate-900/90 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-slate-500/70 hover:shadow-2xl"
+        className="pointer-events-auto fixed z-20 cursor-pointer overflow-hidden rounded-lg border border-slate-600/50 bg-slate-900/90 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-slate-500/70 hover:shadow-2xl"
         style={{
           bottom: MINIMAP_MARGIN,
           left: MINIMAP_MARGIN,
           width: MINIMAP_WIDTH,
           height: MINIMAP_HEIGHT + MINIMAP_HEADER,
-          zIndex: 99999,
           display: isHidden ? "none" : "block",
         }}
         onClick={openMinimap}
@@ -70,7 +69,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
 
       {isExpanded && (
         <div
-          className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm"
           onClick={closeMinimap}
         >
           <div
@@ -87,7 +86,7 @@ export const MinimapOverlay = ({ game, isHidden = false }: MinimapOverlayProps) 
               </button>
             </div>
 
-            <div className="flex items-center justify-center gap-6 border-b border-slate-700/30 bg-gradient-to-r from-slate-800/60 via-slate-800/40 to-slate-800/60 px-4 py-2.5">
+            <div className="flex items-center justify-center gap-6 border-b border-slate-700/30 bg-linear-to-r from-slate-800/60 via-slate-800/40 to-slate-800/60 px-4 py-2.5">
               <div className="flex items-center gap-2 rounded-full bg-green-500/10 px-3 py-1 ring-1 ring-green-500/30">
                 <div className="relative flex h-4 w-4 items-center justify-center">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-50" />

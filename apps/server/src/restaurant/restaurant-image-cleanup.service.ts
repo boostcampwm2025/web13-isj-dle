@@ -41,7 +41,7 @@ export class RestaurantImageCleanupService {
 
   private async cleanupExpiredImages(cutoff?: Date): Promise<void> {
     cutoff = cutoff ?? getTodayMidnightKST();
-    const affectedUserIds = new Set<string>();
+    const affectedUserIds = new Set<number>();
     let lastId = 0;
 
     while (true) {
@@ -154,8 +154,7 @@ export class RestaurantImageCleanupService {
     return new Set(rows.map((row) => row.key));
   }
 
-  private emitThumbnailUpdated(userId: string): void {
-    // 삭제 후이므로 thumbnailUrl은 null (클라이언트가 다시 조회해야 함)
+  private emitThumbnailUpdated(userId: number): void {
     this.eventEmitter.emit(RestaurantImageEventType.THUMBNAIL_UPDATED, { userId, thumbnailUrl: null });
   }
 }

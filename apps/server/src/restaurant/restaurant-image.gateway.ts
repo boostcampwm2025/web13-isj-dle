@@ -33,7 +33,7 @@ export class RestaurantImageGateway {
     try {
       const imageIdRaw = String(payload?.imageId ?? "").trim();
       const imageId = parseInt(imageIdRaw, 10);
-      const userId = String(payload?.userId ?? "").trim();
+      const userId = Number(payload?.userId ?? "");
 
       if (!imageIdRaw || Number.isNaN(imageId)) {
         ack?.({ success: false, message: "Invalid imageId" });
@@ -62,10 +62,7 @@ export class RestaurantImageGateway {
   ) {
     try {
       const requested = Array.isArray(payload?.userIds) ? payload.userIds : [];
-      const userIds = Array.from(new Set(requested.map((v) => String(v).trim()).filter(Boolean))).slice(
-        0,
-        MAX_THUMBNAIL_SYNC_USERS,
-      );
+      const userIds = Array.from(new Set(requested.filter(Boolean))).slice(0, MAX_THUMBNAIL_SYNC_USERS);
 
       const entries = await Promise.all(
         userIds.map(async (userId) => {

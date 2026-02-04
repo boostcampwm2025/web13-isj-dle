@@ -24,7 +24,7 @@ export class UserGateway {
       return;
     }
 
-    this.server.emit(UserEventType.USER_UPDATE, { userId: client.id, ...payload });
+    this.server.emit(UserEventType.USER_UPDATE, { socketId: client.id, ...payload });
   }
 
   @SubscribeMessage(UserEventType.PLAYER_MOVE)
@@ -45,7 +45,7 @@ export class UserGateway {
     const roomId = user.avatar.currentRoomId;
 
     this.server.to(roomId).emit(UserEventType.PLAYER_MOVED, {
-      userId: client.id,
+      socketId: client.id,
       ...payload,
     });
   }

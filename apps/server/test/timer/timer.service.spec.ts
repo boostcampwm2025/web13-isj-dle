@@ -1,4 +1,4 @@
-import { TimerService } from "../../src/timer/timer.service";
+import { TimerService } from "src/timer/timer.service";
 
 describe("TimerService", () => {
   test("getTimerState: 처음 호출 시 기본 상태 반환", () => {

@@ -14,7 +14,7 @@ import { useUserStore } from "@entities/user";
 import { useKnock } from "@features/knock";
 
 const DeskZoneSidebar = () => {
-  const userId = useUserStore((s) => s.user?.id);
+  const socketId = useUserStore((s) => s.user?.socketId);
   const deskStatus = useUserStore((s) => s.user?.deskStatus);
   const users = useUserStore((s) => s.users);
   const receivedKnocks = useKnockStore((s) => s.receivedKnocks);
@@ -24,43 +24,43 @@ const DeskZoneSidebar = () => {
   const { sendKnock, acceptKnock, rejectKnock, updateDeskStatus, canKnockTo, endTalk, isTalking } = useKnock();
 
   const [showEndTalkConfirm, setShowEndTalkConfirm] = useState(false);
-  const [pendingAcceptUserId, setPendingAcceptUserId] = useState<string | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [pendingAcceptSocketId, setPendingAcceptSocketId] = useState<string | null>(null);
+  const [selectedSocketId, setSelectedSocketId] = useState<string | null>(null);
 
   const deskZoneUsers = users.filter((u) => u.avatar.currentRoomId === "desk zone");
 
   const sortedUsers = [...deskZoneUsers].sort((a, b) => {
-    if (a.id === userId) return -1;
-    if (b.id === userId) return 1;
+    if (a.socketId === socketId) return -1;
+    if (b.socketId === socketId) return 1;
     return a.nickname.localeCompare(b.nickname);
   });
 
-  const handleUserClick = (userId: string) => {
-    setSelectedUserId(selectedUserId === userId ? null : userId);
+  const handleUserClick = (socketId: string) => {
+    setSelectedSocketId(selectedSocketId === socketId ? null : socketId);
   };
 
   const handleKnockClick = () => {
-    if (selectedUserId && canKnockTo(selectedUserId)) {
-      sendKnock(selectedUserId);
-      setSelectedUserId(null);
+    if (selectedSocketId && canKnockTo(selectedSocketId)) {
+      sendKnock(selectedSocketId);
+      setSelectedSocketId(null);
     }
   };
 
-  const handleAcceptKnock = (fromUserId: string) => {
+  const handleAcceptKnock = (fromSocketId: string) => {
     if (isTalking) {
-      setPendingAcceptUserId(fromUserId);
+      setPendingAcceptSocketId(fromSocketId);
       setShowEndTalkConfirm(true);
     } else {
-      acceptKnock(fromUserId);
+      acceptKnock(fromSocketId);
     }
   };
 
   const handleConfirmEndAndAccept = () => {
     endTalk();
-    if (pendingAcceptUserId) {
+    if (pendingAcceptSocketId) {
       setTimeout(() => {
-        acceptKnock(pendingAcceptUserId);
-        setPendingAcceptUserId(null);
+        acceptKnock(pendingAcceptSocketId);
+        setPendingAcceptSocketId(null);
       }, 100);
     }
     setShowEndTalkConfirm(false);
@@ -68,7 +68,7 @@ const DeskZoneSidebar = () => {
 
   const handleCancelEndTalk = () => {
     setShowEndTalkConfirm(false);
-    setPendingAcceptUserId(null);
+    setPendingAcceptSocketId(null);
   };
 
   return (
@@ -82,12 +82,17 @@ const DeskZoneSidebar = () => {
 
         <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
           {sortedUsers.map((u) => {
-            const isMe = u.id === userId;
-            const isSelected = selectedUserId === u.id;
+            const isMe = u.socketId === socketId;
+            const isSelected = selectedSocketId === u.socketId;
 
             return (
-              <div key={u.id}>
-                <UserListItem user={u} isMe={isMe} isSelected={isSelected} onClick={() => handleUserClick(u.id)} />
+              <div key={u.socketId}>
+                <UserListItem
+                  user={u}
+                  isMe={isMe}
+                  isSelected={isSelected}
+                  onClick={() => handleUserClick(u.socketId)}
+                />
 
                 {isSelected && (
                   <div className="mt-1 mb-2 ml-2 rounded-lg bg-gray-50 p-2">
@@ -105,7 +110,7 @@ const DeskZoneSidebar = () => {
                         targetNickname={u.nickname}
                         targetDeskStatus={u.deskStatus}
                         myDeskStatus={deskStatus ?? null}
-                        canKnock={canKnockTo(u.id)}
+                        canKnock={canKnockTo(u.socketId)}
                         onClick={handleKnockClick}
                       />
                     )}
@@ -127,7 +132,7 @@ const DeskZoneSidebar = () => {
           <div className="flex max-h-48 flex-col gap-2 overflow-y-auto">
             {receivedKnocks.map((knock) => (
               <KnockRequestCard
-                key={knock.fromUserId}
+                key={knock.fromSocketId}
                 knock={knock}
                 onAccept={handleAcceptKnock}
                 onReject={rejectKnock}

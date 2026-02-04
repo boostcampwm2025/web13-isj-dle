@@ -11,11 +11,11 @@ import type { User } from "@shared/types";
 interface UserGroupProps {
   users: User[];
   title: string;
-  userId: string;
+  socketId: string;
   updatable?: boolean;
 }
 
-const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) => {
+const UserGroup = ({ users, title, socketId, updatable = false }: UserGroupProps) => {
   const { isOpen, toggle } = useToggle(true);
 
   const [openModifyPanel, setOpenModifyPanel] = useState<boolean>(false);
@@ -31,10 +31,10 @@ const UserGroup = ({ users, title, userId, updatable = false }: UserGroupProps) 
       {isOpen && (
         <div className="flex flex-col gap-1">
           {users.map((user, index) => {
-            const isMe = user.id === userId;
+            const isMe = user.socketId === socketId;
 
             return (
-              <div key={user.id}>
+              <div key={user.socketId}>
                 <div
                   className={`flex flex-row items-center justify-between ${
                     index !== users.length - 1 ? "border-b" : ""

@@ -1,9 +1,9 @@
 import type { RestaurantImageFeedResponse, RestaurantImageResponse } from "@shared/types";
 
-export const fetchMyRestaurantImage = async (userId: string): Promise<RestaurantImageResponse> => {
+export const fetchMyRestaurantImage = async (userId: number): Promise<RestaurantImageResponse> => {
   const res = await fetch("/api/restaurant/images/me", {
     headers: {
-      "x-user-id": userId,
+      "x-user-id": userId.toString(),
     },
   });
   if (!res.ok) {
@@ -27,10 +27,10 @@ export const fetchUserRestaurantImage = async (
   return res.json();
 };
 
-export const fetchRestaurantImagesFeed = async (requestUserId: string): Promise<RestaurantImageFeedResponse> => {
+export const fetchRestaurantImagesFeed = async (requestUserId: number): Promise<RestaurantImageFeedResponse> => {
   const res = await fetch("/api/restaurant/images/feed", {
     headers: {
-      "x-user-id": requestUserId,
+      "x-user-id": requestUserId.toString(),
     },
   });
   if (!res.ok) {

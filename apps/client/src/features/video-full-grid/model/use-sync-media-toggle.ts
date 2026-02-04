@@ -22,7 +22,7 @@ export const useSyncMediaToggle = () => {
 
       const updatePayload = type === "mic" ? { micOn: enabled } : { cameraOn: enabled };
 
-      if (user) updateUser({ id: user.id, ...updatePayload });
+      if (user) updateUser({ socketId: user.socketId, ...updatePayload });
       socket?.emit(UserEventType.USER_UPDATE, updatePayload);
     },
     [saveAudioInputEnabled, saveVideoInputEnabled, socket, user, updateUser],

@@ -4,7 +4,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import type { Avatar, AvatarDirection, AvatarState, DeskStatus, UpdateAuthUserPayload, User } from "@shared/types";
 
 type UserUpdate = Partial<Omit<User, "avatar">> & {
-  id: string;
+  socketId: string;
   avatar?: Partial<Avatar>;
 };
 
@@ -19,15 +19,15 @@ const positionMap = new Map<string, PositionData>();
 const positionListeners = new Set<() => void>();
 
 export const positionStore = {
-  get: (userId: string): PositionData | undefined => positionMap.get(userId),
+  get: (socketId: string): PositionData | undefined => positionMap.get(socketId),
 
-  set: (userId: string, data: PositionData) => {
-    positionMap.set(userId, data);
+  set: (socketId: string, data: PositionData) => {
+    positionMap.set(socketId, data);
     positionListeners.forEach((listener) => listener());
   },
 
-  delete: (userId: string) => {
-    positionMap.delete(userId);
+  delete: (socketId: string) => {
+    positionMap.delete(socketId);
     positionListeners.forEach((listener) => listener());
   },
 
@@ -45,11 +45,11 @@ interface UserState {
 
   setSyncUsers: (user: User, users: User[]) => void;
   addUser: (user: User) => void;
-  removeUser: (userId: string) => void;
+  removeUser: (socketId: string) => void;
   updateUser: (updated: UserUpdate) => void;
   updateUserInfo: (updated: UpdateAuthUserPayload & { userId: number }) => void;
-  updateUserPosition: (userId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
-  updateUserDeskStatus: (userId: string, status: DeskStatus | null) => void;
+  updateUserPosition: (socketId: string, x: number, y: number, direction: AvatarDirection, state: AvatarState) => void;
+  updateUserDeskStatus: (socketId: string, status: DeskStatus | null) => void;
 
   resetUsersDeskStatus: () => void;
 }
@@ -61,7 +61,7 @@ export const useUserStore = create(
 
     setSyncUsers: (user, users) => {
       users.forEach((u) => {
-        positionStore.set(u.id, {
+        positionStore.set(u.socketId, {
           x: u.avatar.x,
           y: u.avatar.y,
           direction: u.avatar.direction,
@@ -73,10 +73,10 @@ export const useUserStore = create(
 
     addUser: (user) =>
       set((state) => {
-        const exists = state.users.some((u) => u.id === user.id);
+        const exists = state.users.some((u) => u.socketId === user.socketId);
         if (exists) return state;
 
-        positionStore.set(user.id, {
+        positionStore.set(user.socketId, {
           x: user.avatar.x,
           y: user.avatar.y,
           direction: user.avatar.direction,
@@ -85,19 +85,19 @@ export const useUserStore = create(
         return { users: [...state.users, user] };
       }),
 
-    removeUser: (userId) =>
+    removeUser: (socketId) =>
       set((state) => {
-        positionStore.delete(userId);
-        return { users: state.users.filter((u) => u.id !== userId) };
+        positionStore.delete(socketId);
+        return { users: state.users.filter((u) => u.socketId !== socketId) };
       }),
 
     updateUser: (updated) =>
       set((state) => {
         if (updated.avatar && ("x" in updated.avatar || "y" in updated.avatar)) {
-          const userId = updated.id;
-          const current = positionStore.get(userId);
+          const socketId = updated.socketId;
+          const current = positionStore.get(socketId);
           if (current) {
-            positionStore.set(userId, {
+            positionStore.set(socketId, {
               ...current,
               ...updated.avatar,
             } as PositionData);
@@ -116,7 +116,7 @@ export const useUserStore = create(
             Object.keys(updated).length === 2;
 
           if (isPositionOnly) {
-            if (state.user?.id === updated.id && updated.avatar) {
+            if (state.user?.socketId === updated.socketId && updated.avatar) {
               return {
                 user: {
                   ...state.user,
@@ -130,7 +130,7 @@ export const useUserStore = create(
 
         return {
           users: state.users.map((u) =>
-            u.id === updated.id
+            u.socketId === updated.socketId
               ? {
                   ...u,
                   ...updated,
@@ -139,7 +139,7 @@ export const useUserStore = create(
               : u,
           ),
           user:
-            state.user?.id === updated.id
+            state.user?.socketId === updated.socketId
               ? {
                   ...state.user,
                   ...updated,
@@ -178,22 +178,23 @@ export const useUserStore = create(
         };
       }),
 
-    updateUserPosition: (userId, x, y, direction, avatarState) => {
-      positionStore.set(userId, { x, y, direction, state: avatarState });
+    updateUserPosition: (socketId, x, y, direction, avatarState) => {
+      positionStore.set(socketId, { x, y, direction, state: avatarState });
 
       const state = get();
-      if (state.user?.id === userId) {
+      if (state.user?.socketId === socketId) {
         set({
           user: { ...state.user, avatar: { ...state.user.avatar, x, y, direction, state: avatarState } },
         });
       }
     },
 
-    updateUserDeskStatus: (userId, status) =>
+    updateUserDeskStatus: (socketId, status) =>
       set((state) => ({
-        users: state.users.map((u) => (u.id === userId ? { ...u, deskStatus: status } : u)),
-        user: state.user?.id === userId ? { ...state.user, deskStatus: status } : state.user,
+        users: state.users.map((u) => (u.socketId === socketId ? { ...u, deskStatus: status } : u)),
+        user: state.user?.socketId === socketId ? { ...state.user, deskStatus: status } : state.user,
       })),
+
     resetUsersDeskStatus: () => {
       const myRoomId = get().user?.avatar.currentRoomId;
       if (myRoomId === "desk zone") {
