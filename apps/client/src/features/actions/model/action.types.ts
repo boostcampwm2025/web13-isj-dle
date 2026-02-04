@@ -2,7 +2,7 @@ import type { LocalParticipant } from "livekit-client";
 
 import type { ReactNode } from "react";
 
-export type ActionKey = "camera" | "mic" | "screen_share" | "desk_zone" | "leave" | "view_mode";
+export type ActionKey = "camera" | "mic" | "screen_share" | "desk_zone" | "leave" | "view_mode" | "logout";
 
 export type ActionHook = () => {
   isOn?: boolean;

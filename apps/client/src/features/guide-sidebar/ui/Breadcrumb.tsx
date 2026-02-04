@@ -1,6 +1,8 @@
 import { TITLE_ICON_SIZE } from "../model/space.constants";
 import { ChevronLeft } from "lucide-react";
 
+import { Fragment } from "react/jsx-runtime";
+
 interface BreadcrumbProps {
   currentPath: string;
   goPath: (path: string) => void;
@@ -22,7 +24,7 @@ const Breadcrumb = ({ currentPath, goPath, goBack }: BreadcrumbProps) => {
         <ChevronLeft size={TITLE_ICON_SIZE} />
       </button>
       {parts.map((part, index) => (
-        <>
+        <Fragment key={index}>
           <button
             className={index === parts.length - 1 ? "" : "hover:text-blue-800 hover:underline"}
             disabled={index === parts.length - 1}
@@ -31,7 +33,7 @@ const Breadcrumb = ({ currentPath, goPath, goBack }: BreadcrumbProps) => {
             {part}
           </button>
           {index < parts.length - 1 && <span>/</span>}
-        </>
+        </Fragment>
       ))}
     </div>
   );

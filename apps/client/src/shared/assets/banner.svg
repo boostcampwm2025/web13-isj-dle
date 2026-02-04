@@ -1,0 +1,35 @@
+<svg width="1200" height="200" viewBox="0 0 1200 200" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="rectangleLinear" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5BA1F9" />
+      <stop offset="50%" stop-color="#3E84F5" />
+      <stop offset="100%" stop-color="#538BF1" />
+    </linearGradient>
+    <linearGradient id="circleLinear" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2894EB" />
+      <stop offset="100%" stop-color="#19C7E5" />
+    </linearGradient>
+    <radialGradient id="connectRadial" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#82E4F3" />
+      <stop offset="100%" stop-color="#32C7EF" />
+    </radialGradient>
+    <linearGradient id="textLinear" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#12A1E9" />
+      <stop offset="100%" stop-color="#6268F0" />
+    </linearGradient>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1" />
+    </filter>
+  </defs>
+
+  <g transform="translate(260, 36)">
+    <rect x="16" y="16" width="64" height="64" rx="8" fill="url(#rectangleLinear)" filter="url(#softBlur)" />
+    <circle cx="84" cy="84" r="32" fill="url(#circleLinear)" filter="url(#softBlur)" />
+    <circle cx="66" cy="66" r="14" fill="url(#connectRadial)" filter="url(#softBlur)" />
+
+    <text x="140" y="80" font-size="48" font-weight="700" fill="url(#textLinear)"
+      font-family="Inter, Pretendard, Arial, sans-serif">
+      화면 너머 공간으로, Moyo
+    </text>
+  </g>
+</svg>

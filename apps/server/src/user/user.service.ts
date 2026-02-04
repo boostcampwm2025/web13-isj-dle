@@ -11,9 +11,8 @@ import type {
   User,
 } from "@shared/types";
 
-import { generateRandomAvatar } from "../avatar/avatar.generator";
+import { AuthService } from "../auth/auth.service";
 import { MetricsService, mapRoomIdToMetricType } from "../metrics";
-import { generateUniqueNickname } from "../nickname/nickname.generator";
 
 @Injectable()
 export class UserService {
@@ -21,30 +20,32 @@ export class UserService {
   private readonly roomOccupancy = new Map<string, number>();
   private readonly sessionStartTimes = new Map<string, number>();
 
-  constructor(private readonly metricsService: MetricsService) {}
+  constructor(
+    private readonly metricsService: MetricsService,
+    private readonly authService: AuthService,
+  ) {}
 
-  createSession(dto: CreateGameUserDto): User {
-    const { id } = dto;
+  async createSession(dto: CreateGameUserDto): Promise<User> {
+    const { id, userId } = dto;
 
-    const isDuplicateNickname = (nickname: string): boolean => {
-      return Array.from(this.sessions.values()).some((user) => user.nickname === nickname);
-    };
-
-    const nickname = generateUniqueNickname(isDuplicateNickname);
-    const assetKey: AvatarAssetKey = generateRandomAvatar();
+    const authUser = await this.authService.getAuthUserById(userId);
+    if (!authUser) {
+      throw new Error(`AuthUser not found for ID: ${userId}`);
+    }
     const avatar: Avatar = {
       x: 600,
       y: 968,
       currentRoomId: "lobby",
       direction: "down",
       state: "idle",
-      assetKey,
+      assetKey: authUser.avatarAssetKey,
     };
 
     const user: User = {
       id,
+      userId: authUser.id,
       contactId: null,
-      nickname,
+      nickname: authUser.nickname,
       cameraOn: false,
       micOn: false,
       avatar,
@@ -215,6 +216,19 @@ export class UserService {
       this.roomOccupancy.set(roomId, next);
       if (current === 0) {
         this.metricsService.incrementActiveRooms(roomType);
+      }
+    }
+  }
+
+  updateUserInfo(payload: { userId: number; nickname?: string; avatarAssetKey?: AvatarAssetKey }) {
+    for (const user of this.sessions.values()) {
+      if (user.userId === payload.userId) {
+        if (payload.nickname !== undefined) {
+          user.nickname = payload.nickname;
+        }
+        if (payload.avatarAssetKey !== undefined) {
+          user.avatar.assetKey = payload.avatarAssetKey;
+        }
       }
     }
   }

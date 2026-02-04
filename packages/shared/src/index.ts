@@ -15,3 +15,4 @@ export * from "./restaurant-image.types";
 export * from "./restaurant-image.constants";
 export * from "./restaurant-image-event.types";
 export * from "./meeting.types";
+export * from "./auth.types";

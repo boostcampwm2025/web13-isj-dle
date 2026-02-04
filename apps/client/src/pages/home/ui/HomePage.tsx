@@ -2,6 +2,7 @@ import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
 import PhaserLayout from "@features/game/ui/PhaserLayout";
 import { useKnockSocket } from "@features/knock";
 import { useSyncImage } from "@features/restaurant-sidebar/model";
+import { TimerStopwatchNotifier } from "@features/timer-stopwatch-sidebar";
 import { TutorialProvider } from "@features/tutorial";
 import "@livekit/components-styles";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
@@ -10,7 +11,7 @@ import { BottomNav } from "@widgets/bottom-nav";
 import { Sidebar, useSidebarStore } from "@widgets/sidebar";
 import { VideoConference } from "@widgets/video-conference";
 
-const RoomPage = () => {
+const HomePage = () => {
   useKnockSocket();
   useSyncImage();
 
@@ -20,6 +21,7 @@ const RoomPage = () => {
   return (
     <TutorialProvider autoStart={true}>
       <div className="relative h-screen w-screen overflow-hidden bg-gray-300">
+        <TimerStopwatchNotifier />
         <div
           className="absolute inset-0 overflow-hidden rounded-r-2xl transition-[right] ease-in-out"
           style={{
@@ -41,4 +43,4 @@ const RoomPage = () => {
   );
 };
 
-export default RoomPage;
+export default HomePage;
