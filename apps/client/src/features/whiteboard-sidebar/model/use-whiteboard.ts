@@ -7,7 +7,7 @@ import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import { useSync } from "@tldraw/sync";
-import type { TLAsset } from "@tldraw/tldraw";
+import type { Editor, TLAsset } from "@tldraw/tldraw";
 
 const getTldrawWebSocketUri = (roomId: string) => {
   const wsUrl = SERVER_URL.replace(/^http/, "ws");
@@ -59,10 +59,21 @@ export const useWhiteboard = () => {
     };
   }, []);
 
+  const handleMount = (editor: Editor) => {
+    editor.selectAll();
+
+    editor.zoomToSelection({
+      animation: { duration: 2000 },
+    });
+
+    editor.selectNone();
+  };
+
   return {
     store: store.store,
     status: store.status,
     error: store.error,
     closeTool,
+    handleMount,
   };
 };
