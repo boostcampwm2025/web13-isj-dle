@@ -37,8 +37,8 @@ export const TimerStopwatchSidebar = () => {
     roomId: currentRoomId,
     isMeetingRoom,
   });
-  const { syncTimeState } = useTimeActions({ roomId: currentRoomId, isMogakcoRoom });
-  useSyncStopwatch({ roomId: currentRoomId, isMogakcoRoom });
+  const { syncTimeState } = useTimeActions({ roomId: currentRoomId, isMogakcoRoom, isMeetingRoom });
+  useSyncStopwatch({ roomId: currentRoomId, isMogakcoRoom, isMeetingRoom });
 
   const isTimerMode = mode === "timer";
   const activeControl = isTimerMode ? timer : stopwatch;
@@ -48,7 +48,7 @@ export const TimerStopwatchSidebar = () => {
   };
 
   const syncCurrentState = () => {
-    if (!isMogakcoRoom) return;
+    if (!isMogakcoRoom && !isMeetingRoom) return;
 
     const { timer: timerState, stopwatch: stopwatchState } = useTimerStopwatchStore.getState();
 
