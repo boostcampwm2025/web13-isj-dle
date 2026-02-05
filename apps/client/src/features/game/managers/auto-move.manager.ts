@@ -1,10 +1,10 @@
+import type { AvatarDirection } from "@shared/types";
+
 import type { GameScene } from "../core";
 import { AUTO_MOVE_BLOCKED, AUTO_MOVE_DURATION } from "../model/game.constants";
 import type { TilePoint } from "../model/game.types";
 import { getDirBetween, tileToWorld, worldToTile } from "../utils";
 import EasyStar from "easystarjs";
-
-import type { AvatarDirection } from "@shared/types";
 
 export class AutoMoveManager {
   private scene: GameScene;

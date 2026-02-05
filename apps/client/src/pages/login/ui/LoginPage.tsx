@@ -1,9 +1,9 @@
-import { ERROR_MESSAGES } from "../model/login.constants";
-
 import { useEffect, useState } from "react";
 
 import { authApi } from "@entities/auth";
 import { Banner, GitHub } from "@shared/assets";
+
+import { ERROR_MESSAGES } from "../model/login.constants";
 
 const LoginPage = () => {
   const loginWithGithub = () => authApi.loginWithGithub();

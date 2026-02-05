@@ -1,11 +1,11 @@
-import { JOIN_SUFFIX, LEAVE_SUFFIX } from "./chat.constants";
-import { useChatStore } from "./chat.store";
-import { Participant, RoomEvent } from "livekit-client";
-
 import { useEffect, useMemo, useRef } from "react";
 
 import { type ReceivedChatMessage, useChat, useRoomContext } from "@livekit/components-react";
 import { useSidebarStore } from "@widgets/sidebar";
+
+import { JOIN_SUFFIX, LEAVE_SUFFIX } from "./chat.constants";
+import { useChatStore } from "./chat.store";
+import { Participant, RoomEvent } from "livekit-client";
 
 export const useBindChat = (initialRoomName: string, contactId: string | null) => {
   const room = useRoomContext();

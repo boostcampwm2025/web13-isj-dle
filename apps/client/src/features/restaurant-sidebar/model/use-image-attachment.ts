@@ -1,8 +1,8 @@
-import { optimizeImage } from "../lib/optimize-image";
-
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { ALLOWED_IMAGE_MIME_TYPES, IMAGE_MIME_TYPES, MAX_IMAGE_FILE_SIZE_MB } from "@shared/types";
+
+import { optimizeImage } from "../lib/optimize-image";
 
 export type ImageAttachError = "INVALID_TYPE" | "INVALID_SIZE" | "OPTIMIZE_FAILED";
 

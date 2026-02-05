@@ -1,3 +1,9 @@
+import { useCollaborationToolStore } from "@entities/collaboration-tool";
+import { useBreakoutStore } from "@entities/lectern";
+import { useUserStore } from "@entities/user";
+import Editor from "@monaco-editor/react";
+import { CollaborationModal } from "@shared/ui";
+
 import { MONACO_EDITOR_OPTIONS, THEME_COLORS } from "../model/code-editor.constants";
 import { useCodeEditor } from "../model/use-code-editor";
 import { useEditorBinding } from "../model/use-editor-binding";
@@ -8,12 +14,6 @@ import CodeEditorControls from "./CodeEditorControls";
 import FileExplorer from "./FileExplorer";
 import RemoteCursors from "./RemoteCursors";
 import { Files } from "lucide-react";
-
-import { useCollaborationToolStore } from "@entities/collaboration-tool";
-import { useBreakoutStore } from "@entities/lectern";
-import { useUserStore } from "@entities/user";
-import Editor from "@monaco-editor/react";
-import { CollaborationModal } from "@shared/ui";
 
 const CodeEditorModalContent = () => {
   const closeTool = useCollaborationToolStore((state) => state.closeTool);

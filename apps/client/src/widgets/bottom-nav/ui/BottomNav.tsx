@@ -1,14 +1,14 @@
-import { useBottomNavStore } from "../model/bottom-nav.store";
-import { useBottomNav } from "../model/use-bottom-nav";
-
 import { Fragment } from "react/jsx-runtime";
 
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
-import { useBindAction } from "@features/actions";
+import { useActionStore } from "@features/actions";
 import { ACTION_KEY_ORDER, type ActionKey, DIVIDER_INDEX } from "@shared/config";
 
+import { useBottomNavStore } from "../model/bottom-nav.store";
+import { useBottomNav } from "../model/use-bottom-nav";
+
 const BottomNav = () => {
-  const { actions } = useBindAction();
+  const actions = useActionStore((state) => state.actions);
   const { mode, setMode } = useVideoConferenceModeStore();
   useBottomNav(mode, setMode);
   const bottomNavigation = useBottomNavStore((state) => state.bottomNavigation);

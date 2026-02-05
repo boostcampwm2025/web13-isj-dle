@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { AuthUser } from "@shared/types";
+
+import { create } from "zustand";
 
 interface AuthState {
   authUser: AuthUser | null;

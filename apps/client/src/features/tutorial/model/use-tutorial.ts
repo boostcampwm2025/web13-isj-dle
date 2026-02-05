@@ -1,10 +1,11 @@
-import { TUTORIAL_STEPS } from "./tutorial.constants";
-import { useTutorialStore } from "./tutorial.store";
-import Shepherd, { type Tour } from "shepherd.js";
-
 import { useCallback, useEffect, useRef } from "react";
 
 import { authApi } from "@entities/auth";
+
+import Shepherd, { type Tour } from "shepherd.js";
+
+import { TUTORIAL_STEPS } from "./tutorial.constants";
+import { useTutorialStore } from "./tutorial.store";
 
 export const useTutorial = () => {
   const tourRef = useRef<Tour | null>(null);

@@ -1,11 +1,11 @@
-import type { GameScene } from "../core";
-import { GAME_SCENE_KEY } from "./game.constants";
-
 import { useEffect, useRef } from "react";
 
 import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 import { positionStore, useUserStore } from "@entities/user";
 import type { User } from "@shared/types";
+
+import type { GameScene } from "../core";
+import { GAME_SCENE_KEY } from "./game.constants";
 
 const isSameUserStructure = (nextUsers: User[], prevUsers: User[]) => {
   if (nextUsers.length !== prevUsers.length) return false;

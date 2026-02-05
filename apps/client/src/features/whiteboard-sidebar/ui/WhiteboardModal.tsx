@@ -1,10 +1,10 @@
-import WhiteboardModalContent from "./WhiteboardModalContent";
-
 import { useEffect } from "react";
 
 import { COLLABORATION_TOOL, useCollaborationToolStore } from "@entities/collaboration-tool";
 import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
 import "@tldraw/tldraw/tldraw.css";
+
+import WhiteboardModalContent from "./WhiteboardModalContent";
 
 const WhiteboardModal = () => {
   const activeTool = useCollaborationToolStore((state) => state.activeTool);

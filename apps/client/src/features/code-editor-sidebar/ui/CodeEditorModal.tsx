@@ -1,9 +1,9 @@
-import CodeEditorModalContent from "./CodeEditorModalContent";
-
 import { useEffect } from "react";
 
 import { COLLABORATION_TOOL, useCollaborationToolStore } from "@entities/collaboration-tool";
 import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
+
+import CodeEditorModalContent from "./CodeEditorModalContent";
 
 const CodeEditorModal = () => {
   const activeTool = useCollaborationToolStore((state) => state.activeTool);

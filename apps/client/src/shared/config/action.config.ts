@@ -1,6 +1,6 @@
-import type { LocalParticipant } from "livekit-client";
-
 import type { ReactNode } from "react";
+
+import type { LocalParticipant } from "livekit-client";
 
 export type ActionKey = "camera" | "mic" | "screen_share" | "desk_zone" | "leave" | "view_mode" | "logout";
 

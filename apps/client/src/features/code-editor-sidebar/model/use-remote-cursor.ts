@@ -1,8 +1,8 @@
+import { type RefObject, useEffect, useState } from "react";
+
 import type * as Monaco from "monaco-editor";
 import type { WebsocketProvider } from "y-websocket";
 import type * as Y from "yjs";
-
-import { type RefObject, useEffect, useState } from "react";
 
 type Awareness = WebsocketProvider["awareness"];
 

@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import { SIDEBAR_KEY_ORDER, type SidebarKey } from "@shared/config";
+
+import { create } from "zustand";
 
 interface SidebarState {
   sidebarKeys: SidebarKey[];

@@ -1,11 +1,11 @@
-import { calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
-import { isTimerReset, isTimerStopped } from "./timer-state";
-import { useTimerStopwatchStore } from "./timer-stopwatch.store";
-
 import { useCallback, useEffect } from "react";
 
 import { useWebSocket } from "@features/socket";
 import { type RoomType, TimerEventType, type TimerStatePayload } from "@shared/types";
+
+import { calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
+import { isTimerReset, isTimerStopped } from "./timer-state";
+import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 interface UseTimerSyncProps {
   roomId: RoomType | null;

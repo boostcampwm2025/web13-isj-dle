@@ -1,6 +1,6 @@
-import { type Participant, Track } from "livekit-client";
-
 import { type TrackReferenceOrPlaceholder, isTrackReference } from "@livekit/components-react";
+
+import { type Participant, Track } from "livekit-client";
 
 export type TrackReferencePlaceholder = {
   participant: Participant;

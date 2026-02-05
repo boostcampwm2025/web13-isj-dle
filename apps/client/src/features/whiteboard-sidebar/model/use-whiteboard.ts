@@ -1,5 +1,3 @@
-import { CURSOR_COLORS } from "./whiteboard.constants";
-
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useCollaborationToolStore } from "@entities/collaboration-tool";
@@ -8,6 +6,8 @@ import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
 import { useSync } from "@tldraw/sync";
 import type { Editor, TLAsset } from "@tldraw/tldraw";
+
+import { CURSOR_COLORS } from "./whiteboard.constants";
 
 const getTldrawWebSocketUri = (roomId: string) => {
   const wsUrl = SERVER_URL.replace(/^http/, "ws");

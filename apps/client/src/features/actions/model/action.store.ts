@@ -1,17 +1,15 @@
-import { create } from "zustand";
-
 import type { ActionHook, ActionKey } from "@shared/config";
+
+import { create } from "zustand";
 
 type ActionsMap = Record<ActionKey, ReturnType<ActionHook>>;
 
 interface ActionState {
   actions: Partial<ActionsMap>;
   setActions: (actions: ActionsMap) => void;
-  getHookByKey: (key: ActionKey) => ReturnType<ActionHook> | undefined;
 }
 
-export const useActionStore = create<ActionState>((set, get) => ({
+export const useActionStore = create<ActionState>((set) => ({
   actions: {},
   setActions: (actions) => set({ actions }),
-  getHookByKey: (key) => get().actions[key],
 }));

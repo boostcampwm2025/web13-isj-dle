@@ -1,8 +1,8 @@
+import type { AvatarDirection } from "@shared/types";
+
 import { AVATAR_RUN_SPEED, AVATAR_WALK_SPEED } from "../model/game.constants";
 import type { MoveKeys } from "../model/game.types";
 import Phaser from "phaser";
-
-import type { AvatarDirection } from "@shared/types";
 
 export class InputManager {
   private scene: Phaser.Scene;
@@ -11,6 +11,8 @@ export class InputManager {
   private lastDir: AvatarDirection = "down";
 
   private _enabled: boolean = true;
+
+  private isModifierKeyPressed: boolean = false;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -66,6 +68,13 @@ export class InputManager {
     keyboard.on("keydown", (e: KeyboardEvent) => {
       if (!this._enabled) return;
 
+      this.isModifierKeyPressed = e.metaKey || e.ctrlKey || e.altKey;
+
+      if (this.isModifierKeyPressed) {
+        this.resetAllKeys();
+        return;
+      }
+
       const k = e.code;
 
       if (k === "ArrowLeft" || k === "KeyA") this.lastDir = "left";
@@ -73,11 +82,20 @@ export class InputManager {
       else if (k === "ArrowUp" || k === "KeyW") this.lastDir = "up";
       else if (k === "ArrowDown" || k === "KeyS") this.lastDir = "down";
     });
+
+    keyboard.on("keyup", (e: KeyboardEvent) => {
+      this.isModifierKeyPressed = e.metaKey || e.ctrlKey || e.altKey;
+    });
+
+    window.addEventListener("blur", () => {
+      this.resetAllKeys();
+    });
   }
 
   getNextDirection(): AvatarDirection | null {
     if (!this._enabled) return null;
     if (!this.cursors || !this.keys) return null;
+    if (this.isModifierKeyPressed) return null;
 
     const down = this.cursors.down.isDown || this.keys.down.isDown;
     const up = this.cursors.up.isDown || this.keys.up.isDown;
@@ -115,5 +133,28 @@ export class InputManager {
 
   getLastDirection(): AvatarDirection {
     return this.lastDir;
+  }
+
+  private resetAllKeys(): void {
+    if (!this.keys) return;
+
+    // Phaser 키 상태를 강제로 리셋
+    const allKeys = [this.keys.up, this.keys.down, this.keys.left, this.keys.right, this.keys.sit, this.keys.shift];
+
+    allKeys.forEach((key) => {
+      if (key && key.isDown) {
+        key.reset();
+      }
+    });
+
+    if (this.cursors) {
+      const cursorKeys = [this.cursors.up, this.cursors.down, this.cursors.left, this.cursors.right];
+
+      cursorKeys.forEach((key) => {
+        if (key && key.isDown) {
+          key.reset();
+        }
+      });
+    }
   }
 }

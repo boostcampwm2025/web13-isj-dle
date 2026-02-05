@@ -1,6 +1,6 @@
-import { Socket } from "socket.io-client";
-
 import { createContext, useContext } from "react";
+
+import { Socket } from "socket.io-client";
 
 export interface WebSocketContextValue {
   readonly socket: Socket | null;

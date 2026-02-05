@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { BreakoutState } from "@shared/types";
+
+import { create } from "zustand";
 
 interface BreakoutStore {
   breakoutState: BreakoutState | null;

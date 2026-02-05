@@ -1,8 +1,8 @@
+import { useCallback, useEffect } from "react";
+
 import { calculateTimerRemainingSeconds, clampTimerTotalSeconds, hmsToSeconds, secondsToHms } from "../lib/timer.utils";
 import { tickTimer, useTimerStopwatchStore } from "./timer-stopwatch.store";
 import { MAX_HOURS } from "./timer.constants";
-
-import { useCallback, useEffect } from "react";
 
 interface UseTimerReturn {
   hours: number;

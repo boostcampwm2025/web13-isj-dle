@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import type { RouteNode } from "../model/route.types";
 import Breadcrumb from "./Breadcrumb";
 import Controls from "./Controls";
@@ -6,8 +8,6 @@ import Layout from "./Layout";
 import Report from "./Report";
 import SpaceDetail from "./SpaceDetail";
 import Spaces from "./Spaces";
-
-import { useState } from "react";
 
 const GuideSidebar = () => {
   const [currentPath, setCurrentPath] = useState<string>("docs");

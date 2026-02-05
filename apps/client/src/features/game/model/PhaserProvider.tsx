@@ -1,9 +1,9 @@
-import { PhaserContext } from "./use-phaser-game";
-import { useRoom } from "./use-room";
-
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import { useWebSocket } from "@features/socket";
+
+import { PhaserContext } from "./use-phaser-game";
+import { useRoom } from "./use-room";
 
 interface PhaserProviderProps {
   children?: ReactNode;

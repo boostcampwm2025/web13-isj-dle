@@ -1,8 +1,8 @@
-import { RoomEvent } from "livekit-client";
-
 import { useEffect, useState } from "react";
 
 import { useRoomContext } from "@livekit/components-react";
+
+import { RoomEvent } from "livekit-client";
 
 export const useControlBarState = () => {
   const room = useRoomContext();

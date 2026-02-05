@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { ReceivedChatMessage } from "@livekit/components-react";
+
+import { create } from "zustand";
 
 type SendFunction = (message: string) => Promise<void>;
 

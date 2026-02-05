@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-
 import type { AvatarDirection, RoomType } from "@shared/types";
+
+import type { LucideIcon } from "lucide-react";
 
 export type MovableRoom = Extract<
   RoomType,

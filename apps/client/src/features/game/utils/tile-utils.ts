@@ -1,6 +1,6 @@
-import Phaser from "phaser";
-
 import { type AvatarDirection, TILE_SIZE } from "@shared/types";
+
+import Phaser from "phaser";
 
 export const getTilesAtWorld = (map: Phaser.Tilemaps.Tilemap | null, x: number, y: number): Phaser.Tilemaps.Tile[] => {
   if (!map) return [];

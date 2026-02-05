@@ -1,7 +1,7 @@
+import { Fragment } from "react/jsx-runtime";
+
 import { TITLE_ICON_SIZE } from "../model/space.constants";
 import { ChevronLeft } from "lucide-react";
-
-import { Fragment } from "react/jsx-runtime";
 
 interface BreadcrumbProps {
   currentPath: string;

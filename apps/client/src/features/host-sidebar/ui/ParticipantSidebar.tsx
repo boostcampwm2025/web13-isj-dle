@@ -1,9 +1,9 @@
-import { Blocks } from "lucide-react";
-
 import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { BreakoutRoomList } from "@features/host-sidebar";
 import { useBreakoutJoin } from "@features/host-sidebar";
+
+import { Blocks } from "lucide-react";
 
 const ParticipantSidebar = () => {
   const breakoutState = useBreakoutStore((state) => state.breakoutState);

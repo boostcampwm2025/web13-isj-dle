@@ -1,10 +1,10 @@
-import { MOVE_ROOM_MAP, isSameRoom } from "./space-move.constants";
-import type { MovableRoom } from "./space-move.types";
-
 import { useEffect, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
+
+import { MOVE_ROOM_MAP, isSameRoom } from "./space-move.constants";
+import type { MovableRoom } from "./space-move.types";
 
 export const useSpaceMove = () => {
   const { game } = usePhaserGame();

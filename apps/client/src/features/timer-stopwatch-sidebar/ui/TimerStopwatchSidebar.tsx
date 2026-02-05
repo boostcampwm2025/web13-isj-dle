@@ -1,3 +1,5 @@
+import { useUserStore } from "@entities/user";
+
 import { calculateTimerRemainingSeconds, hmsToSeconds, secondsToHms } from "../lib/timer.utils";
 import { useTimerStopwatchStore } from "../model/timer-stopwatch.store";
 import {
@@ -22,8 +24,6 @@ import { TimeInput } from "./TimeInput";
 import { TimerQuickButton } from "./TimerQuickButton";
 import { UserStopwatchList } from "./UserStopwatchList";
 import { Pause, Play, RotateCcw } from "lucide-react";
-
-import { useUserStore } from "@entities/user";
 
 export const TimerStopwatchSidebar = () => {
   const { mode, setMode } = useTimerStopwatchStore();

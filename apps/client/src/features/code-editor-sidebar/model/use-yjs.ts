@@ -1,11 +1,11 @@
-import { getColorForClient } from "./cursor-colors.utils";
-import { WebsocketProvider } from "y-websocket";
-import * as Y from "yjs";
-
 import { useEffect, useRef, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { SERVER_URL } from "@shared/config";
+
+import { getColorForClient } from "./cursor-colors.utils";
+import { WebsocketProvider } from "y-websocket";
+import * as Y from "yjs";
 
 const getYjsWebSocketUrl = (): string => {
   const wsUrl = SERVER_URL.replace(/^http/, "ws");

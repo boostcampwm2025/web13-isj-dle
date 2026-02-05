@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { UserStopwatchState } from "@shared/types";
+
+import { create } from "zustand";
 
 interface StopwatchShareState {
   userStopwatches: UserStopwatchState[];

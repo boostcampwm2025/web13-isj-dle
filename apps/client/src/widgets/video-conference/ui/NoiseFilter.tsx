@@ -1,6 +1,6 @@
-import { useNoiseFilter } from "../model/use-noise-filter";
-
 import { useRoomContext } from "@livekit/components-react";
+
+import { useNoiseFilter } from "../model/use-noise-filter";
 
 const NoiseFilter = () => {
   const room = useRoomContext();

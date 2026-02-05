@@ -1,9 +1,9 @@
-import type { TilePoint } from "./game.types";
-
 import type { ToastPosition } from "react-hot-toast";
 
 import { ROOM_JOIN_TOAST_ID, TOAST_DURATION } from "@shared/config";
 import { type AvatarDirection, TILE_SIZE } from "@shared/types";
+
+import type { TilePoint } from "./game.types";
 
 export const TMJ_URL = "/assets/maps/world.tmj";
 export const MAP_NAME = "world_map";

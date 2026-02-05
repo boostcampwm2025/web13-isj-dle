@@ -1,3 +1,14 @@
+import { useCallback, useEffect, useRef } from "react";
+
+import { useCollaborationToolStore } from "@entities/collaboration-tool";
+import { useKnockStore } from "@entities/knock";
+import { useUserStore } from "@entities/user";
+import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { useWebSocket } from "@features/socket";
+import { useTutorialStore } from "@features/tutorial";
+import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+import { type DeskStatus, LecternEventType } from "@shared/types";
+
 import type { GameScene } from "../core";
 import { GAME_SCENE_KEY } from "../model/game.constants";
 import { useAvatarLoader } from "../model/use-avatar-loader";
@@ -10,17 +21,6 @@ import { useRoomSelector } from "../model/use-room-selector";
 import { MinimapOverlay } from "./MinimapOverlay";
 import { RoomSelectorModal } from "./RoomSelectorModal";
 import { ZoomControl } from "./ZoomControl";
-
-import { useCallback, useEffect, useRef } from "react";
-
-import { useCollaborationToolStore } from "@entities/collaboration-tool";
-import { useKnockStore } from "@entities/knock";
-import { useUserStore } from "@entities/user";
-import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
-import { useWebSocket } from "@features/socket";
-import { useTutorialStore } from "@features/tutorial";
-import { VIDEO_CONFERENCE_MODE } from "@shared/config";
-import { type DeskStatus, LecternEventType } from "@shared/types";
 
 const PhaserLayout = () => {
   const mode = useVideoConferenceModeStore((state) => state.mode);
