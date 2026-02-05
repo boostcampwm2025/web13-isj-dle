@@ -3,6 +3,7 @@ import { memo, useEffect, useState } from "react";
 import { ChatDataBinder } from "@entities/chat";
 import { useUserStore } from "@entities/user";
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { useTutorialStore } from "@features/tutorial";
 import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
@@ -17,11 +18,14 @@ const VideoConference = () => {
   const isMicOn = useUserStore((state) => state.user?.micOn ?? false);
   const isCameraOn = useUserStore((state) => state.user?.cameraOn ?? false);
   const { token, serverUrl, roomId } = useLivekit();
-  useVideoConference(roomId);
+  const isTutorialCompleted = useTutorialStore((state) => state.isCompleted);
+  useVideoConference(roomId, isTutorialCompleted);
 
   const [userGestured, setUserGestured] = useState(false);
 
   useEffect(() => {
+    if (!isTutorialCompleted) return;
+
     const onGesture = () => setUserGestured(true);
     window.addEventListener("pointerdown", onGesture, { once: true });
     window.addEventListener("keydown", onGesture, { once: true });
@@ -29,9 +33,9 @@ const VideoConference = () => {
       window.removeEventListener("pointerdown", onGesture);
       window.removeEventListener("keydown", onGesture);
     };
-  }, []);
+  }, [isTutorialCompleted]);
 
-  const canConnect = userGestured && !!token && !!serverUrl;
+  const canConnect = userGestured && !!token && !!serverUrl && isTutorialCompleted;
 
   const roomKey = `${roomId || "empty"}:${token || "no-token"}`;
 
