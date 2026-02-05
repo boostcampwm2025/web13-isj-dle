@@ -47,6 +47,8 @@ export const FileExplorerItem = ({
   const isCreatingChild = creatingState?.parentId === node.id;
 
   useEffect(() => {
+    if (!isSelected) return;
+
     const resetEdit = () => {
       setIsEditing(false);
       setEditName(node.name);
@@ -56,7 +58,7 @@ export const FileExplorerItem = ({
     };
 
     resetEdit();
-  }, [monaco, node.name, setLanguage]);
+  }, [monaco, node.name, setLanguage, isSelected]);
 
   const handleRenameSubmit = () => {
     if (editName.trim() && editName !== node.name) {
