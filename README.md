@@ -41,9 +41,7 @@ Moyo는 2D 가상 공간에서 아바타를 이동하며 자연스럽게 만남�
 
 처음 접속하면 **Shepherd.js** 기반 단계별 튜토리얼이 자동으로 시작됩니다. 미니맵, 이동, 채팅, 노크 등 주요 기능을 하나씩 안내받으며 자연스럽게 서비스에 적응할 수 있습니다.
 
-<img width="auto" alt="image" src="https://gist.github.com/user-attachments/assets/9ec0d951-2d4f-44f6-a0c0-5f69d0b96c03" />
-
-
+<img width="auto" alt="image" src="https://github.com/user-attachments/assets/f81855cf-aaf2-49ec-904f-fa6fa8b7813c" />
 
 <br />
 
