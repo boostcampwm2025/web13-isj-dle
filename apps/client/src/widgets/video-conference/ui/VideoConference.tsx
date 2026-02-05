@@ -3,6 +3,7 @@ import { memo, useEffect, useState } from "react";
 import { ChatDataBinder } from "@entities/chat";
 import { useUserStore } from "@entities/user";
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { useBindLocalParticipant } from "@features/actions";
 import { useTutorialStore } from "@features/tutorial";
 import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
@@ -12,6 +13,11 @@ import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { useLivekit } from "../model/use-livekit";
 import { useVideoConference } from "../model/use-video-conference";
 import NoiseFilter from "./NoiseFilter";
+
+const LocalParticipantBinder = () => {
+  useBindLocalParticipant();
+  return null;
+};
 
 const VideoConference = () => {
   const { mode, setMode } = useVideoConferenceModeStore();
@@ -57,6 +63,7 @@ const VideoConference = () => {
           },
         }}
       >
+        <LocalParticipantBinder />
         <NoiseFilter />
         <ChatDataBinder />
         {mode === VIDEO_CONFERENCE_MODE.FULL_GRID && <VideoFullGrid setMode={setMode} />}

@@ -1,4 +1,3 @@
-import { useBindLocalParticipant } from "@features/actions";
 import {
   CarouselLayout,
   ConnectionStateToast,
@@ -26,7 +25,6 @@ interface VideoFullGridProps {
 }
 
 const VideoFullGrid = ({ setMode }: VideoFullGridProps) => {
-  useBindLocalParticipant();
   const allTracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },

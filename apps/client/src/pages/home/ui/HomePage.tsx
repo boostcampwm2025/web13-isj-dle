@@ -1,4 +1,5 @@
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
+import { useBindAction } from "@features/actions";
 import { PhaserLayout } from "@features/game";
 import { TimerStopwatchNotifier } from "@features/timer-stopwatch-sidebar";
 import { TutorialProvider } from "@features/tutorial";
@@ -10,6 +11,8 @@ import { Sidebar, useSidebarStore } from "@widgets/sidebar";
 import { VideoConference } from "@widgets/video-conference";
 
 const HomePage = () => {
+  useBindAction();
+
   const mode = useVideoConferenceModeStore((state) => state.mode);
   const isSidebarOpen = useSidebarStore((state) => state.isOpen);
 
