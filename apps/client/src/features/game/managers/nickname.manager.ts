@@ -33,7 +33,6 @@ export class NicknameManager {
     }
 
     const text = document.createElement("span");
-    text.className = "ml-[1px]";
     text.textContent = nickname;
     div.appendChild(text);
 
