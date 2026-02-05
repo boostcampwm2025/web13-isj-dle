@@ -83,11 +83,13 @@ const CodeEditorModalContent = () => {
           >
             <FileExplorer
               theme={theme}
+              monaco={monaco}
               fileSystem={fileSystem}
               createItem={createItem}
               deleteItem={deleteItem}
               renameItem={renameItem}
               selectFile={selectFile}
+              setLanguage={setLanguage}
               selectedFileId={selectedFileId}
             />
           </div>
