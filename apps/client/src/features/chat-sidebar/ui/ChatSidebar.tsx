@@ -13,7 +13,7 @@ const ChatSidebar = () => {
 
   return (
     <div className="grid h-full w-full items-end">
-      <ul className="scrollbar-hide flex h-full w-full flex-col gap-1 overflow-auto" ref={ulRef}>
+      <ul className="scrollbar-hide flex h-full w-full flex-col gap-1 overflow-auto pb-2" ref={ulRef}>
         {messages.map((msg, idx, allMsg) => {
           const hideName = idx >= 1 && allMsg[idx - 1].from === msg.from;
           const hideTimestamp = idx >= 1 && msg.timestamp - allMsg[idx - 1].timestamp < 60_000;

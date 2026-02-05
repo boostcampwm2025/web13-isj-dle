@@ -1,11 +1,13 @@
 import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
-import type { FileSystemNode } from "../model/file-explorer.utils";
+import { type FileSystemNode, getLanguageFromFileName } from "../model/file-explorer.utils";
 import { ChevronDown, ChevronRight, Edit2, File, FilePlus, Folder, FolderOpen, FolderPlus, Trash2 } from "lucide-react";
+import type * as Monaco from "monaco-editor";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FileExplorerItemProps {
   theme: EditorTheme;
+  monaco: typeof Monaco | null;
   node: FileSystemNode;
   depth: number;
   expandedFolders: Set<string>;
@@ -14,6 +16,7 @@ interface FileExplorerItemProps {
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  setLanguage: (language: string) => void;
   creatingState: { parentId: string; type: "file" | "folder" } | null;
   setCreatingState: (state: { parentId: string; type: "file" | "folder" } | null) => void;
   onCreateItem: (name: string, type: "file" | "folder", parentId: string) => void;
@@ -21,6 +24,7 @@ interface FileExplorerItemProps {
 
 export const FileExplorerItem = ({
   theme,
+  monaco,
   node,
   depth,
   expandedFolders,
@@ -29,6 +33,7 @@ export const FileExplorerItem = ({
   onSelect,
   onDelete,
   onRename,
+  setLanguage,
   creatingState,
   setCreatingState,
   onCreateItem,
@@ -40,6 +45,18 @@ export const FileExplorerItem = ({
   const isExpanded = expandedFolders.has(node.id);
   const isSelected = selectedFileId === node.id;
   const isCreatingChild = creatingState?.parentId === node.id;
+
+  useEffect(() => {
+    const resetEdit = () => {
+      setIsEditing(false);
+      setEditName(node.name);
+
+      const language = getLanguageFromFileName(node.name, monaco) || "plaintext";
+      setLanguage(language);
+    };
+
+    resetEdit();
+  }, [monaco, node.name, setLanguage]);
 
   const handleRenameSubmit = () => {
     if (editName.trim() && editName !== node.name) {
@@ -180,6 +197,7 @@ export const FileExplorerItem = ({
             <FileExplorerItem
               key={child.id}
               theme={theme}
+              monaco={monaco}
               node={child}
               depth={depth + 1}
               expandedFolders={expandedFolders}
@@ -188,6 +206,7 @@ export const FileExplorerItem = ({
               onSelect={onSelect}
               onDelete={onDelete}
               onRename={onRename}
+              setLanguage={setLanguage}
               creatingState={creatingState}
               setCreatingState={setCreatingState}
               onCreateItem={onCreateItem}

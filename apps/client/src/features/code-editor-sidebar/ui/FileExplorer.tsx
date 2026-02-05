@@ -2,26 +2,31 @@ import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
 import { type FileSystemItem, buildTree } from "../model/file-explorer.utils";
 import { FileExplorerItem } from "./FileExplorerItem";
 import { File, FilePlus, Folder, FolderPlus } from "lucide-react";
+import type * as Monaco from "monaco-editor";
 
 import { useMemo, useState } from "react";
 
 interface FileExplorerProps {
   theme: EditorTheme;
+  monaco: typeof Monaco | null;
   fileSystem: Record<string, FileSystemItem>;
   createItem: (name: string, type: "file" | "folder", parentId: string | null) => void;
   deleteItem: (id: string) => void;
   renameItem: (id: string, newName: string) => void;
   selectFile: (id: string) => void;
+  setLanguage: (language: string) => void;
   selectedFileId: string | null;
 }
 
 const FileExplorer = ({
   theme,
+  monaco,
   fileSystem,
   createItem,
   deleteItem,
   renameItem,
   selectFile,
+  setLanguage,
   selectedFileId,
 }: FileExplorerProps) => {
   const tree = useMemo(() => buildTree(fileSystem), [fileSystem]);
@@ -101,6 +106,7 @@ const FileExplorer = ({
           <FileExplorerItem
             key={node.id}
             theme={theme}
+            monaco={monaco}
             node={node}
             depth={0}
             expandedFolders={expandedFolders}
@@ -109,6 +115,7 @@ const FileExplorer = ({
             onSelect={selectFile}
             onDelete={deleteItem}
             onRename={renameItem}
+            setLanguage={setLanguage}
             creatingState={creatingState}
             setCreatingState={setCreatingState}
             onCreateItem={createItem}

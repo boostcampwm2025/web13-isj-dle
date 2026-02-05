@@ -8,19 +8,24 @@ import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom"
 import { HomePage } from "@pages/home";
 import { LoginPage } from "@pages/login";
 import { ROUTE_PATHS } from "@shared/config";
-import { Toast } from "@shared/ui";
+import { ErrorBoundary, Toast } from "@shared/ui";
 
 const App = () => {
   const router = createBrowserRouter([
     {
-      element: <RequireGuestGuard />,
-      children: [{ path: ROUTE_PATHS.LOGIN, element: <LoginPage /> }],
+      errorElement: <ErrorBoundary />,
+      children: [
+        {
+          element: <RequireGuestGuard />,
+          children: [{ path: ROUTE_PATHS.LOGIN, element: <LoginPage /> }],
+        },
+        {
+          element: <RequireAuthGuard />,
+          children: [{ path: ROUTE_PATHS.HOME, element: <HomePage /> }],
+        },
+        { path: "*", element: <Navigate to={ROUTE_PATHS.LOGIN} replace /> },
+      ],
     },
-    {
-      element: <RequireAuthGuard />,
-      children: [{ path: ROUTE_PATHS.HOME, element: <HomePage /> }],
-    },
-    { path: "*", element: <Navigate to={ROUTE_PATHS.LOGIN} replace /> },
   ]);
 
   return (

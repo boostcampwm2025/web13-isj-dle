@@ -98,4 +98,8 @@ export class MetricsService {
   reconcileActiveRooms(roomType: string, actualCount: number) {
     this.roomsActiveGauge.labels(roomType).set(actualCount);
   }
+
+  reconcileWsConnections(actualCount: number) {
+    this.wsConnectionsGauge.set(actualCount);
+  }
 }

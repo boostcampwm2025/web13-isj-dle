@@ -93,6 +93,15 @@ export class KnockGateway {
       return;
     }
 
+    if (fromUser.deskStatus === "focusing") {
+      client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
+        fromSocketId: payload.fromSocketId,
+        reason: "상대방이 집중 모드 상태입니다.",
+      });
+      this.knockService.removePendingKnock(payload.fromSocketId, client.id);
+      return;
+    }
+
     this.knockService.removePendingKnock(payload.fromSocketId, client.id);
 
     const hasPairKnock = this.knockService.hasPendingKnock(client.id, payload.fromSocketId);

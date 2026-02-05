@@ -14,7 +14,7 @@ export const AVATAR_FRAME_HEIGHT = 32;
 export const AVATAR_WALK_SPEED = 120;
 export const AVATAR_RUN_SPEED = 220;
 export const AVATAR_SNAP_SPEED = 0.25;
-export const AUTO_MOVE_DURATION = 70;
+export const AUTO_MOVE_DURATION = 40;
 export const NICKNAME_OFFSET_Y = 20;
 export const RESTAURANT_THUMBNAIL_OFFSET_Y = 10;
 
