@@ -7,7 +7,6 @@ import App from "./app";
 import { LogLevel, setLogLevel } from "livekit-client";
 
 loader.init();
-setLogLevel(LogLevel.error);
 
 if (import.meta.env.VITE_APP_ENV === "production") {
   console.error = () => {};
@@ -15,6 +14,7 @@ if (import.meta.env.VITE_APP_ENV === "production") {
   console.warn = () => {};
   console.info = () => {};
   console.log = () => {};
+  setLogLevel(LogLevel.error);
 }
 
 createRoot(document.getElementById("root")!).render(
