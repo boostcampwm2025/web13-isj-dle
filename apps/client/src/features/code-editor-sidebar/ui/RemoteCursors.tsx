@@ -1,10 +1,10 @@
+import { useEffect, useRef } from "react";
+
 import { getColorForClient, injectCursorStyles, removeCursorStyles } from "../model/cursor-colors.utils";
 import "./remote-cursors.css";
 import type * as Monaco from "monaco-editor";
 import { WebsocketProvider } from "y-websocket";
 import * as Y from "yjs";
-
-import { useEffect, useRef } from "react";
 
 type Awareness = WebsocketProvider["awareness"];
 

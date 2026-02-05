@@ -1,6 +1,6 @@
-import { LocalParticipant, Participant, Track } from "livekit-client";
-
 import { type TrackReference, VideoTrack, useTrackVolume } from "@livekit/components-react";
+
+import { LocalParticipant, Participant, Track } from "livekit-client";
 
 const SPEAKING_THRESHOLD_LOCAL = 0.5;
 const SPEAKING_THRESHOLD_REMOTE = 0.5;

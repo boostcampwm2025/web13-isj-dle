@@ -1,8 +1,8 @@
-import { useBindChat } from "../model/use-bind-chat";
-
 import { useMemo } from "react";
 
 import { useUserStore } from "@entities/user";
+
+import { useBindChat } from "../model/use-bind-chat";
 
 export const ChatDataBinder = () => {
   const currentRoomId = useUserStore((state) => state.user?.avatar.currentRoomId);

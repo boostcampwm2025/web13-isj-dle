@@ -1,10 +1,10 @@
-import { useSidebarStore } from "./sidebar.store";
-
 import { useEffect, useMemo } from "react";
 
 import { useChatStore } from "@entities/chat";
 import { useRestaurantImageViewStore } from "@entities/restaurant-image";
 import type { SidebarKey } from "@shared/config";
+
+import { useSidebarStore } from "./sidebar.store";
 
 const useSidebarState = () => {
   const sidebarKeys = useSidebarStore((s) => s.sidebarKeys);

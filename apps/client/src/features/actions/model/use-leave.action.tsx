@@ -1,11 +1,11 @@
-import { DoorOpen } from "lucide-react";
-
 import { useCallback, useMemo } from "react";
 
 import { useBreakoutStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { useBreakoutJoin } from "@features/host-sidebar";
 import type { ActionHook } from "@shared/config";
+
+import { DoorOpen } from "lucide-react";
 
 export const useLeaveAction: ActionHook = () => {
   const user = useUserStore((state) => state.user?.socketId);

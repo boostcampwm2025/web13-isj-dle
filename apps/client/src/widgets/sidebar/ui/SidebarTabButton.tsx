@@ -1,10 +1,10 @@
-import { SIDEBAR_MAP } from "../model/sidebar.constants";
-import { TimerProgressButton } from "./TimerProgressButton";
-
 import { type RefObject, memo, useLayoutEffect, useRef, useState } from "react";
 
 import type { SidebarKey } from "@shared/config";
 import { ICON_SIZE } from "@shared/config";
+
+import { SIDEBAR_MAP } from "../model/sidebar.constants";
+import { TimerProgressButton } from "./TimerProgressButton";
 
 interface SidebarTabButtonProps {
   tabKey: SidebarKey;

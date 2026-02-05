@@ -1,3 +1,16 @@
+import { lazy } from "react";
+
+import { ChatSidebar } from "@features/chat-sidebar";
+import { CollaborationToolsSidebar } from "@features/collaboration-tool-sidebar";
+import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
+import { GuideSidebar } from "@features/guide-sidebar";
+import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
+import { MeetingSidebar } from "@features/meeting-sidebar";
+import { RestaurantSidebar } from "@features/restaurant-sidebar";
+import { SpaceMoveSidebar } from "@features/space-move-sidebar";
+import { UserListSidebar } from "@features/user-list-sidebar";
+import type { SidebarItem, SidebarKey } from "@shared/config";
+
 import {
   Blocks,
   BookOpen,
@@ -11,19 +24,6 @@ import {
   Timer,
   Users,
 } from "lucide-react";
-
-import { lazy } from "react";
-
-import { ChatSidebar } from "@features/chat-sidebar";
-import { CollaborationToolsSidebar } from "@features/collaboration-tool-sidebar";
-import { DeskZoneSidebar } from "@features/desk-zone-sidebar";
-import { GuideSidebar } from "@features/guide-sidebar";
-import { HostSidebar, ParticipantSidebar } from "@features/host-sidebar";
-import { MeetingSidebar } from "@features/meeting-sidebar";
-import { RestaurantSidebar } from "@features/restaurant-sidebar";
-import { SpaceMoveSidebar } from "@features/space-move-sidebar";
-import { UserListSidebar } from "@features/user-list-sidebar";
-import type { SidebarItem, SidebarKey } from "@shared/config";
 
 const TimerStopwatchSidebar = lazy(() =>
   import("@features/timer-stopwatch-sidebar").then((m) => ({ default: m.TimerStopwatchSidebar })),

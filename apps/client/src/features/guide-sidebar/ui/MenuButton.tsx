@@ -1,7 +1,7 @@
+import { TIMER_ICON_SIZE } from "@features/timer-stopwatch-sidebar";
+
 import { SUB_ICON_SIZE } from "../model/space.constants";
 import { ChevronRight, type LucideIcon } from "lucide-react";
-
-import { TIMER_ICON_SIZE } from "@features/timer-stopwatch-sidebar";
 
 interface MenuButtonProps {
   Icon: LucideIcon;

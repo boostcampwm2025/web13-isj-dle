@@ -1,7 +1,7 @@
+import type { Avatar, AvatarDirection, AvatarState, DeskStatus, UpdateAuthUserPayload, User } from "@shared/types";
+
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-
-import type { Avatar, AvatarDirection, AvatarState, DeskStatus, UpdateAuthUserPayload, User } from "@shared/types";
 
 type UserUpdate = Partial<Omit<User, "avatar">> & {
   socketId: string;

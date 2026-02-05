@@ -1,8 +1,8 @@
-import type { LucideIcon } from "lucide-react";
-
 import { useRef, useState } from "react";
 
 import { ICON_SIZE } from "@shared/config";
+
+import type { LucideIcon } from "lucide-react";
 
 interface HoverButtonProps {
   title: string;

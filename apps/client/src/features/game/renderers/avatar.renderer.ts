@@ -1,8 +1,8 @@
-import { IDLE_FRAME, NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y, SIT_FRAME } from "../model/game.constants";
-import Phaser from "phaser";
-
 import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 import type { AvatarDirection, DeskStatus, User } from "@shared/types";
+
+import { IDLE_FRAME, NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y, SIT_FRAME } from "../model/game.constants";
+import Phaser from "phaser";
 
 const DESK_STATUS_INDICATOR_COLORS: Record<DeskStatus, string> = {
   available: "#10b981",
@@ -84,7 +84,7 @@ export class AvatarRenderer {
 
     let nicknameText = this.nicknameTexts.get(user.socketId);
     if (nicknameText) {
-      nicknameText.node.querySelector("span:last-child")!.textContent = user.nickname;
+      nicknameText.node.querySelector("span.nickname-text")!.textContent = user.nickname;
       this.updateNicknamePosition(nicknameText, avatar);
       this.updateStatusIndicator(nicknameText, user.deskStatus);
     } else {
@@ -126,7 +126,7 @@ export class AvatarRenderer {
     }
 
     const text = document.createElement("span");
-
+    text.className = "nickname-text";
     text.textContent = nickname;
     div.appendChild(text);
 
@@ -138,12 +138,12 @@ export class AvatarRenderer {
 
   private updateStatusIndicator(domElement: Phaser.GameObjects.DOMElement, deskStatus: DeskStatus | null): void {
     const div = domElement.node as HTMLDivElement;
-    let indicator = div.querySelector(".status-indicator") as HTMLSpanElement | null;
+    let indicator = div.querySelector("span.status-indicator") as HTMLSpanElement | null;
 
     if (deskStatus) {
       if (!indicator) {
         indicator = document.createElement("span");
-        indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+        indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0 mr-0.5";
         div.insertBefore(indicator, div.firstChild);
       }
       indicator.style.backgroundColor = DESK_STATUS_INDICATOR_COLORS[deskStatus];

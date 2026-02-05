@@ -1,9 +1,3 @@
-import { SIDEBAR_MAP, TUTORIAL_VIRTUAL_TABS } from "../model/sidebar.constants";
-import useSidebarState from "../model/use-sidebar-state";
-import { SidebarTabBadge } from "./SidebarTabBadge";
-import { SidebarTabButton } from "./SidebarTabButton";
-import { PanelLeft, PanelLeftClose } from "lucide-react";
-
 import { Suspense, memo, useEffect, useRef, useState } from "react";
 
 import { useChatStore } from "@entities/chat";
@@ -18,6 +12,12 @@ import {
   SIDEBAR_TAB_WIDTH,
 } from "@shared/config";
 import type { SidebarKey } from "@shared/config";
+
+import { SIDEBAR_MAP, TUTORIAL_VIRTUAL_TABS } from "../model/sidebar.constants";
+import useSidebarState from "../model/use-sidebar-state";
+import { SidebarTabBadge } from "./SidebarTabBadge";
+import { SidebarTabButton } from "./SidebarTabButton";
+import { PanelLeft, PanelLeftClose } from "lucide-react";
 
 const Sidebar = () => {
   useKnockSocket();

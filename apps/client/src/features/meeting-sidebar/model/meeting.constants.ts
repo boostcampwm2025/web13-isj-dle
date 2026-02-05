@@ -1,7 +1,7 @@
+import type { ComponentType } from "react";
+
 import DailyScrum from "../ui/DailyScrum";
 import Retrospection from "../ui/Retrospection";
-
-import type { ComponentType } from "react";
 
 export type Mode = "daily_scrum" | "retrospection";
 export const MODES: Mode[] = ["daily_scrum", "retrospection"];

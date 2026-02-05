@@ -1,7 +1,7 @@
+import { AVATAR_ASSETS, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
+
 import { IDLE_FRAME, MOVE_FRAME, SIT_FRAME } from "../model/game.constants";
 import Phaser from "phaser";
-
-import { AVATAR_ASSETS, type AvatarAssetKey, type AvatarDirection } from "@shared/types";
 
 export class AvatarAnimationManager {
   private scene: Phaser.Scene;

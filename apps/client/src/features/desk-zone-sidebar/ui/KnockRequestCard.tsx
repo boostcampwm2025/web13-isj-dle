@@ -1,7 +1,7 @@
+import type { Knock } from "@shared/types";
+
 import { ICON_SIZE } from "../model/desk-status.constants";
 import { Check, X } from "lucide-react";
-
-import type { Knock } from "@shared/types";
 
 interface KnockRequestCardProps {
   knock: Knock;

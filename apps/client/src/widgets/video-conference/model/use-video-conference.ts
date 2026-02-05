@@ -33,7 +33,7 @@ const isTimerStopwatchRoomType = (roomId: string | null): boolean => {
   return roomId.startsWith(COLLABORATION_ROOM_PREFIX.MEETING) || roomId.startsWith(COLLABORATION_ROOM_PREFIX.MOGAKCO);
 };
 
-export const useVideoConference = (roomId: string | null) => {
+export const useVideoConference = (roomId: string | null, isTutorialCompleted: boolean) => {
   const { mode, setMode } = useVideoConferenceModeStore();
   const addBottomNavKey = useBottomNavStore((state) => state.addKey);
   const removeBottomNavKey = useBottomNavStore((state) => state.removeKey);
@@ -98,7 +98,7 @@ export const useVideoConference = (roomId: string | null) => {
 
     if (isLobbyOrDeskOrMeeting) {
       removeSidebarKey("chat");
-    } else {
+    } else if (isTutorialCompleted) {
       addSidebarKey("chat");
     }
 
@@ -164,6 +164,7 @@ export const useVideoConference = (roomId: string | null) => {
     isSeminarRoom,
     isHost,
     breakoutState?.isActive,
+    isTutorialCompleted,
   ]);
 
   useEffect(() => {

@@ -1,9 +1,9 @@
+import { useEffect, useState } from "react";
+
 import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
 import { type FileSystemNode, getLanguageFromFileName } from "../model/file-explorer.utils";
 import { ChevronDown, ChevronRight, Edit2, File, FilePlus, Folder, FolderOpen, FolderPlus, Trash2 } from "lucide-react";
 import type * as Monaco from "monaco-editor";
-
-import { useEffect, useState } from "react";
 
 interface FileExplorerItemProps {
   theme: EditorTheme;
@@ -47,6 +47,8 @@ export const FileExplorerItem = ({
   const isCreatingChild = creatingState?.parentId === node.id;
 
   useEffect(() => {
+    if (!isSelected) return;
+
     const resetEdit = () => {
       setIsEditing(false);
       setEditName(node.name);
@@ -56,7 +58,7 @@ export const FileExplorerItem = ({
     };
 
     resetEdit();
-  }, [monaco, node.name, setLanguage]);
+  }, [monaco, node.name, setLanguage, isSelected]);
 
   const handleRenameSubmit = () => {
     if (editName.trim() && editName !== node.name) {

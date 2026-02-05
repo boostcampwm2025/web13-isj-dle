@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { LecternState } from "@shared/types";
+
+import { create } from "zustand";
 
 interface LecternStore extends LecternState {
   setLecternState: (state: Partial<LecternState>) => void;

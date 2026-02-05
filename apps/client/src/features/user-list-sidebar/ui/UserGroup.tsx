@@ -1,12 +1,12 @@
-import HoverIconButton from "./HoverIconButton";
-import UserModifyPanel from "./UserModifyPanel";
-import { Edit, Mic, MicOff, Video, VideoOff } from "lucide-react";
-
 import { useState } from "react";
 
 import { ICON_SIZE } from "@shared/config";
 import { useToggle } from "@shared/model";
 import type { User } from "@shared/types";
+
+import HoverIconButton from "./HoverIconButton";
+import UserModifyPanel from "./UserModifyPanel";
+import { Edit, Mic, MicOff, Video, VideoOff } from "lucide-react";
 
 interface UserGroupProps {
   users: User[];

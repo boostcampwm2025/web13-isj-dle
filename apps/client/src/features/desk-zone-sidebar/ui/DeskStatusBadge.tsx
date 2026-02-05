@@ -1,6 +1,6 @@
-import { DESK_STATUS_COLORS, DESK_STATUS_LABEL } from "../model/desk-status.constants";
-
 import type { DeskStatus } from "@shared/types";
+
+import { DESK_STATUS_COLORS, DESK_STATUS_LABEL } from "../model/desk-status.constants";
 
 interface DeskStatusBadgeProps {
   status: DeskStatus | null;

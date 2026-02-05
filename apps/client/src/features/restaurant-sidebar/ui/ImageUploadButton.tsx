@@ -1,3 +1,8 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { useRestaurantImageViewStore, useUploadRestaurantImageMutation } from "@entities/restaurant-image";
+import { useUserStore } from "@entities/user";
+
 import {
   DEFAULT_INFO_MESSAGE,
   INVALID_SIZE_MESSAGE,
@@ -7,11 +12,6 @@ import {
 } from "../model/message.constants";
 import { useImageAttachment } from "../model/use-image-attachment";
 import { Camera } from "lucide-react";
-
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { useRestaurantImageViewStore, useUploadRestaurantImageMutation } from "@entities/restaurant-image";
-import { useUserStore } from "@entities/user";
 
 type ImageUploadProps = {
   onOptimisticPreview: (params: { previewUrl: string; uploadId: string }) => void;

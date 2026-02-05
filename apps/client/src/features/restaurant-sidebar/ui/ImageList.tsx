@@ -1,10 +1,10 @@
-import { Heart } from "lucide-react";
-
 import { memo, useCallback } from "react";
 
 import { useRestaurantImageViewStore, useToggleRestaurantImageLikeMutation } from "@entities/restaurant-image";
 import { useUserStore } from "@entities/user";
 import type { RestaurantImage } from "@shared/types";
+
+import { Heart } from "lucide-react";
 
 const SkeletonImage = ({ src, alt, className }: { src: string; alt: string; className: string }) => (
   <div className={`${className} rounded-sm bg-gray-200`}>

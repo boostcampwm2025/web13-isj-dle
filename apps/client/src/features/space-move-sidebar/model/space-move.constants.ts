@@ -1,3 +1,6 @@
+import { MEETING_ROOM_RANGES, getRoomNumbers } from "@shared/config";
+import type { RoomType } from "@shared/types";
+
 import type { MovableRoom, MoveRoom } from "./space-move.types";
 import {
   Apple,
@@ -11,9 +14,6 @@ import {
   Users,
   Utensils,
 } from "lucide-react";
-
-import { MEETING_ROOM_RANGES, getRoomNumbers } from "@shared/config";
-import type { RoomType } from "@shared/types";
 
 export const MOVE_ROOM_MAP: Record<MovableRoom, MoveRoom> = {
   lobby: {

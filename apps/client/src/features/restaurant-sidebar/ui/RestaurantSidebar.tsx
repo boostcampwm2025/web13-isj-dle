@@ -1,7 +1,3 @@
-import ImageList from "./ImageList";
-import ImageUploadButton from "./ImageUploadButton";
-import ImageViewerModal from "./ImageViewerModal";
-
 import { useCallback, useRef } from "react";
 
 import {
@@ -13,6 +9,10 @@ import {
 import { useUserStore } from "@entities/user";
 import type { RestaurantImage, RestaurantImageFeedResponse } from "@shared/types";
 import { useQueryClient } from "@tanstack/react-query";
+
+import ImageList from "./ImageList";
+import ImageUploadButton from "./ImageUploadButton";
+import ImageViewerModal from "./ImageViewerModal";
 
 const RestaurantSidebar = () => {
   const userId = useUserStore((state) => state.user?.userId ?? null);

@@ -1,6 +1,6 @@
-import { Users } from "lucide-react";
-
 import { type BreakoutRoom } from "@shared/types";
+
+import { Users } from "lucide-react";
 
 interface BreakoutRoomCardProps {
   room: BreakoutRoom;

@@ -19,7 +19,7 @@
     {
       "files": ["apps/client/**/*.ts", "apps/client/**/*.tsx"],
       "options": {
-        "importOrder": ["^react", "^@", "\\.(png|jpe?g|gif|svg|webp)$"],
+        "importOrder": ["^react", "^@", "^shepherd", "^..", "\\.(png|jpe?g|gif|svg|webp)$"],
         "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
         "tailwindFunctions": ["cva", "cx", "cn"]
       }

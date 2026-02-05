@@ -1,10 +1,10 @@
-import type { ControlBar } from "./control-bar.types";
-import { trackSourceToProtocol } from "./utils";
-import { Track } from "livekit-client";
-
 import { useMemo } from "react";
 
 import { useLocalParticipantPermissions } from "@livekit/components-react";
+
+import type { ControlBar } from "./control-bar.types";
+import { trackSourceToProtocol } from "./utils";
+import { Track } from "livekit-client";
 
 export const useVisibleControls = () => {
   const localPermissions = useLocalParticipantPermissions();

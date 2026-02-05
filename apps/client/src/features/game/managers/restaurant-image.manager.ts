@@ -1,7 +1,7 @@
+import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
+
 import { NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y } from "../model/game.constants";
 import Phaser from "phaser";
-
-import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 
 export class RestaurantImageManager {
   private readonly scene: Phaser.Scene;

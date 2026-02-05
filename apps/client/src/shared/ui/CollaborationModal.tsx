@@ -1,10 +1,10 @@
-import { X } from "lucide-react";
-
 import { type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import { ICON_SIZE, SIDEBAR_ANIMATION_DURATION, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
 import { useSidebarStore } from "@widgets/sidebar";
+
+import { X } from "lucide-react";
 
 interface CollaborationModalProps {
   isOpen: boolean;

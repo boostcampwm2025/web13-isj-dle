@@ -1,8 +1,8 @@
-import { DEFAULT_EDITOR_OPTIONS, type EditorTheme, getAvailableLanguages } from "./code-editor.constants";
-
 import { useMemo, useState } from "react";
 
 import { useMonaco } from "@monaco-editor/react";
+
+import { DEFAULT_EDITOR_OPTIONS, type EditorTheme, getAvailableLanguages } from "./code-editor.constants";
 
 export const useCodeEditor = () => {
   const monaco = useMonaco();

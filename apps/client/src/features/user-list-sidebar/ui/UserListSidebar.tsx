@@ -1,11 +1,11 @@
-import UserGroup from "./UserGroup";
-import { Users } from "lucide-react";
-
 import { useMemo } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useGroupedUsers } from "@entities/user";
 import { useInviteLink } from "@shared/lib/invite";
+
+import UserGroup from "./UserGroup";
+import { Users } from "lucide-react";
 
 const UserListSidebar = () => {
   const socketId = useUserStore((state) => state.user?.socketId);

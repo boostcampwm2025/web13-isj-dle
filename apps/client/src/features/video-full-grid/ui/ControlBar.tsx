@@ -1,3 +1,8 @@
+import { useMemo } from "react";
+
+import { MediaDeviceMenu, StartMediaButton, TrackToggle } from "@livekit/components-react";
+import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+
 import { useControlBarState } from "../model/use-control-bar-state";
 import { useMediaQuery } from "../model/use-media-query";
 import { useSyncMediaToggle } from "../model/use-sync-media-toggle";
@@ -5,11 +10,6 @@ import { useVisibleControls } from "../model/use-visible-controls";
 import { supportsScreenSharing } from "../model/utils";
 import { Track } from "livekit-client";
 import { Minimize } from "lucide-react";
-
-import { useMemo } from "react";
-
-import { MediaDeviceMenu, StartMediaButton, TrackToggle } from "@livekit/components-react";
-import { VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
 
 interface ControlBarProps {
   variation?: "minimal" | "verbose" | "textOnly";

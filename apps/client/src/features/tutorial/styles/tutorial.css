@@ -33,7 +33,7 @@ body {
   margin-top: 14px;
 }
 .shepherd-element[data-popper-placement^="left"] {
-  margin-right: 24px !important;
+  margin-left: -12px !important;
   transform: translateX(-16px) !important;
 }
 .shepherd-element[data-popper-placement^="right"] {
@@ -44,6 +44,8 @@ body {
 .shepherd-header {
   display: block;
   padding: 8px 28px 0 !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
   text-align: center;
   font-size: 20px;
   font-weight: 700;
@@ -52,7 +54,7 @@ body {
 
 .shepherd-text {
   white-space: pre-line;
-  padding: 36px 28px 20px;
+  padding: 16px;
   font-size: 15px;
   line-height: 1.55;
   color: var(--muted);
@@ -61,10 +63,6 @@ body {
 
 .shepherd-text p {
   margin: 0;
-}
-
-.shepherd-content {
-  padding-top: 6px;
 }
 
 .shepherd-footer {

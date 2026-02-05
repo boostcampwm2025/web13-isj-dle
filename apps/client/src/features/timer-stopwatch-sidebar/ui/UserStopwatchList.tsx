@@ -1,13 +1,13 @@
-import { formatTime, truncateNickname } from "../lib/format.utils";
-import { calculateStopwatchElapsedSeconds, calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
-import { ONE_SECOND, TIMER_ICON_SIZE } from "../model/timer.constants";
-import { Users } from "lucide-react";
-
 import { useEffect, useState } from "react";
 
 import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useUserStore } from "@entities/user";
 import type { UserStopwatchState } from "@shared/types";
+
+import { formatTime, truncateNickname } from "../lib/format.utils";
+import { calculateStopwatchElapsedSeconds, calculateTimerRemainingSeconds, secondsToHms } from "../lib/timer.utils";
+import { ONE_SECOND, TIMER_ICON_SIZE } from "../model/timer.constants";
+import { Users } from "lucide-react";
 
 const TimerDisplay = ({ user }: { user: UserStopwatchState }) => {
   const { timer } = user;

@@ -1,4 +1,14 @@
 import {
+  AVATAR_ASSETS,
+  type AvatarAssetKey,
+  type AvatarDirection,
+  type AvatarState,
+  TILE_SIZE,
+  type User,
+  UserEventType,
+} from "@shared/types";
+
+import {
   AutoMoveManager,
   AvatarAnimationManager,
   InputManager,
@@ -24,16 +34,6 @@ import { AvatarRenderer, BoundaryRenderer } from "../renderers";
 import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTilesets } from "../utils";
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
-
-import {
-  AVATAR_ASSETS,
-  type AvatarAssetKey,
-  type AvatarDirection,
-  type AvatarState,
-  TILE_SIZE,
-  type User,
-  UserEventType,
-} from "@shared/types";
 
 export class GameScene extends Phaser.Scene {
   public isReady: boolean = false;
