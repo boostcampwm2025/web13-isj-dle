@@ -179,6 +179,14 @@ export class UserService {
     return this.sessions.size;
   }
 
+  getUserCount(): number {
+    const uniqueUserIds = new Set<number>();
+    for (const user of this.sessions.values()) {
+      uniqueUserIds.add(user.userId);
+    }
+    return uniqueUserIds.size;
+  }
+
   getUserCountByRoomType(): Map<string, number> {
     const cnt = new Map<string, number>();
     for (const user of this.sessions.values()) {

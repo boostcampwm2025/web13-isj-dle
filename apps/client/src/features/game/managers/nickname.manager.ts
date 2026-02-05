@@ -33,7 +33,6 @@ export class NicknameManager {
     }
 
     const text = document.createElement("span");
-    text.className = "ml-[1px]";
     text.textContent = nickname;
     div.appendChild(text);
 
@@ -46,7 +45,7 @@ export class NicknameManager {
 
   private createIndicatorElement(deskStatus: DeskStatus): HTMLSpanElement {
     const indicator = document.createElement("span");
-    indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+    indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0 mr-0.5";
     indicator.style.backgroundColor = DESK_STATUS_COLORS[deskStatus];
     return indicator;
   }

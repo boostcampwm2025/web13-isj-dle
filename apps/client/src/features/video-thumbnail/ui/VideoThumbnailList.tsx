@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useParticipants, useTracks } from "@livekit/components-react";
 import { ICON_SIZE } from "@shared/config";
-import { useResponsiveVisibility, useScrollableContainer, useVisibleUsers } from "@shared/model";
+import { useScrollableContainer, useVisibleUsers } from "@shared/model";
 
 const VideoThumbnailList = () => {
   const screenShareTracks = useTracks([Track.Source.ScreenShare]);
@@ -16,22 +16,18 @@ const VideoThumbnailList = () => {
 
   const totalItemCount = screenShareTracks.length + visibleParticipants.length;
 
-  const { scrollContainerRef, canScrollLeft, canScrollRight, checkScrollability, scroll } =
+  const { scrollContainerRef, canScrollLeft, canScrollRight, isScrollable, checkScrollability, scroll } =
     useScrollableContainer(totalItemCount);
-
-  const { getResponsiveClass, MAXIMUM_NUMBER_OF_VISUAL_MEMBERS } = useResponsiveVisibility();
 
   if (totalItemCount === 0) return null;
 
-  const isScrollable = totalItemCount > MAXIMUM_NUMBER_OF_VISUAL_MEMBERS;
-
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-center gap-1">
       {isScrollable && (
         <button
           onClick={() => scroll("left")}
           disabled={!canScrollLeft}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
         >
           <ChevronLeft size={ICON_SIZE} />
         </button>
@@ -40,18 +36,16 @@ const VideoThumbnailList = () => {
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        className={`flex gap-2 rounded-lg bg-black/30 p-2 ${
-          isScrollable ? "scrollbar-hide max-w-140 overflow-x-auto" : ""
-        }`}
-        style={isScrollable ? { scrollbarWidth: "none", msOverflowStyle: "none" } : undefined}
+        className="scrollbar-hide flex gap-2 overflow-x-auto rounded-lg bg-black/30 p-2"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {screenShareTracks.map((track, index) => (
-          <div key={`${track.participant.sid}-screen`} className={getResponsiveClass(index)}>
+        {screenShareTracks.map((track) => (
+          <div key={`${track.participant.sid}-screen`} className="shrink-0">
             <ParticipantTile trackRef={track} />
           </div>
         ))}
-        {visibleParticipants.map((participant, index) => (
-          <div key={participant.sid} className={getResponsiveClass(index + screenShareTracks.length)}>
+        {visibleParticipants.map((participant) => (
+          <div key={participant.sid} className="shrink-0">
             <ParticipantTile participant={participant} />
           </div>
         ))}
@@ -61,7 +55,7 @@ const VideoThumbnailList = () => {
         <button
           onClick={() => scroll("right")}
           disabled={!canScrollRight}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/50 text-white transition-opacity hover:bg-black/70 disabled:opacity-30"
         >
           <ChevronRight size={ICON_SIZE} />
         </button>

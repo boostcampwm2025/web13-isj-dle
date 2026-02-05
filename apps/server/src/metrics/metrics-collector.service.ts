@@ -17,8 +17,10 @@ export class MetricsCollectorService {
   @Cron(CronExpression.EVERY_5_MINUTES)
   reconcileMetrics() {
     try {
-      const actualUserCount = this.userService.getSessionCount();
+      const actualUserCount = this.userService.getUserCount();
+      const actualSessionCount = this.userService.getSessionCount();
       this.metricsService.reconcileOnlineUsers(actualUserCount);
+      this.metricsService.reconcileWsConnections(actualSessionCount);
 
       const usersByRoom = this.userService.getUserCountByRoomType();
       for (const [roomType, count] of usersByRoom.entries()) {

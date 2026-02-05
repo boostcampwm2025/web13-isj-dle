@@ -120,13 +120,12 @@ export class AvatarRenderer {
 
     if (deskStatus) {
       const indicator = document.createElement("span");
-      indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0";
+      indicator.className = "status-indicator inline-block w-[3px] h-[3px] rounded-full shrink-0 mr-0.5";
       indicator.style.backgroundColor = DESK_STATUS_INDICATOR_COLORS[deskStatus];
       div.appendChild(indicator);
     }
 
     const text = document.createElement("span");
-    text.className = "ml-[1px]";
 
     text.textContent = nickname;
     div.appendChild(text);

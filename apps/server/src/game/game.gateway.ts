@@ -48,6 +48,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   async handleConnection(client: Socket) {
     try {
+      this.metricsService.incrementWsConnections();
+
       client.setMaxListeners(20);
       const { userId } = client.handshake.auth as { userId: string };
 
@@ -59,7 +61,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return;
       }
 
-      this.metricsService.incrementWsConnections();
       this.logger.log(`✅ Client connected: ${client.id} ${user.nickname} (${user.avatar.assetKey})`);
 
       await client.join(user.avatar.currentRoomId);
@@ -73,6 +74,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleDisconnect(client: Socket) {
     try {
+      this.metricsService.decrementWsConnections();
+
       const user = this.userService.getSession(client.id);
       const nickname = user?.nickname ?? "알 수 없음";
       const previousRoomId = user?.avatar.currentRoomId;
@@ -86,7 +89,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.warn(`Session not found for disconnected client: ${client.id}`);
       }
 
-      this.metricsService.decrementWsConnections();
       this.logger.log(`❌ Client disconnected: ${client.id}`);
 
       client.broadcast.emit(UserEventType.USER_LEFT, { socketId: client.id });

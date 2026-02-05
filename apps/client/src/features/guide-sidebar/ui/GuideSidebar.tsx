@@ -1,5 +1,4 @@
 import type { RouteNode } from "../model/route.types";
-import Boundary from "./Boundary";
 import Breadcrumb from "./Breadcrumb";
 import Controls from "./Controls";
 import Home from "./Home";
@@ -34,7 +33,6 @@ const GuideSidebar = () => {
     children: {
       controls: { default: <Controls /> },
       layout: { default: <Layout /> },
-      boundary: { default: <Boundary /> },
       spaces: {
         default: <Spaces addPath={addPath} />,
         children: {

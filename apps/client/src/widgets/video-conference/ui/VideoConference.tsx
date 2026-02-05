@@ -33,11 +33,13 @@ const VideoConference = () => {
 
   const canConnect = userGestured && !!token && !!serverUrl;
 
+  const roomKey = `${roomId || "empty"}:${token || "no-token"}`;
+
   return (
     <div className="pointer-events-none absolute inset-0 z-30">
       <LiveKitRoom
         data-lk-theme={mode === VIDEO_CONFERENCE_MODE.FULL_GRID ? "default" : "none"}
-        key={roomId || "empty"}
+        key={roomKey}
         serverUrl={serverUrl || ""}
         token={token || ""}
         connect={canConnect}
