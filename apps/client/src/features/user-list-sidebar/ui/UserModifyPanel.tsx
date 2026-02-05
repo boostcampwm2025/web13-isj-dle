@@ -63,21 +63,33 @@ const UserModifyPanel = ({ user, onClose }: UserModifyPanelProps) => {
         <div className="grid grid-cols-2 gap-2">
           {AVATAR_KEYS.map((key) => {
             const selected = key === assetKey;
+            const profileUrl = AVATAR_ASSETS[key].profileUrl;
+
             return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setAssetKey(key)}
-                className={[
-                  "rounded-xl border px-2 py-2 text-xs transition",
-                  "hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0",
-                  selected
-                    ? "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100"
-                    : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100",
-                ].join(" ")}
-              >
-                {key}
-              </button>
+              <div className="flex flex-col">
+                <img
+                  src={profileUrl}
+                  alt={key}
+                  className={[
+                    "mb-1 aspect-square rounded-full border object-cover object-[50%_60%]",
+                    selected ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200",
+                  ].join(" ")}
+                />
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setAssetKey(key)}
+                  className={[
+                    "rounded-xl border px-2 py-2 text-xs transition",
+                    "hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0",
+                    selected
+                      ? "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100"
+                      : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100",
+                  ].join(" ")}
+                >
+                  {key}
+                </button>
+              </div>
             );
           })}
         </div>
