@@ -1,6 +1,6 @@
-import CodeEditorModal from "./CodeEditorModal";
-
 import { COLLABORATION_TOOL, CollaborationToolSidebar } from "@entities/collaboration-tool";
+
+import CodeEditorModal from "./CodeEditorModal";
 
 const CodeEditorSidebar = () => {
   return (

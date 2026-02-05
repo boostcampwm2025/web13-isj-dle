@@ -1,10 +1,10 @@
+import { type RefObject, useCallback, useEffect, useRef } from "react";
+
 import { type FileSystemItem, getLanguageFromFileName } from "./file-explorer.utils";
 import type * as Monaco from "monaco-editor";
 import { MonacoBinding } from "y-monaco";
 import type { WebsocketProvider } from "y-websocket";
 import type * as Y from "yjs";
-
-import { type RefObject, useCallback, useEffect, useRef } from "react";
 
 export const useEditorBinding = (
   ydocRef: RefObject<Y.Doc | null>,

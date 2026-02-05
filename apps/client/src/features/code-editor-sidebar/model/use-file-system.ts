@@ -1,3 +1,5 @@
+import { type RefObject, useCallback, useEffect, useState } from "react";
+
 import {
   DEFAULT_EDITOR_OPTIONS,
   type EditorLanguage,
@@ -7,8 +9,6 @@ import {
 import { type FileSystemItem, getLanguageFromFileName } from "./file-explorer.utils";
 import type * as Monaco from "monaco-editor";
 import type * as Y from "yjs";
-
-import { type RefObject, useCallback, useEffect, useState } from "react";
 
 export const useFileSystem = (
   ydocRef: RefObject<Y.Doc | null>,

@@ -1,10 +1,10 @@
-import { useTimerStopwatchStore } from "./timer-stopwatch.store";
-
 import { useEffect, useRef } from "react";
 
 import { useStopwatchShareStore } from "@entities/stopwatch-share";
 import { useWebSocket } from "@features/socket";
 import { type RoomType, StopwatchEventType, type StopwatchStatePayload } from "@shared/types";
+
+import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 interface UseSyncStopwatchProps {
   roomId: RoomType | null;

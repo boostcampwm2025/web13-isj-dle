@@ -1,9 +1,9 @@
+import { useEffect, useState } from "react";
+
 import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
 import { type FileSystemNode, getLanguageFromFileName } from "../model/file-explorer.utils";
 import { ChevronDown, ChevronRight, Edit2, File, FilePlus, Folder, FolderOpen, FolderPlus, Trash2 } from "lucide-react";
 import type * as Monaco from "monaco-editor";
-
-import { useEffect, useState } from "react";
 
 interface FileExplorerItemProps {
   theme: EditorTheme;

@@ -1,14 +1,14 @@
-import Providers from "./providers";
-import RequireAuthGuard from "./router/RequireAuthGuard";
-import RequireGuestGuard from "./router/RequireGuestGuard";
-import "./styles/index.css";
-
 import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import { HomePage } from "@pages/home";
 import { LoginPage } from "@pages/login";
 import { ROUTE_PATHS } from "@shared/config";
 import { ErrorBoundary, Toast } from "@shared/ui";
+
+import Providers from "./providers";
+import RequireAuthGuard from "./router/RequireAuthGuard";
+import RequireGuestGuard from "./router/RequireGuestGuard";
+import "./styles/index.css";
 
 const App = () => {
   const router = createBrowserRouter([

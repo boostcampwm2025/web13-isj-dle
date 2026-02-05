@@ -1,12 +1,13 @@
+import { useEffect, useState } from "react";
+
+import { useAuthStore } from "@entities/auth";
+
+import "shepherd.js/dist/css/shepherd.css";
+
 import { TUTORIAL_AUTO_START_DELAY } from "../model/tutorial.constants";
 import { useTutorialStore } from "../model/tutorial.store";
 import { useTutorial } from "../model/use-tutorial";
 import "../styles/tutorial.css";
-import "shepherd.js/dist/css/shepherd.css";
-
-import { useEffect, useState } from "react";
-
-import { useAuthStore } from "@entities/auth";
 
 interface TutorialProviderProps {
   children: React.ReactNode;

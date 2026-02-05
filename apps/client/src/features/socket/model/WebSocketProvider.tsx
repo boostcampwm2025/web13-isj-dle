@@ -1,7 +1,3 @@
-import { WebSocketContext } from "./use-websocket";
-import Phaser from "phaser";
-import { Socket, io } from "socket.io-client";
-
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -21,6 +17,10 @@ import {
   type User,
   UserEventType,
 } from "@shared/types";
+
+import { WebSocketContext } from "./use-websocket";
+import Phaser from "phaser";
+import { Socket, io } from "socket.io-client";
 
 interface WebSocketProviderProps {
   children: ReactNode;

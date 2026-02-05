@@ -1,11 +1,11 @@
+import { useState } from "react";
+
+import { BreakoutRoomList } from "@features/host-sidebar";
+
 import { MAX_ROOM_COUNT, MIN_ROOM_COUNT } from "../model/breakout.constants";
 import { useBreakout } from "../model/use-breakout";
 import { useBreakoutJoin } from "../model/use-breakout-join";
 import { Blocks, Minus, Plus, Shuffle, Users, X } from "lucide-react";
-
-import { useState } from "react";
-
-import { BreakoutRoomList } from "@features/host-sidebar";
 
 export const BreakoutPanel = () => {
   const { breakoutState, isBreakoutActive, currentRoomUsers, createBreakout, endBreakout } = useBreakout();

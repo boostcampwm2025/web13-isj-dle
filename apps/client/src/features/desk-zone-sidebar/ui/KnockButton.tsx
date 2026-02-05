@@ -1,6 +1,6 @@
-import { KNOCK_BUTTON_MESSAGE } from "../model/desk-status.constants";
-
 import type { DeskStatus } from "@shared/types";
+
+import { KNOCK_BUTTON_MESSAGE } from "../model/desk-status.constants";
 
 interface KnockButtonProps {
   targetNickname: string;

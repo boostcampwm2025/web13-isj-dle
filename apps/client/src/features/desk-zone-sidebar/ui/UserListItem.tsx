@@ -1,6 +1,6 @@
-import { DeskStatusBadge } from "./DeskStatusBadge";
-
 import type { User } from "@shared/types";
+
+import { DeskStatusBadge } from "./DeskStatusBadge";
 
 interface UserListItemProps {
   user: User;

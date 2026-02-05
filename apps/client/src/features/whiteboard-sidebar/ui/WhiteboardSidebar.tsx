@@ -1,6 +1,6 @@
-import WhiteboardModal from "./WhiteboardModal";
-
 import { COLLABORATION_TOOL, CollaborationToolSidebar } from "@entities/collaboration-tool";
+
+import WhiteboardModal from "./WhiteboardModal";
 
 const WhiteboardSidebar = () => {
   return (

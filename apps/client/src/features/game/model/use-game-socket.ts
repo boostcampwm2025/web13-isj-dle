@@ -1,8 +1,8 @@
+import { useEffect } from "react";
+
 import type { GameScene } from "../core";
 import { GAME_SCENE_KEY } from "./game.constants";
 import type { Socket } from "socket.io-client";
-
-import { useEffect } from "react";
 
 export const useGameSocket = (game: Phaser.Game | null, socket: Socket | null, isConnected: boolean) => {
   useEffect(() => {

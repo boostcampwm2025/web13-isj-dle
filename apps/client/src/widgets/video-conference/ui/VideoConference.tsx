@@ -1,7 +1,3 @@
-import { useLivekit } from "../model/use-livekit";
-import { useVideoConference } from "../model/use-video-conference";
-import NoiseFilter from "./NoiseFilter";
-
 import { memo, useEffect, useState } from "react";
 
 import { ChatDataBinder } from "@entities/chat";
@@ -11,6 +7,10 @@ import { VideoFullGrid } from "@features/video-full-grid";
 import { VideoThumbnail } from "@features/video-thumbnail";
 import { LiveKitRoom } from "@livekit/components-react";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
+
+import { useLivekit } from "../model/use-livekit";
+import { useVideoConference } from "../model/use-video-conference";
+import NoiseFilter from "./NoiseFilter";
 
 const VideoConference = () => {
   const { mode, setMode } = useVideoConferenceModeStore();

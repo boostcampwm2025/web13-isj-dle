@@ -1,7 +1,3 @@
-import { INVALID_SIZE_MESSAGE, INVALID_TYPE_MESSAGE } from "../model/message.constants";
-import { DEFAULT_ACCEPT, validateImageFile } from "../model/use-image-attachment";
-import { Pencil, Trash2, X } from "lucide-react";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -13,6 +9,10 @@ import {
 import { useUserStore } from "@entities/user";
 import { ICON_SIZE, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
 import { useSidebarStore } from "@widgets/sidebar";
+
+import { INVALID_SIZE_MESSAGE, INVALID_TYPE_MESSAGE } from "../model/message.constants";
+import { DEFAULT_ACCEPT, validateImageFile } from "../model/use-image-attachment";
+import { Pencil, Trash2, X } from "lucide-react";
 
 const VIEWER_ICON_SIZE = ICON_SIZE - 4;
 type ImageViewerModalProps = {

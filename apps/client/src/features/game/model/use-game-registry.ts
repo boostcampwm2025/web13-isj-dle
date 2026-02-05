@@ -1,8 +1,8 @@
-import { GAME_REGISTRY_KEYS, setRegistryFunction } from "./game-registry.constants";
-
 import { useEffect } from "react";
 
 import type { DeskStatus } from "@shared/types";
+
+import { GAME_REGISTRY_KEYS, setRegistryFunction } from "./game-registry.constants";
 
 export const useGameRegistry = (
   game: Phaser.Game | null,

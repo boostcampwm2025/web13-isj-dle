@@ -1,10 +1,10 @@
-import type { GameScene } from "../core";
-import { GAME_SCENE_KEY } from "./game.constants";
-
 import { useEffect, useRef } from "react";
 
 import { useUserStore } from "@entities/user";
 import type { User } from "@shared/types";
+
+import type { GameScene } from "../core";
+import { GAME_SCENE_KEY } from "./game.constants";
 
 export const useAvatarLoader = (game: Phaser.Game | null) => {
   const loadedRef = useRef(false);

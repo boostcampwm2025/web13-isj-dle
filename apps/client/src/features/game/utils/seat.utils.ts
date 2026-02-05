@@ -1,6 +1,6 @@
-import Phaser from "phaser";
-
 import type { AvatarDirection } from "@shared/types";
+
+import Phaser from "phaser";
 
 export const getSeatPoints = (
   map: Phaser.Tilemaps.Tilemap | null,

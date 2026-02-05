@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { VideoConferenceMode } from "@shared/config";
+
+import { create } from "zustand";
 
 interface VideoConferenceModeState {
   mode: VideoConferenceMode | null;

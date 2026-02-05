@@ -1,12 +1,12 @@
-import type { LocalParticipant } from "livekit-client";
-import { Mic, MicOff } from "lucide-react";
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useUserStore } from "@entities/user";
 import { useWebSocket } from "@features/socket";
 import type { ActionHook } from "@shared/config";
 import { UserEventType } from "@shared/types";
+
+import type { LocalParticipant } from "livekit-client";
+import { Mic, MicOff } from "lucide-react";
 
 export const useMicAction: ActionHook = () => {
   const [localParticipant, setLocalParticipant] = useState<LocalParticipant | null>(null);

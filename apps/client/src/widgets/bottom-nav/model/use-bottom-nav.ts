@@ -1,9 +1,9 @@
-import { useBottomNavStore } from "./bottom-nav.store";
-
 import { useEffect } from "react";
 
 import { useActionStore } from "@features/actions";
 import { type ActionKey, VIDEO_CONFERENCE_MODE, type VideoConferenceMode } from "@shared/config";
+
+import { useBottomNavStore } from "./bottom-nav.store";
 
 export const useBottomNav = (mode: VideoConferenceMode, setMode: (mode: VideoConferenceMode) => void) => {
   const getHookByKey = useActionStore((state) => state.getHookByKey);

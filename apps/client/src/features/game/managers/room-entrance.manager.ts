@@ -1,8 +1,8 @@
+import { isMeetingRoomRange } from "@shared/config";
+
 import { GAME_REGISTRY_KEYS, getRegistryFunction } from "../model/game-registry.constants";
 import { NetworkSyncManager } from "./network-sync.manager";
 import Phaser from "phaser";
-
-import { isMeetingRoomRange } from "@shared/config";
 
 export class RoomEntranceManager {
   private scene: Phaser.Scene;

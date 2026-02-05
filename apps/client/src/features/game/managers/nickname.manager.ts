@@ -1,7 +1,7 @@
+import type { DeskStatus } from "@shared/types";
+
 import { NICKNAME_OFFSET_Y } from "../model/game.constants";
 import Phaser from "phaser";
-
-import type { DeskStatus } from "@shared/types";
 
 const DESK_STATUS_COLORS: Record<DeskStatus, string> = {
   available: "#10b981",

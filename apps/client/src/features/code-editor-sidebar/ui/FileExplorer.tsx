@@ -1,10 +1,10 @@
+import { useMemo, useState } from "react";
+
 import { type EditorTheme, THEME_COLORS } from "../model/code-editor.constants";
 import { type FileSystemItem, buildTree } from "../model/file-explorer.utils";
 import { FileExplorerItem } from "./FileExplorerItem";
 import { File, FilePlus, Folder, FolderPlus } from "lucide-react";
 import type * as Monaco from "monaco-editor";
-
-import { useMemo, useState } from "react";
 
 interface FileExplorerProps {
   theme: EditorTheme;

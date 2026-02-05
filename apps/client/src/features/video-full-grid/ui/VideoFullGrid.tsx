@@ -1,8 +1,3 @@
-import { usePinScreenShare } from "../model/use-pin-screen-share";
-import { isEqualTrackRef } from "../model/utils";
-import ControlBar from "./ControlBar";
-import { RoomEvent, Track } from "livekit-client";
-
 import { useBindLocalParticipant } from "@features/actions";
 import {
   CarouselLayout,
@@ -20,6 +15,11 @@ import {
 } from "@livekit/components-react";
 import { type VideoConferenceMode } from "@shared/config";
 import { useVisibleUsers } from "@shared/model";
+
+import { usePinScreenShare } from "../model/use-pin-screen-share";
+import { isEqualTrackRef } from "../model/utils";
+import ControlBar from "./ControlBar";
+import { RoomEvent, Track } from "livekit-client";
 
 interface VideoFullGridProps {
   setMode: (mode: VideoConferenceMode | null) => void;

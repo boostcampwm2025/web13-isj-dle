@@ -1,9 +1,9 @@
-import type { LocalAudioTrack, ProcessorOptions, Room, TrackProcessor } from "livekit-client";
-import { RoomEvent, Track } from "livekit-client";
-
 import { useEffect, useRef } from "react";
 
 import { KrispNoiseFilter, type KrispNoiseFilterProcessor } from "@livekit/krisp-noise-filter";
+
+import type { LocalAudioTrack, ProcessorOptions, Room, TrackProcessor } from "livekit-client";
+import { RoomEvent, Track } from "livekit-client";
 
 const MAX_APPLY_FAILURE = 2;
 const KRISP_NOISE_FILTER_QUALITY = "medium";

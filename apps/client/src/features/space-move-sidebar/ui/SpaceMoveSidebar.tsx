@@ -1,8 +1,8 @@
+import { ICON_SIZE } from "@shared/config";
+
 import { MOVE_ROOM_MAP } from "../model/space-move.constants";
 import type { MovableRoom } from "../model/space-move.types";
 import { useSpaceMove } from "../model/use-space-move";
-
-import { ICON_SIZE } from "@shared/config";
 
 const SpaceMoveSidebar = () => {
   const { handleMoveSpace } = useSpaceMove();

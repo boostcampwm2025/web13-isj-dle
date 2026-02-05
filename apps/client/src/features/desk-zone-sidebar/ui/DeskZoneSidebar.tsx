@@ -1,3 +1,9 @@
+import { useState } from "react";
+
+import { useKnockStore } from "@entities/knock";
+import { useUserStore } from "@entities/user";
+import { useKnock } from "@features/knock";
+
 import { ICON_SIZE } from "../model/desk-status.constants";
 import { EndTalkConfirmModal } from "./EndTalkConfirmModal";
 import { KnockButton } from "./KnockButton";
@@ -6,12 +12,6 @@ import { KnockRequestCard } from "./KnockRequestCard";
 import { MyStatusSelector } from "./MyStatusSelector";
 import { UserListItem } from "./UserListItem";
 import { Bell, PhoneOff, Users } from "lucide-react";
-
-import { useState } from "react";
-
-import { useKnockStore } from "@entities/knock";
-import { useUserStore } from "@entities/user";
-import { useKnock } from "@features/knock";
 
 const DeskZoneSidebar = () => {
   const socketId = useUserStore((s) => s.user?.socketId);

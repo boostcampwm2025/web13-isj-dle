@@ -1,10 +1,10 @@
-import { getGameConfig } from "./game.config";
-import { usePhaserGame } from "./use-phaser-game";
-
 import { type RefObject, useEffect, useRef } from "react";
 
 import { useActionStore } from "@features/actions";
 import { useWebSocket } from "@features/socket";
+
+import { getGameConfig } from "./game.config";
+import { usePhaserGame } from "./use-phaser-game";
 
 export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | null>) => {
   const getHookByKey = useActionStore((state) => state.getHookByKey);

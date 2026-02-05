@@ -1,8 +1,8 @@
-import { useActionStore } from "./action.store";
-
 import { useEffect } from "react";
 
 import { useLocalParticipant } from "@livekit/components-react";
+
+import { useActionStore } from "./action.store";
 
 export const useBindLocalParticipant = () => {
   const getHookByKey = useActionStore((state) => state.getHookByKey);

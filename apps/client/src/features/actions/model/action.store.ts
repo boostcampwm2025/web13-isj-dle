@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { ActionHook, ActionKey } from "@shared/config";
+
+import { create } from "zustand";
 
 type ActionsMap = Record<ActionKey, ReturnType<ActionHook>>;
 

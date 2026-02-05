@@ -1,8 +1,8 @@
-import { Maximize } from "lucide-react";
-
 import { useCallback, useMemo, useRef } from "react";
 
 import type { ActionHook } from "@shared/config";
+
+import { Maximize } from "lucide-react";
 
 export const useViewModeAction: ActionHook = () => {
   const triggerRef = useRef<(() => void) | null>(null);

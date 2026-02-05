@@ -1,8 +1,8 @@
-import { BOUNDARY_DASH, BOUNDARY_OFFSET } from "../model/game.constants";
-import Phaser from "phaser";
-
 import { positionStore } from "@entities/user";
 import { MINIMUM_NUMBER_OF_MEMBERS, type User } from "@shared/types";
+
+import { BOUNDARY_DASH, BOUNDARY_OFFSET } from "../model/game.constants";
+import Phaser from "phaser";
 
 export class BoundaryRenderer {
   private graphics?: Phaser.GameObjects.Graphics;

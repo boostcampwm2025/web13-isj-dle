@@ -1,3 +1,9 @@
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+
+import { useUserStore } from "@entities/user";
+import { ICON_SIZE, ROOM_JOIN_TOAST_ID, isMeetingRoomRange } from "@shared/config";
+
 import { ROOM_JOIN_TOAST_OPTIONS } from "../model/game.constants";
 import {
   LOCATION_AREAS,
@@ -11,12 +17,6 @@ import { calculateMinimapScale } from "../model/minimap.utils";
 import { useMinimap, useMinimapToggle } from "../model/use-minimap";
 import { Tag, X } from "lucide-react";
 import { DoorOpen } from "lucide-react";
-
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-
-import { useUserStore } from "@entities/user";
-import { ICON_SIZE, ROOM_JOIN_TOAST_ID, isMeetingRoomRange } from "@shared/config";
 
 interface MinimapOverlayProps {
   game: Phaser.Game | null;

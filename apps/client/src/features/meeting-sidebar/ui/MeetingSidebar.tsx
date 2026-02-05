@@ -1,6 +1,6 @@
-import { MODES, MODE_LABELS, type Mode } from "../model/meeting.constants";
-
 import { useState } from "react";
+
+import { MODES, MODE_LABELS, type Mode } from "../model/meeting.constants";
 
 const MeetingSidebar = () => {
   const [mode, setMode] = useState<Mode>("daily_scrum");

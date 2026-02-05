@@ -1,6 +1,6 @@
-import { CHIME_DELAY, CHIME_FREQUENCIES } from "../model/timer.constants";
-
 import { useCallback } from "react";
+
+import { CHIME_DELAY, CHIME_FREQUENCIES } from "../model/timer.constants";
 
 let globalAudioContext: AudioContext | null = null;
 

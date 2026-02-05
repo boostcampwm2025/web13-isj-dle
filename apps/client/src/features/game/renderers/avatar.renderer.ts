@@ -1,8 +1,8 @@
-import { IDLE_FRAME, NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y, SIT_FRAME } from "../model/game.constants";
-import Phaser from "phaser";
-
 import { useRestaurantImageStore, useRestaurantImageViewStore } from "@entities/restaurant-image";
 import type { AvatarDirection, DeskStatus, User } from "@shared/types";
+
+import { IDLE_FRAME, NICKNAME_OFFSET_Y, RESTAURANT_THUMBNAIL_OFFSET_Y, SIT_FRAME } from "../model/game.constants";
+import Phaser from "phaser";
 
 const DESK_STATUS_INDICATOR_COLORS: Record<DeskStatus, string> = {
   available: "#10b981",

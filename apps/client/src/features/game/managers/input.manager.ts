@@ -1,8 +1,8 @@
+import type { AvatarDirection } from "@shared/types";
+
 import { AVATAR_RUN_SPEED, AVATAR_WALK_SPEED } from "../model/game.constants";
 import type { MoveKeys } from "../model/game.types";
 import Phaser from "phaser";
-
-import type { AvatarDirection } from "@shared/types";
 
 export class InputManager {
   private scene: Phaser.Scene;

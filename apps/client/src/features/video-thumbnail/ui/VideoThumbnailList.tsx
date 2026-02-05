@@ -1,10 +1,10 @@
-import ParticipantTile from "./ParticipantTile";
-import { Track } from "livekit-client";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
 import { useParticipants, useTracks } from "@livekit/components-react";
 import { ICON_SIZE } from "@shared/config";
 import { useScrollableContainer, useVisibleUsers } from "@shared/model";
+
+import ParticipantTile from "./ParticipantTile";
+import { Track } from "livekit-client";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const VideoThumbnailList = () => {
   const screenShareTracks = useTracks([Track.Source.ScreenShare]);

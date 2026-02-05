@@ -1,6 +1,6 @@
-import { BreakoutRoomCard } from "./BreakoutRoomCard";
-
 import { type BreakoutRoom } from "@shared/types";
+
+import { BreakoutRoomCard } from "./BreakoutRoomCard";
 
 interface BreakoutRoomListProps {
   rooms: BreakoutRoom[];

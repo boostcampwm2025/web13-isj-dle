@@ -1,11 +1,11 @@
-import { playChime } from "../lib/use-chime-sound";
-import { isTimerCompleted } from "./timer-state";
-import { useTimerStopwatchStore } from "./timer-stopwatch.store";
-
 import { useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 
 import { TIMER_COMPLETE_TOAST_ID } from "@shared/config";
+
+import { playChime } from "../lib/use-chime-sound";
+import { isTimerCompleted } from "./timer-state";
+import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 
 let lastNotifiedRunId: number | null = null;
 

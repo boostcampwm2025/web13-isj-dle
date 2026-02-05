@@ -1,8 +1,8 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { calculateStopwatchElapsedSeconds } from "../lib/timer.utils";
 import { useTimerStopwatchStore } from "./timer-stopwatch.store";
 import { ONE_SECOND } from "./timer.constants";
-
-import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseStopwatchReturn {
   timeSec: number;

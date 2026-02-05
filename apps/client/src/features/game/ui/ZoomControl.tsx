@@ -1,7 +1,7 @@
+import { useZoomStore } from "@features/game";
+
 import { ZOOM_LEVELS } from "../model/zoom.constants";
 import { ZoomIn, ZoomOut } from "lucide-react";
-
-import { useZoomStore } from "@features/game";
 
 interface ZoomControl {
   isHidden?: boolean;

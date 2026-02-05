@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-
 import type { ComponentType } from "react";
+
+import type { LucideIcon } from "lucide-react";
 
 export type SidebarKey =
   | "users"

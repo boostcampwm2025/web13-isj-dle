@@ -1,9 +1,9 @@
-import { type LocalParticipant, ParticipantEvent } from "livekit-client";
-import { ScreenShare, ScreenShareOff } from "lucide-react";
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { ActionHook } from "@shared/config";
+
+import { type LocalParticipant, ParticipantEvent } from "livekit-client";
+import { ScreenShare, ScreenShareOff } from "lucide-react";
 
 export const useScreenShareAction: ActionHook = () => {
   const [isScreenShareOn, setIsScreenShareOn] = useState<boolean>(false);

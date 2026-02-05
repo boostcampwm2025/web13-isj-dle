@@ -1,9 +1,9 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import type { GameScene } from "../core/game-scene";
 import { GAME_SCENE_KEY } from "./game.constants";
 import { MINIMAP_HEIGHT, MINIMAP_PADDING_Y, MINIMAP_WIDTH, getExpandedMapDimensions } from "./minimap.constants";
 import { calculateMinimapScale } from "./minimap.utils";
-
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface UseMinimapProps {
   game: Phaser.Game | null;

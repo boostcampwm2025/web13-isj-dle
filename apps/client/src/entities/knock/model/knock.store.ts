@@ -1,6 +1,6 @@
-import { create } from "zustand";
-
 import type { Knock } from "@shared/types";
+
+import { create } from "zustand";
 
 interface KnockState {
   receivedKnocks: Knock[];
