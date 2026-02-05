@@ -25,6 +25,7 @@ export const useTutorial = () => {
   const createTour = useCallback(() => {
     const tour = new Shepherd.Tour({
       useModalOverlay: true,
+      keyboardNavigation: false,
       defaultStepOptions: {
         cancelIcon: { enabled: false },
         classes: "shepherd-theme-custom",
