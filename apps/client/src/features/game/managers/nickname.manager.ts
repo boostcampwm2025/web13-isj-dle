@@ -33,6 +33,7 @@ export class NicknameManager {
     }
 
     const text = document.createElement("span");
+    text.className = "nickname-text";
     text.textContent = nickname;
     div.appendChild(text);
 
@@ -58,7 +59,7 @@ export class NicknameManager {
   updateNickname(nickname: string, x: number, y: number): void {
     if (!this.nicknameElement) return;
     const div = this.nicknameElement.node as HTMLDivElement;
-    const textSpan = div.querySelector("span");
+    const textSpan = div.querySelector("span.nickname-text");
     if (textSpan) {
       textSpan.textContent = nickname;
     }
@@ -69,7 +70,7 @@ export class NicknameManager {
     if (!this.nicknameElement) return;
 
     const div = this.nicknameElement.node as HTMLDivElement;
-    let indicator = div.querySelector(".status-indicator") as HTMLSpanElement | null;
+    let indicator = div.querySelector("span.status-indicator") as HTMLSpanElement | null;
 
     if (deskStatus) {
       if (!indicator) {
