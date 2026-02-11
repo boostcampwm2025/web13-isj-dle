@@ -52,7 +52,16 @@ export const useNoiseFilter = (room: Room | undefined) => {
 
       stopOnCurrentTrack();
       await destroyProcessor();
-      console.warn(`Krisp noise filter disabled (${reason})`);
+      console.warn(`Krisp noise filter disabled (${reason}), falling back to browser noiseSuppression`);
+
+      const track = getMicTrack();
+      if (track) {
+        try {
+          await track.restartTrack({ noiseSuppression: true });
+        } catch (error) {
+          console.error("Failed to enable browser noiseSuppression fallback:", error);
+        }
+      }
     };
 
     const applyNoiseFilterIfNeeded = async () => {
