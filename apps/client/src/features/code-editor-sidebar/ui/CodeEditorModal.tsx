@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 
 import { COLLABORATION_TOOL, useCollaborationToolStore } from "@entities/collaboration-tool";
-import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
+import { GAME_SCENE_KEY, type GameScene, usePhaserGame } from "@features/game";
 
-import CodeEditorModalContent from "./CodeEditorModalContent";
+const LazyCodeEditorModalContent = lazy(() => import("./CodeEditorModalContent"));
 
 const CodeEditorModal = () => {
   const activeTool = useCollaborationToolStore((state) => state.activeTool);
@@ -30,7 +30,11 @@ const CodeEditorModal = () => {
     return null;
   }
 
-  return <CodeEditorModalContent />;
+  return (
+    <Suspense>
+      <LazyCodeEditorModalContent />
+    </Suspense>
+  );
 };
 
 export default CodeEditorModal;

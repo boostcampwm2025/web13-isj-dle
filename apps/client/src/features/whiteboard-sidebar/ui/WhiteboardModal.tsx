@@ -1,10 +1,9 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 
 import { COLLABORATION_TOOL, useCollaborationToolStore } from "@entities/collaboration-tool";
-import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
-import "@tldraw/tldraw/tldraw.css";
+import { GAME_SCENE_KEY, type GameScene, usePhaserGame } from "@features/game";
 
-import WhiteboardModalContent from "./WhiteboardModalContent";
+const LazyWhiteboardModalContent = lazy(() => import("./WhiteboardModalContent"));
 
 const WhiteboardModal = () => {
   const activeTool = useCollaborationToolStore((state) => state.activeTool);
@@ -31,7 +30,11 @@ const WhiteboardModal = () => {
     return null;
   }
 
-  return <WhiteboardModalContent />;
+  return (
+    <Suspense>
+      <LazyWhiteboardModalContent />
+    </Suspense>
+  );
 };
 
 export default WhiteboardModal;
