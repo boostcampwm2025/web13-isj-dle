@@ -8,8 +8,8 @@ export const useGameSocket = (game: Phaser.Game | null, socket: Socket | null, i
   useEffect(() => {
     if (!game || !isConnected || !socket) return;
 
-    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene;
-    if (gameScene.isInitializedSocket) return;
+    const gameScene = game.scene.getScene(GAME_SCENE_KEY) as GameScene | null;
+    if (!gameScene || gameScene.isInitializedSocket) return;
 
     if (!gameScene.isReady) {
       gameScene.events.once("scene:ready", () => gameScene.setSocket(socket));
