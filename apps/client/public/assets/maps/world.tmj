@@ -9530,7 +9530,7 @@
         {
          "columns":16,
          "firstgid":1,
-         "image":"..\/tiles\/Interiors_free_16x16.png",
+         "image":"..\/tiles\/Interiors_free_16x16.webp",
          "imageheight":1424,
          "imagewidth":256,
          "margin":0,
@@ -9984,7 +9984,7 @@
         {
          "columns":17,
          "firstgid":1425,
-         "image":"..\/tiles\/Room_Builder_free_16x16.png",
+         "image":"..\/tiles\/Room_Builder_free_16x16.webp",
          "imageheight":368,
          "imagewidth":272,
          "margin":0,
@@ -10007,7 +10007,7 @@
         {
          "columns":80,
          "firstgid":1816,
-         "image":"..\/tiles\/Floor.png",
+         "image":"..\/tiles\/Floor.webp",
          "imageheight":4352,
          "imagewidth":1280,
          "margin":0,
@@ -10020,7 +10020,7 @@
         {
          "columns":28,
          "firstgid":23576,
-         "image":"..\/tiles\/all_assets.png",
+         "image":"..\/tiles\/all_assets.webp",
          "imageheight":240,
          "imagewidth":448,
          "margin":0,
@@ -10033,7 +10033,7 @@
         {
          "columns":312,
          "firstgid":23996,
-         "image":"..\/tiles\/Exterior Wall.png",
+         "image":"..\/tiles\/Exterior Wall.webp",
          "imageheight":6400,
          "imagewidth":4992,
          "margin":0,
@@ -13073,7 +13073,7 @@
         {
          "columns":120,
          "firstgid":148796,
-         "image":"..\/tiles\/Floor2.png",
+         "image":"..\/tiles\/Floor2.webp",
          "imageheight":4352,
          "imagewidth":1920,
          "margin":0,
@@ -13086,7 +13086,7 @@
         {
          "columns":300,
          "firstgid":181436,
-         "image":"..\/tiles\/Roof.png",
+         "image":"..\/tiles\/Roof.webp",
          "imageheight":2880,
          "imagewidth":4800,
          "margin":0,
