@@ -112,7 +112,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON(this.mapObj.name, this.mapObj.tmjUrl);
 
-    this.load.on(`filecomplete-tilemapJSON-${this.mapObj.name}`, () => {
+    this.load.once(`filecomplete-tilemapJSON-${this.mapObj.name}`, () => {
       const cached = this.cache.tilemap.get(this.mapObj.name);
       if (!cached?.data?.tilesets) return;
 
