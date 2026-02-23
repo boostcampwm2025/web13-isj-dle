@@ -4,14 +4,14 @@ import type { GameScene } from "../core";
 import { AUTO_MOVE_BLOCKED, AUTO_MOVE_DURATION } from "../model/game.constants";
 import type { TilePoint } from "../model/game.types";
 import { getDirBetween, tileToWorld, worldToTile } from "../utils";
-import EasyStar from "easystarjs";
+import type EasyStar from "easystarjs";
 
 export class AutoMoveManager {
   private scene: GameScene;
   private navGrid: number[][] | null = null;
   private autoMoveTween?: Phaser.Tweens.Tween;
   private targetTile?: TilePoint;
-  private easystar = new EasyStar.js();
+  private easystar: EasyStar.js | null = null;
   private isAutoMoving = false;
 
   constructor(scene: GameScene) {
@@ -27,7 +27,7 @@ export class AutoMoveManager {
   }
 
   calculate(): void {
-    this.easystar.calculate();
+    this.easystar?.calculate();
   }
 
   movePlayer({ x, y, direction }: { x: number; y: number; direction: AvatarDirection }): void {
@@ -47,7 +47,7 @@ export class AutoMoveManager {
       this.cancelAutoMove();
     }
 
-    this.easystar.findPath(from.x, from.y, to.x, to.y, (path) => {
+    this.easystar?.findPath(from.x, from.y, to.x, to.y, (path: { x: number; y: number }[] | null) => {
       if (!path || path.length === 0) {
         console.warn(`AutoMoveManager: No path found from: ${from} to: ${to}`);
         this.targetTile = undefined;
@@ -58,9 +58,12 @@ export class AutoMoveManager {
     });
   }
 
-  setupPathFinding() {
+  async setupPathFinding() {
     const map = this.scene.mapInfo.map;
     if (!map) return;
+
+    const EasyStar = (await import("easystarjs")).default;
+    this.easystar = new EasyStar.js();
 
     const grid: number[][] = Array.from({ length: map.height }, () => Array(map.width).fill(0));
 

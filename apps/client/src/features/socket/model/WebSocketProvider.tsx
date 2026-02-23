@@ -19,7 +19,7 @@ import {
 } from "@shared/types";
 
 import { WebSocketContext } from "./use-websocket";
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { Socket, io } from "socket.io-client";
 
 interface WebSocketProviderProps {

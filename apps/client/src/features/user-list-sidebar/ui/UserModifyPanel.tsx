@@ -66,7 +66,7 @@ const UserModifyPanel = ({ user, onClose }: UserModifyPanelProps) => {
             const profileUrl = AVATAR_ASSETS[key].profileUrl;
 
             return (
-              <div className="flex flex-col">
+              <div key={key} className="flex flex-col">
                 <img
                   src={profileUrl}
                   alt={key}
@@ -76,7 +76,6 @@ const UserModifyPanel = ({ user, onClose }: UserModifyPanelProps) => {
                   ].join(" ")}
                 />
                 <button
-                  key={key}
                   type="button"
                   onClick={() => setAssetKey(key)}
                   className={[

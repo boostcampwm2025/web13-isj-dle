@@ -14,6 +14,11 @@ const CollaborationToolsSidebar = () => {
   const prevRoomIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
+    import("@features/whiteboard-sidebar/ui/WhiteboardModalContent");
+    import("@features/code-editor-sidebar/ui/CodeEditorModalContent");
+  }, []);
+
+  useEffect(() => {
     const prevRoomId = prevRoomIdRef.current;
     if (prevRoomId === undefined) {
       prevRoomIdRef.current = currentRoomId;

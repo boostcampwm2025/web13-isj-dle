@@ -1,7 +1,7 @@
 import { GameScene } from "../core";
 import Phaser from "phaser";
 
-export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.GameConfig => {
+const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.GameConfig => {
   return {
     type: Phaser.AUTO,
     parent: containerRef,
@@ -32,4 +32,8 @@ export const getGameConfig = (containerRef: HTMLElement): Phaser.Types.Core.Game
     },
     backgroundColor: "#DFC7B2",
   };
+};
+
+export const createGame = (container: HTMLElement): Phaser.Game => {
+  return new Phaser.Game(getGameConfig(container));
 };

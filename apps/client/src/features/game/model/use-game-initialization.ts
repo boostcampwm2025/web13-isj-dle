@@ -3,7 +3,6 @@ import { type RefObject, useEffect, useRef } from "react";
 import { useActionStore } from "@features/actions";
 import { useWebSocket } from "@features/socket";
 
-import { getGameConfig } from "./game.config";
 import { usePhaserGame } from "./use-phaser-game";
 
 export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | null>) => {
@@ -13,23 +12,34 @@ export const useGameInitialization = (containerRef: RefObject<HTMLDivElement | n
   const isInitializedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (isInitializedRef.current) return;
+    if (isInitializedRef.current || !containerRef.current || game) return;
 
-    if (containerRef.current && !game) {
-      const config = getGameConfig(containerRef.current);
-      const gameInstance = new Phaser.Game(config);
+    let cancelled = false;
+    const container = containerRef.current;
+
+    (async () => {
+      const { createGame } = await import("./game.config");
+      if (cancelled) return;
+
+      const gameInstance = createGame(container);
       setGame(gameInstance);
       isInitializedRef.current = true;
-    }
+    })();
 
     return () => {
-      if (game) {
-        game.destroy(true);
-        setGame(null);
-        isInitializedRef.current = false;
-      }
+      cancelled = true;
     };
   }, [game, setGame, containerRef]);
+
+  useEffect(() => {
+    if (!game) return;
+
+    return () => {
+      game.destroy(true);
+      setGame(null);
+      isInitializedRef.current = false;
+    };
+  }, [game, setGame]);
 
   useEffect(() => {
     const deskZoneAction = actions.desk_zone;

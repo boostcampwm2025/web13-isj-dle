@@ -5,7 +5,7 @@ import { useBreakoutStore } from "@entities/lectern";
 import { useLecternStore } from "@entities/lectern";
 import { useUserStore } from "@entities/user";
 import { useVideoConferenceModeStore } from "@entities/video-conference-mode";
-import { GAME_SCENE_KEY, GameScene, usePhaserGame } from "@features/game";
+import { GAME_SCENE_KEY, type GameScene, usePhaserGame } from "@features/game";
 import { useTimerStopwatchStore } from "@features/timer-stopwatch-sidebar";
 import { VIDEO_CONFERENCE_MODE } from "@shared/config";
 import { isMeetingRoomRange } from "@shared/config";

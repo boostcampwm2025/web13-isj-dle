@@ -9,7 +9,7 @@ const Spaces = ({ addPath }: SpacesProps) => {
   return (
     <div>
       <h3 className="mb-4 text-base font-bold text-gray-800">공간 선택</h3>
-      <img src="/assets/maps/world.png" alt="공간 배치도" className="mb-4 w-full rounded-lg border" />
+      <img src="/assets/maps/world.webp" alt="공간 배치도" className="mb-4 w-full rounded-lg border" />
 
       <div className="space-y-2">
         {Object.entries(SPACES).map(([key, { Icon, title, description }]) => (
