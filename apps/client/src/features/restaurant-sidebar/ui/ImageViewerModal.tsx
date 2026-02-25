@@ -10,6 +10,7 @@ import { useUserStore } from "@entities/user";
 import { ICON_SIZE, SIDEBAR_TAB_WIDTH, SIDEBAR_WIDTH } from "@shared/config";
 import { useSidebarStore } from "@widgets/sidebar";
 
+import { optimizeImage } from "../lib/optimize-image";
 import { INVALID_SIZE_MESSAGE, INVALID_TYPE_MESSAGE } from "../model/message.constants";
 import { DEFAULT_ACCEPT, validateImageFile } from "../model/use-image-attachment";
 import { Pencil, Trash2, X } from "lucide-react";
@@ -88,8 +89,10 @@ const ImageViewerModal = ({ onDelete, onUpdate }: ImageViewerModalProps) => {
       }
 
       setIsUpdating(true);
+      const optimizedFile = await optimizeImage(file);
+
       try {
-        const newUrl = await replaceMutation.mutateAsync({ imageUrl, file });
+        const newUrl = await replaceMutation.mutateAsync({ imageUrl, file: optimizedFile });
         onUpdate(imageUrl, newUrl);
         closeViewer();
       } catch {

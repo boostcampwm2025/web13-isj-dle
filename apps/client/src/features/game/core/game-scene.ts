@@ -31,7 +31,7 @@ import type { AvatarEntity, MapObj } from "../model/game.types";
 import { DEFAULT_ZOOM_INDEX, ZOOM_LEVELS } from "../model/zoom.constants";
 import { useZoomStore } from "../model/zoom.store";
 import { AvatarRenderer, BoundaryRenderer } from "../renderers";
-import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints, loadTilesets } from "../utils";
+import { getAvatarSpawnPoint, getSeatDirectionAtPosition, getSeatPoints } from "../utils";
 import Phaser from "phaser";
 import type { Socket } from "socket.io-client";
 
@@ -112,6 +112,17 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON(this.mapObj.name, this.mapObj.tmjUrl);
 
+    this.load.once(`filecomplete-tilemapJSON-${this.mapObj.name}`, () => {
+      const cached = this.cache.tilemap.get(this.mapObj.name);
+      if (!cached?.data?.tilesets) return;
+
+      for (const ts of cached.data.tilesets) {
+        if (!ts.image) continue;
+        const base = new URL(this.mapObj.tmjUrl, window.location.origin);
+        this.load.image(ts.name, new URL(ts.image, base).pathname);
+      }
+    });
+
     (Object.keys(AVATAR_ASSETS) as AvatarAssetKey[]).forEach((assetKey) => {
       const { url } = AVATAR_ASSETS[assetKey];
 
@@ -122,10 +133,8 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  async create() {
+  create() {
     try {
-      await loadTilesets(this, this.mapObj.tmjUrl);
-
       const map = this.make.tilemap({ key: this.mapObj.name });
       this.mapObj.map = map;
 
@@ -307,8 +316,8 @@ export class GameScene extends Phaser.Scene {
     sprite.body.setSize(TILE_SIZE - 2, TILE_SIZE - 2);
     sprite.body.setOffset(1, TILE_SIZE + 1);
 
-    this.mapObj.map?.layers.forEach(({ tilemapLayer }) => {
-      if (!tilemapLayer) return;
+    this.mapObj.map?.layers.forEach(({ name, tilemapLayer }) => {
+      if (!tilemapLayer || !name.includes("Collision")) return;
       this.physics.add.collider(sprite, tilemapLayer);
     });
 

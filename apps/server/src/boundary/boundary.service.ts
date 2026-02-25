@@ -6,35 +6,33 @@ const BOUNDARY_TILES = 1;
 
 @Injectable()
 export class BoundaryService {
-  isWithinBoundary(x1: number, y1: number, x2: number, y2: number): boolean {
-    const tileX1 = Math.floor(x1 / TILE_SIZE);
-    const tileY1 = Math.floor(y1 / TILE_SIZE);
-    const tileX2 = Math.floor(x2 / TILE_SIZE);
-    const tileY2 = Math.floor(y2 / TILE_SIZE);
-
-    const distance = Math.max(Math.abs(tileX1 - tileX2), Math.abs(tileY1 - tileY2));
-    return distance <= BOUNDARY_TILES;
-  }
-
-  areUsersInBoundary(user1: User, user2: User): boolean {
-    return this.isWithinBoundary(user1.avatar.x, user1.avatar.y, user2.avatar.x, user2.avatar.y);
-  }
-
   findConnectedGroups(users: User[]): Map<string, string[]> {
     const eligibleUsers = users.filter((user) => user.avatar.state === "idle" || user.contactId !== null);
     const visited = new Set<string>();
     const groups = new Map<string, string[]>();
 
     const adjacency = new Map<string, string[]>();
+    const tileMap = new Map<string, User[]>();
     for (const user of eligibleUsers) {
       adjacency.set(user.socketId, []);
+      const tx = Math.floor(user.avatar.x / TILE_SIZE);
+      const ty = Math.floor(user.avatar.y / TILE_SIZE);
+      const key = `${tx},${ty}`;
+      if (!tileMap.has(key)) tileMap.set(key, []);
+      tileMap.get(key)!.push(user);
     }
 
-    for (let i = 0; i < eligibleUsers.length; i++) {
-      for (let j = i + 1; j < eligibleUsers.length; j++) {
-        if (this.areUsersInBoundary(eligibleUsers[i], eligibleUsers[j])) {
-          adjacency.get(eligibleUsers[i].socketId)!.push(eligibleUsers[j].socketId);
-          adjacency.get(eligibleUsers[j].socketId)!.push(eligibleUsers[i].socketId);
+    for (const user of eligibleUsers) {
+      const tx = Math.floor(user.avatar.x / TILE_SIZE);
+      const ty = Math.floor(user.avatar.y / TILE_SIZE);
+
+      for (let dx = -BOUNDARY_TILES; dx <= BOUNDARY_TILES; dx++) {
+        for (let dy = -BOUNDARY_TILES; dy <= BOUNDARY_TILES; dy++) {
+          const neighbors = tileMap.get(`${tx + dx},${ty + dy}`) ?? [];
+          for (const neighbor of neighbors) {
+            if (neighbor.socketId === user.socketId) continue;
+            adjacency.get(user.socketId)!.push(neighbor.socketId);
+          }
         }
       }
     }
@@ -50,9 +48,10 @@ export class BoundaryService {
 
       const component: string[] = [];
       const queue: string[] = [user.socketId];
+      let head = 0;
 
-      while (queue.length > 0) {
-        const current = queue.shift()!;
+      while (head < queue.length) {
+        const current = queue[head++];
         if (visited.has(current)) continue;
 
         visited.add(current);

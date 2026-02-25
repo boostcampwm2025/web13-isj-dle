@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { KrispNoiseFilter, type KrispNoiseFilterProcessor } from "@livekit/krisp-noise-filter";
+import type { KrispNoiseFilterProcessor } from "@livekit/krisp-noise-filter";
 
 import type { LocalAudioTrack, ProcessorOptions, Room, TrackProcessor } from "livekit-client";
 import { RoomEvent, Track } from "livekit-client";
@@ -52,7 +52,16 @@ export const useNoiseFilter = (room: Room | undefined) => {
 
       stopOnCurrentTrack();
       await destroyProcessor();
-      console.warn(`Krisp noise filter disabled (${reason})`);
+      console.warn(`Krisp noise filter disabled (${reason}), falling back to browser noiseSuppression`);
+
+      const track = getMicTrack();
+      if (track) {
+        try {
+          await track.restartTrack({ noiseSuppression: true });
+        } catch (error) {
+          console.error("Failed to enable browser noiseSuppression fallback:", error);
+        }
+      }
     };
 
     const applyNoiseFilterIfNeeded = async () => {
@@ -63,6 +72,7 @@ export const useNoiseFilter = (room: Room | undefined) => {
 
       if (!processorRef.current) {
         try {
+          const { KrispNoiseFilter } = await import("@livekit/krisp-noise-filter");
           processorRef.current = KrispNoiseFilter({
             quality: KRISP_NOISE_FILTER_QUALITY,
             bufferOverflowMs: KRISP_NOISE_FILTER_BUFFER_OVER_FLOW_MS,

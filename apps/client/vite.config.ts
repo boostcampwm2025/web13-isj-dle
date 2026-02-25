@@ -23,6 +23,7 @@ export default defineConfig({
           if (!id.includes("node_modules")) return;
 
           if (id.includes("phaser")) return "phaser";
+          if (id.includes("easystarjs")) return "easystarjs";
           if (id.includes("@livekit/krisp-noise-filter")) return "livekit-krisp";
           if (id.includes("@livekit/components-react")) return "livekit-component";
           if (id.includes("livekit-client")) return "livekit-client";

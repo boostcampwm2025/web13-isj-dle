@@ -3,7 +3,7 @@ import { Briefcase, Code, Home, Presentation, Utensils } from "lucide-react";
 
 export const SPACES: Record<Space, SpaceContent> = {
   lobby: {
-    url: "/assets/maps/lobby.png",
+    url: "/assets/maps/lobby.webp",
     Icon: Home,
     title: "로비",
     description: "공간 이동과 서비스 시작 지점",
@@ -24,28 +24,28 @@ export const SPACES: Record<Space, SpaceContent> = {
     ],
   },
   desk_zone: {
-    url: "/assets/maps/desk_zone.png",
+    url: "/assets/maps/desk_zone.webp",
     Icon: Briefcase,
     title: "데스크존",
     description: "집중 작업 + 필요할 때만 대화",
     items: ["기본적으로 화상회의 비활성화", "상대가 ‘노크 가능’ 상태일 때 노크로 대화 요청"],
   },
   mogakco: {
-    url: "/assets/maps/mogakco.png",
+    url: "/assets/maps/mogakco.webp",
     Icon: Code,
     title: "모각코방",
     description: "모여서 각자 집중 코딩",
     items: ["조용한 개인 작업 공간", "필요 시 다른 사용자와 대화 및 채팅 가능", "사용자별 타이머, 스톱워치 기능 제공"],
   },
   restaurant: {
-    url: "/assets/maps/restaurant.png",
+    url: "/assets/maps/restaurant.webp",
     Icon: Utensils,
     title: "식당",
     description: "점심, 저녁 식사 및 자유로운 대화",
     items: ["자유로운 대화 가능", "음식 사진을 공유하며 소통 가능"],
   },
   seminar_lounge: {
-    url: "/assets/maps/seminar_lounge.png",
+    url: "/assets/maps/seminar_lounge.webp",
     Icon: Presentation,
     title: "세미나실 (라운지)",
     description: "오픈 스테이지, 타운홀",
@@ -57,7 +57,7 @@ export const SPACES: Record<Space, SpaceContent> = {
     ],
   },
   seminar_web: {
-    url: "/assets/maps/seminar_web.png",
+    url: "/assets/maps/seminar_web.webp",
     Icon: Presentation,
     title: "세미나실 (웹)",
     description: "마스터 클래스",
@@ -69,7 +69,7 @@ export const SPACES: Record<Space, SpaceContent> = {
     ],
   },
   seminar_ios: {
-    url: "/assets/maps/seminar_ios.png",
+    url: "/assets/maps/seminar_ios.webp",
     Icon: Presentation,
     title: "세미나실 (iOS)",
     description: "마스터 클래스",
@@ -81,7 +81,7 @@ export const SPACES: Record<Space, SpaceContent> = {
     ],
   },
   seminar_android: {
-    url: "/assets/maps/seminar_android.png",
+    url: "/assets/maps/seminar_android.webp",
     Icon: Presentation,
     title: "세미나실 (Android)",
     description: "마스터 클래스",

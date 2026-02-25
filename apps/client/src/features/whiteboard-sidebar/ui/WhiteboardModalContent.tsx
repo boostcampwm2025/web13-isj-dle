@@ -1,5 +1,6 @@
 import { CollaborationModal } from "@shared/ui";
 import { Tldraw } from "@tldraw/tldraw";
+import "@tldraw/tldraw/tldraw.css";
 
 import { useWhiteboard } from "../model/use-whiteboard";
 
