@@ -4,7 +4,7 @@ import type { GameScene } from "../core";
 import { AUTO_MOVE_BLOCKED, AUTO_MOVE_DURATION } from "../model/game.constants";
 import type { TilePoint } from "../model/game.types";
 import { getDirBetween, tileToWorld, worldToTile } from "../utils";
-import type * as EasyStar from "easystarjs";
+import type EasyStar from "easystarjs";
 
 export class AutoMoveManager {
   private scene: GameScene;
@@ -62,7 +62,7 @@ export class AutoMoveManager {
     const map = this.scene.mapInfo.map;
     if (!map) return;
 
-    const EasyStar = await import("easystarjs");
+    const EasyStar = (await import("easystarjs")).default;
     this.easystar = new EasyStar.js();
 
     const grid: number[][] = Array.from({ length: map.height }, () => Array(map.width).fill(0));
