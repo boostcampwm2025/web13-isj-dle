@@ -160,22 +160,6 @@ describe("KnockGateway", () => {
     });
   });
 
-  // ===========================================================
-  // [Bug-1] toUser(수락자) 상태 미검증 재현
-  //
-  // knock.gateway.ts:65-148 handleKnockAccept에서
-  // fromUser의 상태(line 87, 96)는 재검증하지만
-  // toUser(client 본인)의 현재 상태는 재검증하지 않음.
-  //
-  // 시나리오:
-  //   t=1: B가 C의 노크를 수락 → B: talking, C: talking
-  //   t=2: B(이미 talking)가 A의 노크도 수락 시도
-  //
-  // 기대: KNOCK_ACCEPT_FAILED (B가 이미 talking)
-  // 실제: 수락 성공 → B-A talkingPair 등록 (B-C 덮어씌워짐)
-  //
-  // → 이 테스트는 버그가 수정될 때까지 실패(FAIL)해야 함
-  // ===========================================================
   describe("[Bug-1] toUser(수락자) 상태 미검증 재현", () => {
     it("[버그 재현] talking 상태인 B가 또 다른 노크를 수락하면 막혀야 하지만 통과됨", () => {
       const userA = createUserSession("A", "available");
