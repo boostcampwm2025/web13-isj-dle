@@ -35,6 +35,12 @@ export class MetricsService {
 
     @InjectMetric("session_duration_seconds")
     private sessionDurationHistogram: Histogram<string>,
+
+    @InjectMetric("socket_events_total")
+    private socketEventsCounter: Counter<string>,
+
+    @InjectMetric("socket_payload_bytes")
+    private socketPayloadHistogram: Histogram<string>,
   ) {}
 
   incrementWsConnections() {
@@ -101,5 +107,13 @@ export class MetricsService {
 
   reconcileWsConnections(actualCount: number) {
     this.wsConnectionsGauge.set(actualCount);
+  }
+
+  recordSocketEvent(eventName: string, direction: "inbound" | "outbound") {
+    this.socketEventsCounter.labels(eventName, direction).inc();
+  }
+
+  recordSocketPayload(eventName: string, bytes: number) {
+    this.socketPayloadHistogram.labels(eventName).observe(bytes);
   }
 }
