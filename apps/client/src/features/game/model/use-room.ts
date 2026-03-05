@@ -29,7 +29,7 @@ export const useRoom = () => {
     return () => {
       socket.off(RoomEventType.ROOM_JOINED, handleRoomJoined);
     };
-  }, [resetUsersDeskStatus, socket, updateUser]);
+  }, [socket, updateUser]);
 
   return {
     joinRoom,
