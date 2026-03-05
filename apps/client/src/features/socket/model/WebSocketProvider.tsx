@@ -31,6 +31,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const setSyncUsers = useUserStore((s) => s.setSyncUsers);
+  const updateSelfUser = useUserStore((s) => s.updateSelfUser);
   const addUser = useUserStore((s) => s.addUser);
   const removeUser = useUserStore((s) => s.removeUser);
   const updateUser = useUserStore((s) => s.updateUser);
@@ -73,10 +74,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   }, []);
 
   const handleUserSync = useCallback(
-    (data: { user: User; users: User[] }) => {
-      setSyncUsers(data.user, data.users);
+    (data: { user: User; users?: User[] }) => {
+      if (data.users) {
+        setSyncUsers(data.user, data.users); // 초기 접속 or 재접속 — 전체 유저 리셋
+      } else {
+        updateSelfUser(data.user); // 방 이동 — 현재 유저 정보만 업데이트
+      }
     },
-    [setSyncUsers],
+    [setSyncUsers, updateSelfUser],
   );
 
   const handleUserJoin = useCallback(
