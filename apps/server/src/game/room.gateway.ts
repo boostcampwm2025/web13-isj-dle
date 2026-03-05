@@ -6,6 +6,7 @@ import { KnockEventType, RoomEventType, type RoomJoinPayload, RoomType, UserEven
 import { Server, Socket } from "socket.io";
 
 import { KnockService } from "../knock/knock.service";
+import { MetricsService } from "../metrics";
 import { StopwatchGateway } from "../stopwatch/stopwatch.gateway";
 import { TimerService } from "../timer/timer.service";
 import { UserInternalEvent, type UserLeavingRoomPayload } from "../user/user-event.types";
@@ -25,6 +26,7 @@ export class RoomGateway {
     private readonly timerService: TimerService,
     private readonly stopwatchGateway: StopwatchGateway,
     private readonly eventEmitter: EventEmitter2,
+    private readonly metricsService: MetricsService,
   ) {}
 
   @SubscribeMessage(RoomEventType.ROOM_JOIN)
@@ -89,15 +91,15 @@ export class RoomGateway {
       const updatedUser = this.userService.getSession(client.id);
       if (!updatedUser) return;
 
-      this.server.emit(RoomEventType.ROOM_JOINED, {
+      this.server.to(payload.roomId).emit(RoomEventType.ROOM_JOINED, {
         socketId: client.id,
         avatar: updatedUser.avatar,
       });
+      this.metricsService.recordSocketEvent("room:joined", "outbound");
 
-      client.emit(UserEventType.USER_SYNC, {
-        user: updatedUser,
-        users: this.userService.getAllSessions(),
-      });
+      const userSyncPayload = { user: updatedUser };
+      this.metricsService.recordSocketPayload("user:sync", Buffer.byteLength(JSON.stringify(userSyncPayload)));
+      client.emit(UserEventType.USER_SYNC, userSyncPayload);
 
       if (payload.roomId === "desk zone") {
         this.userService.updateSessionDeskStatus(client.id, "available");
