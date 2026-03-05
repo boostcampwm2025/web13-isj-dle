@@ -91,11 +91,18 @@ export class RoomGateway {
       const updatedUser = this.userService.getSession(client.id);
       if (!updatedUser) return;
 
+      // 해당 방 유저에게만 풀 avatar 전송 (렌더링용)
       this.server.to(payload.roomId).emit(RoomEventType.ROOM_JOINED, {
         socketId: client.id,
         avatar: updatedUser.avatar,
       });
       this.metricsService.recordSocketEvent("room:joined", "outbound");
+
+      // 전체 유저에게 currentRoomId만 전송 (사이드바 갱신용, ~50B)
+      this.server.emit(UserEventType.USER_UPDATE, {
+        socketId: client.id,
+        avatar: { currentRoomId: payload.roomId },
+      });
 
       const userSyncPayload = { user: updatedUser };
       this.metricsService.recordSocketPayload("user:sync", Buffer.byteLength(JSON.stringify(userSyncPayload)));

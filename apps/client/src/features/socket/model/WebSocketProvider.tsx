@@ -8,6 +8,7 @@ import { useUserStore } from "@entities/user";
 import type { GameScene } from "@features/game";
 import { SERVER_URL } from "@shared/config";
 import {
+  type Avatar,
   type AvatarDirection,
   type AvatarState,
   type BreakoutState,
@@ -32,6 +33,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const socketRef = useRef<Socket | null>(null);
   const setSyncUsers = useUserStore((s) => s.setSyncUsers);
   const updateSelfUser = useUserStore((s) => s.updateSelfUser);
+  const resetUsersDeskStatus = useUserStore((s) => s.resetUsersDeskStatus);
   const addUser = useUserStore((s) => s.addUser);
   const removeUser = useUserStore((s) => s.removeUser);
   const updateUser = useUserStore((s) => s.updateUser);
@@ -99,10 +101,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   );
 
   const handleUserUpdate = useCallback(
-    (data: { socketId: string; micOn?: boolean; cameraOn?: boolean }) => {
+    (data: { socketId: string; micOn?: boolean; cameraOn?: boolean; avatar?: Partial<Avatar> }) => {
+      if (data.avatar?.currentRoomId && data.avatar.currentRoomId !== "desk zone") {
+        resetUsersDeskStatus();
+      }
       updateUser(data);
     },
-    [updateUser],
+    [updateUser, resetUsersDeskStatus],
   );
 
   const handleUserInfoUpdate = useCallback(
