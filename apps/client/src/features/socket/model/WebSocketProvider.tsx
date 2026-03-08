@@ -159,11 +159,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   );
 
   const handleMuteAllExecuted = useCallback(
-    (data: { hostSocketId: string }) => {
-      const currentUser = useUserStore.getState().user;
-      if (currentUser && data.hostSocketId !== currentUser.socketId) {
-        updateUser({ socketId: currentUser.socketId, micOn: false });
-      }
+    (data: { hostSocketId: string; mutedSocketIds: string[] }) => {
+      data.mutedSocketIds.forEach((socketId) => {
+        updateUser({ socketId, micOn: false });
+      });
     },
     [updateUser],
   );

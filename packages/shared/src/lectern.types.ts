@@ -19,6 +19,11 @@ export enum LecternEventType {
   BREAKOUT_LEAVE = "lectern:breakout-leave",
 }
 
+export interface MuteAllExecutedPayload {
+  hostSocketId: string;
+  mutedSocketIds: string[];
+}
+
 export interface BreakoutRoom {
   roomId: string;
   socketIds: string[];

@@ -2,9 +2,10 @@ import { Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 
-import { type BreakoutConfig, LecternEventType, RoomType, UserEventType } from "@shared/types";
+import { type BreakoutConfig, LecternEventType, RoomType } from "@shared/types";
 import { Server, Socket } from "socket.io";
 
+import { MetricsService } from "../metrics";
 import { type UserDisconnectingPayload, UserInternalEvent } from "../user/user-event.types";
 import { UserService } from "../user/user.service";
 import { LecternService } from "./lectern.service";
@@ -17,6 +18,7 @@ export class LecternGateway {
   constructor(
     private readonly lecternService: LecternService,
     private readonly userService: UserService,
+    private readonly metricsService: MetricsService,
   ) {}
 
   @SubscribeMessage(LecternEventType.LECTERN_ENTER)
@@ -50,23 +52,14 @@ export class LecternGateway {
 
     const targetUsers = this.userService.getRoomSessions(payload.roomId).filter((user) => user.socketId !== client.id);
     for (const user of targetUsers) {
-      if (user.socketId !== client.id) {
-        this.userService.updateSessionMedia(user.socketId, { micOn: false });
-      }
+      this.userService.updateSessionMedia(user.socketId, { micOn: false });
     }
 
     this.server.to(payload.roomId).emit(LecternEventType.MUTE_ALL_EXECUTED, {
       hostSocketId: client.id,
+      mutedSocketIds: targetUsers.map((u) => u.socketId),
     });
-
-    for (const user of targetUsers) {
-      if (user.socketId !== client.id) {
-        this.server.emit(UserEventType.USER_UPDATE, {
-          socketId: user.socketId,
-          micOn: false,
-        });
-      }
-    }
+    this.metricsService.recordSocketEvent("lectern:mute-all-executed", "outbound");
 
     callback?.({ success: true });
   }
@@ -157,8 +150,8 @@ export class LecternGateway {
   }
 
   @OnEvent(UserInternalEvent.DISCONNECTING)
-  handleUserDisconnect({ clientId }: UserDisconnectingPayload) {
-    const affectedRooms = this.lecternService.removeUserFromAllLecterns(clientId);
+  handleUserDisconnect({ socketId }: UserDisconnectingPayload) {
+    const affectedRooms = this.lecternService.removeUserFromAllLecterns(socketId);
     for (const [roomId, state] of affectedRooms) {
       this.server.to(roomId).emit(LecternEventType.LECTERN_UPDATE, {
         roomId,
