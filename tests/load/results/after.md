@@ -52,3 +52,40 @@ USER_A=1 USER_B=2 USER_C=3 node tests/load/measure-room-joined.mjs
 |------|--------|-------|
 | 다른 방 유저의 수신 횟수 | 1회 (전역) | 0회 (방 단위) |
 | 불필요한 수신자 | 전체 유저 - 방 인원 | 없음 |
+
+---
+
+## MUTE_ALL emit 횟수
+
+> 측정 도구: `test/lectern/mute-all.spec.ts` (mock emit 호출 횟수 카운팅)
+
+### emit 횟수 비교 (실측, 30명 기준)
+
+```
+HOST_ID=1 MEMBER_ID=2 OBSERVER_ID=3 MEMBER_COUNT=30 node tests/load/measure-mute-all.mjs
+```
+
+| 항목 | Before | After |
+|------|--------|-------|
+| server.emit(user:update) — 전역 | **30회** | **0회** |
+| server.to().emit(mute-all-executed) — 방 단위 | 1회 | 1회 |
+| 총 outbound emit 횟수 | **31회** | **1회** |
+| OBSERVER(다른 방) user:update 수신 | **30회** | **0회** |
+| mutedSocketIds[] 포함 여부 | ✗ | **✓** |
+
+> Prometheus socket_events_total 실측값 (30명 기준)
+> Before: user:update{outbound}=30, lectern:mute-all-executed{outbound}=1
+> After:  user:update{outbound}=0,  lectern:mute-all-executed{outbound}=1
+
+### 부하 안정성 (Artillery, 200 VU)
+
+```
+artillery run tests/load/artillery-mute-all.yml --output tests/load/results/mute-all-after.json
+```
+
+| 항목 | 결과 |
+|------|------|
+| 총 VU 수 | 200명 |
+| 완료 | 200명 |
+| 실패 | **0명** |
+| session p99 | 54,738ms (매우 일정) |
