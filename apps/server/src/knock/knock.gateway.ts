@@ -248,18 +248,18 @@ export class KnockGateway {
   }
 
   @OnEvent(UserInternalEvent.DISCONNECTING)
-  handleUserDisconnecting({ clientId, nickname }: UserDisconnectingPayload) {
-    this.endTalkIfNeeded(clientId, nickname, "disconnected");
+  handleUserDisconnecting({ socketId, nickname }: UserDisconnectingPayload) {
+    this.endTalkIfNeeded(socketId, nickname, "disconnected");
 
-    const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(clientId);
+    const { sentTo, receivedFrom } = this.knockService.removeAllKnocksForUser(socketId);
     for (const targetSocketId of sentTo) {
       this.server.to(targetSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
-        fromSocketId: clientId,
+        fromSocketId: socketId,
       });
     }
     for (const fromSocketId of receivedFrom) {
       this.server.to(fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
-        targetSocketId: clientId,
+        targetSocketId: socketId,
       });
     }
   }
