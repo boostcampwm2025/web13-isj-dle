@@ -89,6 +89,10 @@ export class KnockGateway {
         fromSocketId: payload.fromSocketId,
         reason: "현재 노크를 수락할 수 없는 상태입니다.",
       });
+      this.knockService.removePendingKnock(payload.fromSocketId, client.id);
+      this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        targetSocketId: client.id,
+      });
       return;
     }
 
