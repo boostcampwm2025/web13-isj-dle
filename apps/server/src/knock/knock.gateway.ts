@@ -131,7 +131,7 @@ export class KnockGateway {
 
     this.knockService.addTalkingPair(client.id, payload.fromSocketId);
 
-    const contactId = [client.id, payload.fromSocketId].sort().join("-");
+    const contactId = [client.id, payload.fromSocketId].sort().join("|");
     this.userService.updateSessionContactId(client.id, contactId);
     this.userService.updateSessionContactId(payload.fromSocketId, contactId);
 
