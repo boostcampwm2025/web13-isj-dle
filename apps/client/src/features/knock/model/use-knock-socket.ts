@@ -20,6 +20,8 @@ export const useKnockSocket = () => {
   const removeReceivedKnock = useKnockStore((s) => s.removeReceivedKnock);
   const removeSentKnock = useKnockStore((s) => s.removeSentKnock);
   const setKnockFailedMessage = useKnockStore((s) => s.setKnockFailedMessage);
+  const pendingAcceptSocketId = useKnockStore((s) => s.pendingAcceptSocketId);
+  const setPendingAcceptSocketId = useKnockStore((s) => s.setPendingAcceptSocketId);
   const updateUserDeskStatus = useUserStore((s) => s.updateUserDeskStatus);
   const addSidebarKey = useSidebarStore((s) => s.addKey);
   const removeSidebarKey = useSidebarStore((s) => s.removeKey);
@@ -51,6 +53,10 @@ export const useKnockSocket = () => {
 
     const handleTalkEnded = () => {
       removeSidebarKey("chat");
+      if (pendingAcceptSocketId) {
+        socket.emit(KnockEventType.KNOCK_ACCEPT, { fromSocketId: pendingAcceptSocketId });
+        setPendingAcceptSocketId(null);
+      }
     };
 
     const handleKnockCancelled = (payload: KnockCancelledPayload) => {
@@ -101,5 +107,7 @@ export const useKnockSocket = () => {
     updateUserDeskStatus,
     addSidebarKey,
     removeSidebarKey,
+    pendingAcceptSocketId,
+    setPendingAcceptSocketId,
   ]);
 };

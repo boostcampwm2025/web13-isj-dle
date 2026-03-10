@@ -6,11 +6,13 @@ interface KnockState {
   receivedKnocks: Knock[];
   sentKnockTargets: string[];
   knockFailedMessage: string | null;
+  pendingAcceptSocketId: string | null;
   addReceivedKnock: (knock: Knock) => void;
   removeReceivedKnock: (fromSocketId: string) => void;
   addSentKnock: (targetSocketId: string) => void;
   removeSentKnock: (targetSocketId: string) => void;
   setKnockFailedMessage: (message: string | null) => void;
+  setPendingAcceptSocketId: (socketId: string | null) => void;
   clearAllKnocks: () => void;
 }
 
@@ -18,6 +20,7 @@ export const useKnockStore = create<KnockState>((set) => ({
   receivedKnocks: [],
   sentKnockTargets: [],
   knockFailedMessage: null,
+  pendingAcceptSocketId: null,
 
   addReceivedKnock: (knock) =>
     set((state) => {
@@ -45,6 +48,8 @@ export const useKnockStore = create<KnockState>((set) => ({
     })),
 
   setKnockFailedMessage: (message) => set({ knockFailedMessage: message }),
+
+  setPendingAcceptSocketId: (socketId) => set({ pendingAcceptSocketId: socketId }),
 
   clearAllKnocks: () =>
     set({
