@@ -78,9 +78,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const handleUserSync = useCallback(
     (data: { user: User; users?: User[] }) => {
       if (data.users) {
-        setSyncUsers(data.user, data.users); // 초기 접속 or 재접속 — 전체 유저 리셋
+        setSyncUsers(data.user, data.users);
       } else {
-        updateSelfUser(data.user); // 방 이동 — 현재 유저 정보만 업데이트
+        updateSelfUser(data.user);
       }
     },
     [setSyncUsers, updateSelfUser],
