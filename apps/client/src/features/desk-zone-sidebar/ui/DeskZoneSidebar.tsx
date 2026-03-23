@@ -20,11 +20,11 @@ const DeskZoneSidebar = () => {
   const receivedKnocks = useKnockStore((s) => s.receivedKnocks);
   const knockFailedMessage = useKnockStore((s) => s.knockFailedMessage);
   const setKnockFailedMessage = useKnockStore((s) => s.setKnockFailedMessage);
+  const setPendingAcceptSocketId = useKnockStore((s) => s.setPendingAcceptSocketId);
 
   const { sendKnock, acceptKnock, rejectKnock, updateDeskStatus, canKnockTo, endTalk, isTalking } = useKnock();
 
   const [showEndTalkConfirm, setShowEndTalkConfirm] = useState(false);
-  const [pendingAcceptSocketId, setPendingAcceptSocketId] = useState<string | null>(null);
   const [selectedSocketId, setSelectedSocketId] = useState<string | null>(null);
 
   const deskZoneUsers = users.filter((u) => u.avatar.currentRoomId === "desk zone");
@@ -57,12 +57,6 @@ const DeskZoneSidebar = () => {
 
   const handleConfirmEndAndAccept = () => {
     endTalk();
-    if (pendingAcceptSocketId) {
-      setTimeout(() => {
-        acceptKnock(pendingAcceptSocketId);
-        setPendingAcceptSocketId(null);
-      }, 100);
-    }
     setShowEndTalkConfirm(false);
   };
 

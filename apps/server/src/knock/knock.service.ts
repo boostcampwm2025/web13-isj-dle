@@ -8,7 +8,7 @@ export class KnockService {
   private talkingPairs = new Map<string, string>();
 
   private getKnockKey(fromSocketId: string, toSocketId: string): string {
-    return `${fromSocketId}-${toSocketId}`;
+    return `${fromSocketId}|${toSocketId}`;
   }
 
   canKnock(fromStatus: DeskStatus | null, toStatus: DeskStatus | null): { canKnock: boolean; reason?: string } {
@@ -55,7 +55,7 @@ export class KnockService {
     const receivedFrom: string[] = [];
 
     for (const [key] of this.pendingKnocks) {
-      const [fromId, toId] = key.split("-");
+      const [fromId, toId] = key.split("|");
       if (fromId === socketId) {
         sentTo.push(toId);
         this.pendingKnocks.delete(key);

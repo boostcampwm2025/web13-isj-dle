@@ -84,12 +84,27 @@ export class KnockGateway {
       return;
     }
 
+    if (toUser.deskStatus === "talking") {
+      client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
+        fromSocketId: payload.fromSocketId,
+        reason: "현재 노크를 수락할 수 없는 상태입니다.",
+      });
+      this.knockService.removePendingKnock(payload.fromSocketId, client.id);
+      this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        targetSocketId: client.id,
+      });
+      return;
+    }
+
     if (fromUser.deskStatus === "talking") {
       client.emit(KnockEventType.KNOCK_ACCEPT_FAILED, {
         fromSocketId: payload.fromSocketId,
         reason: "상대방이 이미 다른 대화 중입니다.",
       });
       this.knockService.removePendingKnock(payload.fromSocketId, client.id);
+      this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        targetSocketId: client.id,
+      });
       return;
     }
 
@@ -99,6 +114,9 @@ export class KnockGateway {
         reason: "상대방이 집중 모드 상태입니다.",
       });
       this.knockService.removePendingKnock(payload.fromSocketId, client.id);
+      this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
+        targetSocketId: client.id,
+      });
       return;
     }
 
@@ -117,7 +135,7 @@ export class KnockGateway {
 
     this.knockService.addTalkingPair(client.id, payload.fromSocketId);
 
-    const contactId = [client.id, payload.fromSocketId].sort().join("-");
+    const contactId = [client.id, payload.fromSocketId].sort().join("|");
     this.userService.updateSessionContactId(client.id, contactId);
     this.userService.updateSessionContactId(payload.fromSocketId, contactId);
 
