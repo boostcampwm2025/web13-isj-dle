@@ -17,7 +17,7 @@ import { KnockService } from "./knock.service";
 
 @WebSocketGateway()
 export class KnockGateway {
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
   private readonly logger = new Logger(KnockGateway.name);
 
   constructor(
@@ -92,6 +92,7 @@ export class KnockGateway {
       this.knockService.removePendingKnock(payload.fromSocketId, client.id);
       this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
         targetSocketId: client.id,
+        reason: "상대방이 현재 대화 중이어서 노크가 취소되었습니다.",
       });
       return;
     }
@@ -104,6 +105,7 @@ export class KnockGateway {
       this.knockService.removePendingKnock(payload.fromSocketId, client.id);
       this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
         targetSocketId: client.id,
+        reason: "이미 다른 대화 중이어서 노크가 취소되었습니다.",
       });
       return;
     }
@@ -116,6 +118,7 @@ export class KnockGateway {
       this.knockService.removePendingKnock(payload.fromSocketId, client.id);
       this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
         targetSocketId: client.id,
+        reason: "집중 모드로 전환되어 노크가 취소되었습니다.",
       });
       return;
     }
@@ -127,6 +130,7 @@ export class KnockGateway {
       this.knockService.removePendingKnock(client.id, payload.fromSocketId);
       this.server.to(payload.fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
         fromSocketId: client.id,
+        reason: "talk_started",
       });
     }
 
@@ -273,11 +277,13 @@ export class KnockGateway {
     for (const targetSocketId of sentTo) {
       this.server.to(targetSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
         fromSocketId: clientId,
+        reason: "상대방 연결이 끊겼습니다.",
       });
     }
     for (const fromSocketId of receivedFrom) {
       this.server.to(fromSocketId).emit(KnockEventType.KNOCK_CANCELLED, {
         targetSocketId: clientId,
+        reason: "상대방 연결이 끊겼습니다.",
       });
     }
   }
