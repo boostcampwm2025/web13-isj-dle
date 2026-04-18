@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 import { useKnockStore } from "@entities/knock";
 import { useUserStore } from "@entities/user";
@@ -65,6 +66,9 @@ export const useKnockSocket = () => {
       }
       if (payload.targetSocketId) {
         removeSentKnock(payload.targetSocketId);
+      }
+      if (payload.reason && payload.reason !== "talk_started") {
+        toast(payload.reason);
       }
     };
 
