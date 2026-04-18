@@ -54,6 +54,7 @@ export interface Knock {
 export interface KnockCancelledPayload {
   fromSocketId?: string;
   targetSocketId?: string;
+  reason?: string;
 }
 
 export interface KnockAcceptSuccessPayload {
