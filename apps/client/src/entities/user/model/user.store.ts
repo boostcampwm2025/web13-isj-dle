@@ -44,6 +44,7 @@ interface UserState {
   users: User[];
 
   setSyncUsers: (user: User, users: User[]) => void;
+  updateSelfUser: (user: User) => void;
   addUser: (user: User) => void;
   removeUser: (socketId: string) => void;
   updateUser: (updated: UserUpdate) => void;
@@ -58,6 +59,8 @@ export const useUserStore = create(
   subscribeWithSelector<UserState>((set, get) => ({
     user: null,
     users: [],
+
+    updateSelfUser: (user) => set({ user }),
 
     setSyncUsers: (user, users) => {
       users.forEach((u) => {

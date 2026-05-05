@@ -1,5 +1,6 @@
 import { Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Interval } from "@nestjs/schedule";
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -25,8 +26,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @WebSocketServer() server: Server;
   private readonly logger = new Logger(GameGateway.name);
 
-  private boundaryTick: NodeJS.Timeout | null = null;
-
   constructor(
     private readonly userService: UserService,
     private readonly boundaryService: BoundaryService,
@@ -40,10 +39,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.logger.log(`📡 CORS origins: ${process.env.CLIENT_URL || "http://localhost:5173,http://localhost:3000"}`);
 
     this.server.setMaxListeners(20);
-
-    this.boundaryTick = setInterval(() => {
-      this.runBoundaryTick();
-    }, BOUNDARY_TICK_MS);
   }
 
   async handleConnection(client: Socket) {
@@ -106,7 +101,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.boundaryTracker.clear(payload.socketId);
   }
 
-  private runBoundaryTick() {
+  @Interval(BOUNDARY_TICK_MS)
+  runBoundaryTick() {
     const lobbyUsers = this.userService.getRoomSessions("lobby");
     if (lobbyUsers.length === 0) return;
 

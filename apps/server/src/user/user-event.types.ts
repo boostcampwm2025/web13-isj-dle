@@ -10,6 +10,6 @@ export interface UserLeavingRoomPayload {
 }
 
 export interface UserDisconnectingPayload {
-  clientId: string;
+  socketId: string;
   nickname: string;
 }

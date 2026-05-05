@@ -48,6 +48,8 @@ export class UserGateway {
       socketId: client.id,
       ...payload,
     });
+
+    ack?.({ success: true });
   }
 
   @OnEvent(UserEventType.USER_INFO_UPDATE)

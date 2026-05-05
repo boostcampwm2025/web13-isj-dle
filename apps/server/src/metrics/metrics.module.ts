@@ -70,6 +70,18 @@ import { MetricsService } from "./metrics.service";
       labelNames: ["from_room", "to_room"],
     }),
 
+    makeCounterProvider({
+      name: "socket_events_total",
+      help: "Total socket events by type and direction",
+      labelNames: ["event_name", "direction"],
+    }),
+    makeHistogramProvider({
+      name: "socket_payload_bytes",
+      help: "Socket event payload size in bytes",
+      labelNames: ["event_name"],
+      buckets: [64, 256, 512, 1024, 4096, 16384, 65536],
+    }),
+
     makeHistogramProvider({
       name: "session_duration_seconds",
       help: "User session duration in seconds",

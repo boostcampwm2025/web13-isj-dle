@@ -7,7 +7,6 @@ import { RoomEventType, type RoomJoinedPayload } from "@shared/types";
 export const useRoom = () => {
   const { socket, isConnected } = useWebSocket();
   const updateUser = useUserStore((state) => state.updateUser);
-  const resetUsersDeskStatus = useUserStore((state) => state.resetUsersDeskStatus);
 
   const joinRoom = useCallback(
     (roomId: string) => {
@@ -22,14 +21,7 @@ export const useRoom = () => {
     if (!socket) return;
     const handleRoomJoined = (payload: RoomJoinedPayload) => {
       const { socketId, avatar } = payload;
-      if (avatar.currentRoomId !== "desk zone") {
-        resetUsersDeskStatus();
-      }
-
-      updateUser({
-        socketId: socketId,
-        avatar: avatar,
-      });
+      updateUser({ socketId, avatar });
     };
 
     socket.on(RoomEventType.ROOM_JOINED, handleRoomJoined);
@@ -37,7 +29,7 @@ export const useRoom = () => {
     return () => {
       socket.off(RoomEventType.ROOM_JOINED, handleRoomJoined);
     };
-  }, [resetUsersDeskStatus, socket, updateUser]);
+  }, [socket, updateUser]);
 
   return {
     joinRoom,

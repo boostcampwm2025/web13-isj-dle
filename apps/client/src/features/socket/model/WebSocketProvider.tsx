@@ -8,6 +8,7 @@ import { useUserStore } from "@entities/user";
 import type { GameScene } from "@features/game";
 import { SERVER_URL } from "@shared/config";
 import {
+  type Avatar,
   type AvatarDirection,
   type AvatarState,
   type BreakoutState,
@@ -31,6 +32,8 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const setSyncUsers = useUserStore((s) => s.setSyncUsers);
+  const updateSelfUser = useUserStore((s) => s.updateSelfUser);
+  const resetUsersDeskStatus = useUserStore((s) => s.resetUsersDeskStatus);
   const addUser = useUserStore((s) => s.addUser);
   const removeUser = useUserStore((s) => s.removeUser);
   const updateUser = useUserStore((s) => s.updateUser);
@@ -73,10 +76,14 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   }, []);
 
   const handleUserSync = useCallback(
-    (data: { user: User; users: User[] }) => {
-      setSyncUsers(data.user, data.users);
+    (data: { user: User; users?: User[] }) => {
+      if (data.users) {
+        setSyncUsers(data.user, data.users);
+      } else {
+        updateSelfUser(data.user);
+      }
     },
-    [setSyncUsers],
+    [setSyncUsers, updateSelfUser],
   );
 
   const handleUserJoin = useCallback(
@@ -94,10 +101,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   );
 
   const handleUserUpdate = useCallback(
-    (data: { socketId: string; micOn?: boolean; cameraOn?: boolean }) => {
+    (data: { socketId: string; micOn?: boolean; cameraOn?: boolean; avatar?: Partial<Avatar> }) => {
+      if (data.avatar?.currentRoomId && data.avatar.currentRoomId !== "desk zone") {
+        resetUsersDeskStatus();
+      }
       updateUser(data);
     },
-    [updateUser],
+    [updateUser, resetUsersDeskStatus],
   );
 
   const handleUserInfoUpdate = useCallback(
@@ -149,11 +159,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   );
 
   const handleMuteAllExecuted = useCallback(
-    (data: { hostSocketId: string }) => {
-      const currentUser = useUserStore.getState().user;
-      if (currentUser && data.hostSocketId !== currentUser.socketId) {
-        updateUser({ socketId: currentUser.socketId, micOn: false });
-      }
+    (data: { hostSocketId: string; mutedSocketIds: string[] }) => {
+      data.mutedSocketIds.forEach((socketId) => {
+        updateUser({ socketId, micOn: false });
+      });
     },
     [updateUser],
   );
