@@ -53,7 +53,9 @@ export const useEditorBinding = (
       bindingRef.current = null;
     }
 
-    const ytext = ydocRef.current.getText(`file-${selectedFileId}`);
+    const filesContent = ydocRef.current.getMap<Y.Text>("files-content");
+    const ytext = filesContent.get(selectedFileId);
+    if (!ytext) return;
     ytextRef.current = ytext;
     const uri = monaco.Uri.parse(`file:///${selectedFileId}`);
 
