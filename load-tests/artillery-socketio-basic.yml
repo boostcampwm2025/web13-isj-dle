@@ -1,0 +1,91 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 15
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 30
+      arrivalRate: 20
+      name: "Ramp up"
+    - duration: 30
+      arrivalRate: 40
+      name: "Peak load"
+    - duration: 15
+      arrivalRate: 10
+      name: "Cool down"
+  engines:
+    socketio-v3:
+      transports: [ "websocket" ]
+
+scenarios:
+  - name: "User joins lobby and moves"
+    engine: socketio-v3
+    flow:
+      # 로비 입장
+      - emit:
+          channel: "room:join"
+          data:
+            roomId: "lobby"
+
+      - think: 1
+
+      # 플레이어 이동 시뮬레이션
+      - loop:
+          - emit:
+              channel: "player:move"
+              data:
+                x: "{{ $randomNumber(400, 800) }}"
+                y: "{{ $randomNumber(800, 1100) }}"
+                direction: "down"
+                state: "walk"
+          - think: 0.3
+        count: 10
+
+      # 연결 유지
+      - think: 20
+
+  - name: "User joins meeting room"
+    engine: socketio-v3
+    flow:
+      # 회의실 입장
+      - emit:
+          channel: "room:join"
+          data:
+            roomId: "meeting (web 1-10)"
+
+      - think: 2
+
+      # 회의실 내 이동
+      - loop:
+          - emit:
+              channel: "player:move"
+              data:
+                x: "{{ $randomNumber(650, 750) }}"
+                y: "{{ $randomNumber(1000, 1100) }}"
+                direction: "right"
+                state: "walk"
+          - think: 0.5
+        count: 5
+
+      - think: 15
+
+  - name: "User in mogakco (stopwatch scenario)"
+    engine: socketio-v3
+    flow:
+      # 모각코 입장
+      - emit:
+          channel: "room:join"
+          data:
+            roomId: "mogakco"
+
+      - think: 2
+
+      # 스탑워치 상태 업데이트
+      - emit:
+          channel: "stopwatch:update"
+          data:
+            isRunning: true
+            elapsed: 0
+
+      # 연결 유지
+      - think: 30
