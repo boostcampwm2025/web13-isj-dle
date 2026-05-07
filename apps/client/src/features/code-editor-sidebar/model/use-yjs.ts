@@ -44,7 +44,11 @@ export const useYjs = (roomId: string) => {
     };
 
     provider.on("status", handleStatus);
-    setTimeout(() => setIsInitialized(true), 0);
+    const fallback = setTimeout(() => setIsInitialized(true), 3000);
+    provider.once("sync", () => {
+      clearTimeout(fallback);
+      setIsInitialized(true);
+    });
 
     return () => {
       provider.off("status", handleStatus);

@@ -8,7 +8,7 @@ import {
 } from "./code-editor.constants";
 import { type FileSystemItem, getLanguageFromFileName } from "./file-explorer.utils";
 import type * as Monaco from "monaco-editor";
-import type * as Y from "yjs";
+import * as Y from "yjs";
 
 export const useFileSystem = (
   ydocRef: RefObject<Y.Doc | null>,
@@ -74,7 +74,13 @@ export const useFileSystem = (
 
       const id = crypto.randomUUID();
       const item: FileSystemItem = { id, name: finalName, type, parentId };
-      fsMap.set(id, item);
+      ydocRef.current.transact(() => {
+        fsMap.set(id, item);
+        if (type === "file") {
+          const filesContent = ydocRef.current!.getMap<Y.Text>("files-content");
+          filesContent.set(id, new Y.Text());
+        }
+      });
     },
     [monaco, ydocRef],
   );
@@ -96,8 +102,16 @@ export const useFileSystem = (
           });
         }
 
+        const ydoc = ydocRef.current!;
+        ydoc.transact(() => {
+          const filesContent = ydoc.getMap<Y.Text>("files-content");
+          toDelete.forEach((id) => {
+            filesContent.delete(id);
+            fsMap.delete(id);
+          });
+        });
+
         toDelete.forEach((id) => {
-          fsMap.delete(id);
           if (selectedFileId === id) {
             selectFile(null);
           }
